@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "env": {
+    "APP_URL": "https://your-domain.vercel.app",
+    "DB_HOST": "@db_host",
+    "DB_USER": "@db_user",
+    "DB_PASSWORD": "@db_password",
+    "DB_DATABASE": "@db_database",
+    "DB_PORT": "3306"
+  }
+}
