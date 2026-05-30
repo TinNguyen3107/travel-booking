@@ -1,0 +1,6 @@
+{
+  "name": "Local Experience Hub",
+  "description": "Trung tâm trải nghiệm du lịch địa phương độc đáo, kết nối du khách với người bản địa",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
