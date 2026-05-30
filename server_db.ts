@@ -36,18 +36,21 @@ const CRAFT_DESCRIPTION =
   'Tìm hiểu quy trình làm gốm thủ công, thử tạo hình sản phẩm và nghe nghệ nhân chia sẻ về làng nghề. Hoạt động phù hợp cho gia đình, nhóm bạn hoặc du khách thích trải nghiệm sáng tạo.';
 const TREKKING_DESCRIPTION =
   'Đi bộ qua ruộng bậc thang, bản làng và các cung đường núi ở Sa Pa cùng người dẫn địa phương. Lịch trình cân bằng giữa vận động, ngắm cảnh và tìm hiểu đời sống cộng đồng.';
-const baseConnection = {
+const isTiDB = (process.env.DB_HOST || '').includes('tidbcloud.com');
+
+const baseConnection: mysql.ConnectionOptions = {
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD,
-  port: Number(process.env.DB_PORT) || 3306
+  port: Number(process.env.DB_PORT) || 3306,
+  ...(isTiDB ? { ssl: { minVersion: 'TLSv1.2', rejectUnauthorized: true } } : {})
 };
 
 const pool = mysql.createPool({
   ...baseConnection,
   database: dbName,
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 5,
   queueLimit: 0
 });
 
