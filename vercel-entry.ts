@@ -1,5 +1,5 @@
-import { db } from '../server_db';
-import app from '../server';
+import { db } from './server_db';
+import app from './server';
 
 // Đảm bảo schema (tạo bảng) được khởi tạo trước khi xử lý request
 let schemaReady: Promise<void> | null = null;
@@ -8,14 +8,13 @@ function ensureReady() {
   if (!schemaReady) {
     schemaReady = db.ensureSchema().catch((err) => {
       console.error('[Vercel] ensureSchema failed:', err);
-      schemaReady = null; // Cho phép thử lại nếu lỗi
+      schemaReady = null;
       throw err;
     });
   }
   return schemaReady;
 }
 
-// Wrap app với middleware đảm bảo DB sẵn sàng
 const handler = async (req: any, res: any) => {
   try {
     await ensureReady();
