@@ -19,11 +19,17 @@ const cleanText = (value: unknown) => String(value ?? '').trim();
 
 const isValidPrice = (price: number) => Number.isFinite(price) && price >= 1000;
 
-async function startServer() {
-  const app = express();
-
-  app.use(express.json());
+async function initDb() {
   await db.ensureSchema();
+}
+
+export const app = express();
+app.use(express.json());
+
+// Khởi tạo DB khi chạy trên Vercel hoặc local (tuỳ chọn)
+// Ở Vercel có thể gọi initDb() trong middleware hoặc không cần 
+// nếu DB đã được setup sẵn trên TiDB.
+
 
   app.post('/api/auth/login', async (req, res) => {
     try {
@@ -547,6 +553,7 @@ async function startServer() {
     } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
+async function startLocalServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -566,4 +573,8 @@ async function startServer() {
   });
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startLocalServer();
+}
+
+export default app;

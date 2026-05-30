@@ -8,5 +8,15 @@
     "DB_PASSWORD": "@db_password",
     "DB_DATABASE": "@db_database",
     "APP_URL": "@app_url"
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
