@@ -422,12 +422,12 @@ export default function App() {
           <SectionHeader
             eyebrow="Về chúng tôi"
             title="Một quy trình đặt tour gọn, dễ kiểm soát"
-            description="Khách xem tour và bình luận trước khi đăng nhập. Người dùng đã đăng nhập được đặt tour, hủy đơn đang chờ và gửi đánh giá. Admin có bảng điều khiển riêng để quản lý toàn bộ dữ liệu."
+            description="Khách xem tour và bình luận trước khi đăng nhập. Người dùng đã đăng nhập được đặt tour, hủy đơn đang chờ và gửi đánh giá."
           />
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             <FeatureCard icon={Route} title="Tour rõ thông tin" text="Mỗi tour có địa điểm, thời lượng, giá VNĐ, ảnh và danh mục để người dùng lọc nhanh." />
-            <FeatureCard icon={HeartHandshake} title="Host cộng đồng" text="Người dân địa phương có thể gửi đăng ký làm host, sau đó admin duyệt trong bảng điều khiển." />
-            <FeatureCard icon={CheckCircle2} title="Dữ liệu có validation" text="Email, số điện thoại, ngày đặt, số khách, giá tiền và bình luận đều được kiểm tra ở giao diện và API." />
+            <FeatureCard icon={HeartHandshake} title="Host cộng đồng" text="Kết nối du khách với các host và hướng dẫn viên địa phương đã được xác minh để mang lại trải nghiệm chân thực hơn." />
+            <FeatureCard icon={CheckCircle2} title="Thông tin đặt tour chính xác" text="Email, số điện thoại, ngày khởi hành và số lượng khách được kiểm tra tự động để hạn chế sai sót khi đặt tour." />
           </div>
         </div>
       </section>
@@ -437,7 +437,7 @@ export default function App() {
           <SectionHeader
             eyebrow="Trải nghiệm"
             title="Tour đang mở bán"
-            description="Giá hiển thị theo định dạng VNĐ. Tour chưa có đánh giá sẽ hiển thị 0.0 sao."
+            description="Chi phí tour được niêm yết theo VNĐ và cập nhật trực tiếp trên hệ thống. Tour chưa có đánh giá sẽ hiển thị 0.0 sao."
           />
 
           <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 lg:flex-row lg:items-center">
@@ -557,7 +557,7 @@ export default function App() {
             <SectionHeader
               eyebrow="Bình luận"
               title="Đánh giá từ người dùng"
-              description="Người dùng đã đăng nhập có thể gửi số sao và bình luận. Điểm trung bình của tour sẽ tự cập nhật."
+              description="Người dùng đã đăng nhập có thể gửi đánh giá bằng số sao và bình luận. Điểm đánh giá trung bình của tour được cập nhật tự động dựa trên phản hồi từ khách hàng."
             />
 
             <form onSubmit={submitReview} className="mt-6 space-y-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
@@ -651,9 +651,9 @@ export default function App() {
             description="Quy trình được giữ ngắn để người dùng mới cũng thao tác nhanh."
           />
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <StepCard step="1" title="Chọn tour" text="Lọc theo danh mục, tìm theo địa điểm và xem giá hiển thị bằng VNĐ." />
-            <StepCard step="2" title="Đăng nhập và đặt" text="Nhập ngày đi, số khách, thông tin liên hệ. API sẽ kiểm tra dữ liệu trước khi lưu." />
-            <StepCard step="3" title="Admin xác nhận" text="Đơn mới ở trạng thái chờ xử lý, admin xác nhận hoặc hủy trong bảng điều khiển." />
+            <StepCard step="1" title="Chọn tour" text="Khám phá các tour theo địa điểm, danh mục và ngân sách phù hợp với nhu cầu của bạn." />
+            <StepCard step="2" title="Đăng nhập và đặt" text="Chọn ngày khởi hành, số lượng khách và hoàn tất thông tin liên hệ để gửi yêu cầu đặt tour." />
+            <StepCard step="3" title="Admin xác nhận" text="Yêu cầu của bạn sẽ được xem xét và xác nhận trong thời gian sớm nhất qua email hoặc hệ thống." />
           </div>
         </div>
       </section>
