@@ -20,7 +20,7 @@ const faqs = [
   {
     question: 'Tôi có thể hủy đơn đã đặt không?',
     answer:
-      'Người dùng có thể hủy đơn khi đơn còn ở trạng thái chờ xử lý. Sau khi admin xác nhận, bạn nên liên hệ hỗ trợ để thay đổi lịch.'
+      'Người dùng có thể hủy đơn khi đơn còn ở trạng thái chờ xử lý. Sau khi được xác nhận, bạn nên liên hệ hỗ trợ để thay đổi lịch.'
   }
 ];
 
