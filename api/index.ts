@@ -1,10 +1,15 @@
 import { db } from '../server_db.js';
 import app from '../server.js';
 
-// Đảm bảo schema (tạo bảng) được khởi tạo trước khi xử lý request
+// Chỉ chạy schema init nếu được yêu cầu qua ENV (mặc định là false trên production để tối ưu tốc độ)
+const shouldInitSchema = process.env.DB_INIT_SCHEMA === 'true';
+
 let schemaReady: Promise<void> | null = null;
 
 function ensureReady() {
+  if (!shouldInitSchema) {
+    return Promise.resolve();
+  }
   if (!schemaReady) {
     schemaReady = db.ensureSchema().catch((err) => {
       console.error('[Vercel] ensureSchema failed:', err);
