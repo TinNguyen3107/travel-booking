@@ -653,7 +653,7 @@ export default function App() {
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             <StepCard step="1" title="Chọn tour" text="Khám phá các tour theo địa điểm, danh mục và ngân sách phù hợp với nhu cầu của bạn." />
             <StepCard step="2" title="Đăng nhập và đặt" text="Chọn ngày khởi hành, số lượng khách và hoàn tất thông tin liên hệ để gửi yêu cầu đặt tour." />
-            <StepCard step="3" title="Admin xác nhận" text="Yêu cầu của bạn sẽ được xem xét và xác nhận trong thời gian sớm nhất qua email hoặc hệ thống." />
+            <StepCard step="3" title="Chờ phản hồi" text="Yêu cầu của bạn sẽ được xem xét và xác nhận trong thời gian sớm nhất qua email hoặc hệ thống." />
           </div>
         </div>
       </section>
