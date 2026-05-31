@@ -485,7 +485,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
       <div className="flex flex-col gap-4 border-b border-zinc-200 p-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Bảng điều khiển</p>
-          <h2 className="mt-1 text-2xl font-black text-zinc-950">Quản trị TravelBooking</h2>
+          <h2 className="mt-1 text-2xl font-black text-zinc-950">Quản trị VietTour</h2>
           <p className="mt-1 text-sm text-zinc-500">
             Quản lý tour, đơn đặt, host và phân quyền người dùng.
           </p>

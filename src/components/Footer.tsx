@@ -4,6 +4,7 @@
  */
 
 import { Compass, Mail, MapPin, Phone } from 'lucide-react';
+import logoImg from '@/logo/logo.png';
 
 interface FooterProps {
   onNavigate: (sectionId: string) => void;
@@ -19,10 +20,8 @@ export default function Footer({ onNavigate }: FooterProps) {
             onClick={() => onNavigate('hero')}
             className="flex items-center gap-2 text-left text-lg font-black text-white"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
-              <Compass className="h-5 w-5" />
-            </span>
-            TravelBooking
+            <img src={logoImg} alt="VietTour Logo" className="h-10 w-10 shrink-0 object-contain rounded-xl" />
+            VietTour
           </button>
           <p className="mt-4 max-w-md text-sm leading-6 text-zinc-400">
             Nền tảng đặt tour trải nghiệm địa phương tại Việt Nam, tập trung vào lịch trình rõ ràng,
@@ -71,7 +70,7 @@ export default function Footer({ onNavigate }: FooterProps) {
         </div>
       </div>
       <div className="mx-auto mt-8 max-w-7xl border-t border-zinc-800 pt-5 text-xs text-zinc-500">
-        © 2026 TravelBooking. Bảo lưu mọi quyền.
+        © 2026 VietTour. Bảo lưu mọi quyền.
       </div>
     </footer>
   );

@@ -13,6 +13,7 @@ import {
   X
 } from 'lucide-react';
 import { useState } from 'react';
+import logoImg from '@/logo/logo.png';
 
 type CurrentUser = { email: string; fullname: string; role: 'user' | 'admin' | 'host' };
 
@@ -61,11 +62,9 @@ export default function Header({
           onClick={() => handleNavClick(adminMode ? 'dashboard' : 'hero')}
           className="flex min-w-0 items-center gap-2 text-left"
         >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
-            <Compass className="h-5 w-5" />
-          </span>
+          <img src={logoImg} alt="VietTour Logo" className="h-10 w-10 shrink-0 object-contain rounded-xl" />
           <span className="hidden text-sm font-black text-zinc-900 sm:block lg:text-base">
-            TravelBooking
+            VietTour
           </span>
         </button>
 

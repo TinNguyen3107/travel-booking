@@ -569,7 +569,7 @@ async function startLocalServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[TravelBooking] server is running on http://localhost:${PORT}`);
+    console.log(`[VietTour] server is running on http://localhost:${PORT}`);
   });
 }
 
