@@ -62,9 +62,10 @@ export default function Header({
           onClick={() => handleNavClick(adminMode ? 'dashboard' : 'hero')}
           className="flex min-w-0 items-center gap-2 text-left"
         >
-          <img src={logoImg} alt="VietTour Logo" className="h-10 w-10 shrink-0 object-contain rounded-xl" />
-          <span className="hidden text-sm font-black text-zinc-900 sm:block lg:text-base">
-            VietTour
+          <img src={logoImg} alt="VietTour Logo" className="h-12 w-12 shrink-0 object-contain rounded-xl" />
+          <span className="hidden text-sm font-black sm:block lg:text-base">
+            <span className="text-zinc-950">Viet</span>
+            <span className="text-emerald-600">Tour</span>
           </span>
         </button>
 

@@ -20,8 +20,11 @@ export default function Footer({ onNavigate }: FooterProps) {
             onClick={() => onNavigate('hero')}
             className="flex items-center gap-2 text-left text-lg font-black text-white"
           >
-            <img src={logoImg} alt="VietTour Logo" className="h-10 w-10 shrink-0 object-contain rounded-xl" />
-            VietTour
+            <img src={logoImg} alt="VietTour Logo" className="h-12 w-12 shrink-0 object-contain rounded-xl" />
+            <span>
+              <span className="text-white">Viet</span>
+              <span className="text-emerald-500">Tour</span>
+            </span>
           </button>
           <p className="mt-4 max-w-md text-sm leading-6 text-zinc-400">
             Nền tảng đặt tour trải nghiệm địa phương tại Việt Nam, tập trung vào lịch trình rõ ràng,
