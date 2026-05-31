@@ -133,6 +133,16 @@ class RelationalDatabase {
     try { await pool.query("ALTER TABLE users MODIFY COLUMN role ENUM('user', 'admin', 'host') NOT NULL DEFAULT 'user'"); } catch (e: any) { }
 
     await pool.query(`
+      INSERT INTO users (email, password, role, fullname)
+      SELECT * FROM (
+        SELECT 'admin@gmail.com' AS email, 'admin123' AS password, 'admin' AS role, 'Admin' AS fullname
+        UNION ALL
+        SELECT 'user@gmail.com' AS email, 'user123' AS password, 'user' AS role, 'User' AS fullname
+      ) seed
+      WHERE NOT EXISTS (SELECT 1 FROM users)
+    `);
+
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS categories (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(120) NOT NULL UNIQUE
