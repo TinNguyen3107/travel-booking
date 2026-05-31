@@ -5,7 +5,7 @@
 
 import express from 'express';
 import path from 'path';
-import { db } from './server_db';
+import { db } from './server_db.js';
 
 const PORT = 3000;
 const FALLBACK_IMAGE =

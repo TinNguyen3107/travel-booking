@@ -12,7 +12,7 @@ import {
   HostApplicationTable,
   ReviewTable,
   UserTable
-} from './src/types';
+} from './src/types.js';
 
 dotenv.config();
 

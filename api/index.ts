@@ -1,5 +1,5 @@
-import { db } from '../server_db';
-import app from '../server';
+import { db } from '../server_db.js';
+import app from '../server.js';
 
 // Đảm bảo schema (tạo bảng) được khởi tạo trước khi xử lý request
 let schemaReady: Promise<void> | null = null;
