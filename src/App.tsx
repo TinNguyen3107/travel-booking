@@ -370,7 +370,7 @@ export default function App() {
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-600">
               Khám phá Vịnh Hạ Long, Hội An, Bát Tràng, Sa Pa và nhiều trải nghiệm bản địa
-              với quy trình đặt tour đơn giản, bình luận minh bạch và admin kiểm duyệt đơn.
+              với quy trình đặt tour đơn giản, bình luận minh bạch.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <button
@@ -664,7 +664,7 @@ export default function App() {
             <SectionHeader
               eyebrow="Cộng đồng"
               title="Đăng ký trở thành host địa phương"
-              description="Gửi thông tin của bạn để admin duyệt. Host được duyệt có thể được liên hệ để mở tour mới."
+              description="Gửi thông tin của bạn và chờ duyệt. Host được duyệt có thể được liên hệ để mở tour mới."
             />
 
             <form onSubmit={submitHostApplication} className="mt-6 grid gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
