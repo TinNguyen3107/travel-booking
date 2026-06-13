@@ -32,7 +32,7 @@ export default function HostProfileWidget({ email }: { email: string }) {
   return (
     <div className="mt-8 rounded-2xl border border-zinc-200 bg-white p-5 flex items-start gap-4">
       <img
-        src={profile.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=256&auto=format&fit=crop'}
+        src={profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.host_name || 'Host')}&background=10b981&color=fff&size=256`}
         alt={profile.host_name}
         className="w-16 h-16 rounded-full object-cover"
       />

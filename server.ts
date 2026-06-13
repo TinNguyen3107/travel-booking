@@ -718,6 +718,11 @@ app.use(async (req, res, next) => {
         return;
       }
 
+      if (experience.status && experience.status !== 'active') {
+        res.status(400).json({ error: 'Tour này hiện đang tạm ẩn và không thể đặt.' });
+        return;
+      }
+
       if (!isTourOpenOn(experience, bookingDate)) {
         res.status(400).json({ error: 'Tour này chưa mở hoặc đã hết thời gian đặt.' });
         return;
@@ -1177,6 +1182,62 @@ app.use(async (req, res, next) => {
       res.json(await db.getExperienceAvailability(experienceId, date));
     } catch (e: any) { handleError(res, e); }
   });
+
+  // ─── Phase 7: Community Feed ───────────────────────────────────────────────
+  
+  app.get('/api/posts', async (req, res) => {
+    try {
+      res.json(await db.getPosts());
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.post('/api/posts', authenticateToken, async (req, res) => {
+    try {
+      const { user_email, fullname, role, content, media_url, media_type } = req.body;
+      if (!user_email || !fullname || !content) {
+        res.status(400).json({ error: 'Thiếu thông tin bắt buộc' });
+        return;
+      }
+      res.status(201).json(await db.addPost({ user_email, fullname, role: role || 'user', content, media_url, media_type }));
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.put('/api/posts/:id/status', authenticateToken, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const { status } = req.body;
+      await db.updatePostStatus(id, status);
+      res.json({ success: true });
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.get('/api/posts/:id/comments', async (req, res) => {
+    try {
+      res.json(await db.getPostComments(Number(req.params.id)));
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.post('/api/posts/:id/comments', authenticateToken, async (req, res) => {
+    try {
+      const { user_email, fullname, comment } = req.body;
+      res.status(201).json(await db.addPostComment({ post_id: Number(req.params.id), user_email, fullname, comment }));
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.get('/api/posts/:id/reactions', async (req, res) => {
+    try {
+      res.json(await db.getPostReactions(Number(req.params.id)));
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.post('/api/posts/:id/reactions', authenticateToken, async (req, res) => {
+    try {
+      const { user_email, reaction_type } = req.body;
+      await db.togglePostReaction({ post_id: Number(req.params.id), user_email, reaction_type });
+      res.json({ success: true });
+    } catch (e: any) { handleError(res, e); }
+  });
+
 
 async function startLocalServer() {
   await initDb();

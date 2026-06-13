@@ -174,7 +174,7 @@ export default function UserProfile({ user }: { user: { email: string, fullname:
           <form onSubmit={handleUpdate} className="max-w-xl mx-auto space-y-4">
             <div className="flex justify-center mb-6">
               <img
-                src={form.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=256&auto=format&fit=crop'}
+                src={form.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullname || 'User')}&background=10b981&color=fff&size=256`}
                 alt="Avatar"
                 className="h-24 w-24 rounded-full object-cover border-4 border-white shadow-lg"
               />

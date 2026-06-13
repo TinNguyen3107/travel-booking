@@ -165,7 +165,8 @@ export const formatDateVi = (value?: string) => {
   return new Date(`${value}T00:00:00`).toLocaleDateString('vi-VN');
 };
 
-export const isExperienceOpen = (experience: Pick<ExperienceTable, 'booking_open_date' | 'booking_close_date'>) => {
+export const isExperienceOpen = (experience: Pick<ExperienceTable, 'booking_open_date' | 'booking_close_date' | 'status'>) => {
+  if (experience.status && experience.status !== 'active') return false;
   const today = todayIso();
   const openDate = experience.booking_open_date || today;
   const closeDate = experience.booking_close_date || '9999-12-31';
