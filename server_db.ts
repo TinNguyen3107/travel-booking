@@ -4,13 +4,19 @@
  */
 
 import mysql from 'mysql2/promise';
+import bcrypt from 'bcryptjs';
 import type { RowDataPacket } from 'mysql2';
 import dotenv from 'dotenv';
 import {
   BookingTable,
   ExperienceTable,
   HostApplicationTable,
+  HostReviewTable,
+  PostCommentTable,
+  PostReactionTable,
+  PostTable,
   ReviewTable,
+  TourScheduleTable,
   UserTable
 } from './src/types.js';
 
@@ -20,7 +26,12 @@ type UserRow = UserTable & RowDataPacket;
 type ExperienceRow = ExperienceTable & RowDataPacket;
 type BookingRow = BookingTable & RowDataPacket;
 type HostApplicationRow = HostApplicationTable & RowDataPacket;
+type HostReviewRow = HostReviewTable & RowDataPacket;
 type ReviewRow = ReviewTable & RowDataPacket;
+type ScheduleRow = TourScheduleTable & RowDataPacket;
+type PostRow = PostTable & RowDataPacket;
+type PostCommentRow = PostCommentTable & RowDataPacket;
+type PostReactionRow = PostReactionTable & RowDataPacket;
 type ColumnCountRow = RowDataPacket & { count: number };
 
 const dbName = process.env.DB_DATABASE || 'local_experience_db';
@@ -79,9 +90,30 @@ const normalizeExperience = (row: ExperienceRow): ExperienceTable => {
     price: toNumber(row.price),
     rating: reviewsCount > 0 ? toNumber(row.rating) : 0,
     host_count: toNumber(row.host_count),
-    reviews_count: reviewsCount
+    reviews_count: reviewsCount,
+    max_guests: toNumber(row.max_guests) || 50,
+    daily_capacity: toNumber(row.daily_capacity) || toNumber(row.max_guests) || 50,
+    booking_open_date: toDateString(row.booking_open_date),
+    booking_close_date: toDateString(row.booking_close_date),
+    registration_open_date: toDateString(row.registration_open_date),
+    registration_close_date: toDateString(row.registration_close_date),
+    rooms: toNumber(row.rooms),
+    beds: toNumber(row.beds),
+    amenities: row.amenities ?? '[]',
+    images: row.images ?? '[]'
   };
 };
+
+const normalizeSchedule = (row: ScheduleRow): TourScheduleTable => ({
+  ...row,
+  id: toNumber(row.id),
+  experience_id: toNumber(row.experience_id),
+  max_slots: toNumber(row.max_slots),
+  remaining_slots: toNumber(row.remaining_slots),
+  start_date: toDateString(row.start_date),
+  end_date: toDateString(row.end_date),
+  created_at: toDateTimeString(row.created_at)
+});
 
 const normalizeBooking = (row: BookingRow): BookingTable => ({
   ...row,
@@ -89,6 +121,10 @@ const normalizeBooking = (row: BookingRow): BookingTable => ({
   experience_id: toNumber(row.experience_id),
   guests: toNumber(row.guests),
   total_price: toNumber(row.total_price),
+  schedule_id: row.schedule_id ? toNumber(row.schedule_id) : undefined,
+  commission_amount: toNumber(row.commission_amount),
+  host_earnings: toNumber(row.host_earnings),
+  refund_status: row.refund_status as 'none' | 'pending' | 'completed' | undefined,
   booking_date: toDateString(row.booking_date),
   created_at: toDateTimeString(row.created_at)
 });
@@ -104,7 +140,37 @@ const normalizeReview = (row: ReviewRow): ReviewTable => ({
   id: toNumber(row.id),
   experience_id: toNumber(row.experience_id),
   rating: toNumber(row.rating),
+  images: row.images ?? '[]',
   created_at: toDateTimeString(row.created_at)
+});
+
+const normalizeHostReview = (row: HostReviewRow): HostReviewTable => ({
+  ...row,
+  id: toNumber(row.id),
+  booking_id: toNumber(row.booking_id),
+  rating: toNumber(row.rating),
+  created_at: toDateTimeString(row.created_at)
+});
+
+const normalizePost = (row: PostRow): PostTable => ({
+  ...row,
+  id: toNumber(row.id),
+  likes_count: toNumber(row.likes_count),
+  comments_count: toNumber(row.comments_count),
+  created_at: toDateTimeString(row.created_at)
+});
+
+const normalizePostComment = (row: PostCommentRow): PostCommentTable => ({
+  ...row,
+  id: toNumber(row.id),
+  post_id: toNumber(row.post_id),
+  created_at: toDateTimeString(row.created_at)
+});
+
+const normalizePostReaction = (row: PostReactionRow): PostReactionTable => ({
+  ...row,
+  id: toNumber(row.id),
+  post_id: toNumber(row.post_id)
 });
 
 async function ensureDatabaseExists() {
@@ -135,9 +201,9 @@ class RelationalDatabase {
     await pool.query(`
       INSERT INTO users (email, password, role, fullname)
       SELECT * FROM (
-        SELECT 'admin@gmail.com' AS email, 'admin123' AS password, 'admin' AS role, 'Admin' AS fullname
+        SELECT 'admin@gmail.com' AS email, '${bcrypt.hashSync('admin123', 10)}' AS password, 'admin' AS role, 'Admin' AS fullname
         UNION ALL
-        SELECT 'user@gmail.com' AS email, 'user123' AS password, 'user' AS role, 'User' AS fullname
+        SELECT 'user@gmail.com' AS email, '${bcrypt.hashSync('user123', 10)}' AS password, 'user' AS role, 'User' AS fullname
       ) seed
       WHERE NOT EXISTS (SELECT 1 FROM users)
     `);
@@ -172,9 +238,16 @@ class RelationalDatabase {
         description TEXT NOT NULL,
         rating DECIMAL(3, 1) NOT NULL DEFAULT 0,
         host_count INT NOT NULL DEFAULT 1,
-        reviews_count INT NOT NULL DEFAULT 0
+        reviews_count INT NOT NULL DEFAULT 0,
+        is_deleted BOOLEAN NOT NULL DEFAULT FALSE
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
+
+    try {
+      await pool.query('ALTER TABLE experiences ADD COLUMN is_deleted BOOLEAN NOT NULL DEFAULT FALSE');
+    } catch (e: any) {
+      // Ignore if exists
+    }
 
     try {
       await pool.query('ALTER TABLE experiences ADD COLUMN description TEXT NOT NULL AFTER category');
@@ -204,11 +277,26 @@ class RelationalDatabase {
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL,
         phone VARCHAR(30) NOT NULL,
+        address VARCHAR(500) NOT NULL DEFAULT '',
+        id_number VARCHAR(20) NOT NULL DEFAULT '',
+        experience_location VARCHAR(500) NOT NULL DEFAULT '',
         description TEXT NOT NULL,
-        status ENUM('pending', 'approved') NOT NULL DEFAULT 'pending',
+        status ENUM('pending', 'approved', 'rejected', 'suspended') NOT NULL DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
+
+    // Migration: add new host columns for existing databases
+    try { await pool.query("ALTER TABLE hosts ADD COLUMN address VARCHAR(500) NOT NULL DEFAULT '' AFTER phone"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE hosts ADD COLUMN id_number VARCHAR(20) NOT NULL DEFAULT '' AFTER address"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE hosts ADD COLUMN experience_location VARCHAR(500) NOT NULL DEFAULT '' AFTER id_number"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE hosts MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'suspended') NOT NULL DEFAULT 'pending'"); } catch (e: any) { }
+
+    // Migration: add new booking columns for Phase 3
+    try { await pool.query("ALTER TABLE bookings ADD COLUMN schedule_id INT DEFAULT NULL AFTER experience_id"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE bookings ADD COLUMN payment_status ENUM('unpaid', 'paid', 'refunded') NOT NULL DEFAULT 'unpaid' AFTER status"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE bookings ADD COLUMN commission_amount DECIMAL(12, 0) NOT NULL DEFAULT 0 AFTER total_price"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE bookings ADD COLUMN host_earnings DECIMAL(12, 0) NOT NULL DEFAULT 0 AFTER commission_amount"); } catch (e: any) { }
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS reviews (
@@ -221,15 +309,18 @@ class RelationalDatabase {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
-    
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS wishlists (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_email VARCHAR(255) NOT NULL,
         experience_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY user_exp (user_email, experience_id)
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
+    
+    try { await pool.query('ALTER TABLE wishlists ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP'); } catch (e: any) {}
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS promotions (
@@ -242,9 +333,130 @@ class RelationalDatabase {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
-    
+
     try { await pool.query('ALTER TABLE experiences ADD COLUMN max_guests INT NOT NULL DEFAULT 50'); } catch (e: any) { }
+    try { await pool.query('ALTER TABLE experiences ADD COLUMN booking_open_date DATE NULL'); } catch (e: any) { }
+    try { await pool.query('ALTER TABLE experiences ADD COLUMN booking_close_date DATE NULL'); } catch (e: any) { }
     try { await pool.query('ALTER TABLE experiences ADD COLUMN host_email VARCHAR(255)'); } catch (e: any) { }
+    // Phase 2: new experience columns
+    try { await pool.query('ALTER TABLE experiences ADD COLUMN rooms INT NOT NULL DEFAULT 0'); } catch (e: any) { }
+    try { await pool.query('ALTER TABLE experiences ADD COLUMN beds INT NOT NULL DEFAULT 0'); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN amenities TEXT"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN images TEXT"); } catch (e: any) { }
+    await pool.query("UPDATE experiences SET amenities = '[]' WHERE amenities IS NULL");
+    await pool.query("UPDATE experiences SET images = '[]' WHERE images IS NULL");
+
+    // Phase 1: Migration cho Daily Quota và Refund
+    try { await pool.query('ALTER TABLE experiences ADD COLUMN daily_capacity INT NOT NULL DEFAULT 0 AFTER max_guests'); } catch (e: any) { }
+    try { await pool.query('ALTER TABLE experiences ADD COLUMN registration_open_date DATE NULL AFTER booking_close_date'); } catch (e: any) { }
+    try { await pool.query('ALTER TABLE experiences ADD COLUMN registration_close_date DATE NULL AFTER registration_open_date'); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN status ENUM('active', 'hidden', 'suspended') NOT NULL DEFAULT 'active' AFTER is_deleted"); } catch (e: any) { }
+    await pool.query("UPDATE experiences SET daily_capacity = max_guests, registration_open_date = booking_open_date, registration_close_date = booking_close_date WHERE daily_capacity = 0");
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS experience_daily_quotas (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        experience_id INT NOT NULL,
+        booking_date DATE NOT NULL,
+        max_capacity INT NOT NULL,
+        booked_count INT NOT NULL DEFAULT 0,
+        UNIQUE KEY unique_exp_date (experience_id, booking_date),
+        CONSTRAINT fk_quota_exp FOREIGN KEY (experience_id) REFERENCES experiences(id) ON DELETE CASCADE
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+    
+    try {
+      await pool.query(`
+        INSERT INTO experience_daily_quotas (experience_id, booking_date, max_capacity, booked_count)
+        SELECT b.experience_id, b.booking_date, e.daily_capacity, SUM(b.guests) as booked_count
+        FROM bookings b JOIN experiences e ON b.experience_id = e.id
+        WHERE b.status != 'cancelled' AND b.schedule_id IS NULL
+        GROUP BY b.experience_id, b.booking_date, e.daily_capacity
+        ON DUPLICATE KEY UPDATE booked_count = VALUES(booked_count)
+      `);
+    } catch (e: any) { }
+
+    try { await pool.query("ALTER TABLE bookings ADD COLUMN refund_status ENUM('none', 'pending', 'completed') NOT NULL DEFAULT 'none' AFTER payment_status"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE users ADD COLUMN avatar VARCHAR(500) NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE users ADD COLUMN address TEXT NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE hosts ADD COLUMN avatar VARCHAR(500) NULL"); } catch (e: any) { }
+
+    // Phase 2: tour_schedules table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tour_schedules (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        experience_id INT NOT NULL,
+        start_date DATE NOT NULL,
+        end_date DATE NOT NULL,
+        max_slots INT NOT NULL DEFAULT 20,
+        remaining_slots INT NOT NULL DEFAULT 20,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_experience (experience_id),
+        CONSTRAINT fk_schedule_experience FOREIGN KEY (experience_id) REFERENCES experiences(id) ON DELETE CASCADE
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+    // Phase 6: host_reviews table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS host_reviews (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        booking_id INT NOT NULL UNIQUE,
+        host_email VARCHAR(255) NOT NULL,
+        guest_email VARCHAR(255) NOT NULL,
+        rating TINYINT NOT NULL,
+        comment TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_host (host_email),
+        INDEX idx_guest (guest_email)
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+
+    // Phase 7: Community Feed
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS posts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_email VARCHAR(255) NOT NULL,
+        fullname VARCHAR(255) NOT NULL,
+        role ENUM('user', 'admin', 'host') NOT NULL DEFAULT 'user',
+        content TEXT NOT NULL,
+        media_url VARCHAR(1000),
+        media_type ENUM('image', 'video'),
+        status ENUM('active', 'hidden', 'deleted') NOT NULL DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_post_email (user_email),
+        INDEX idx_post_status (status)
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS post_comments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        post_id INT NOT NULL,
+        user_email VARCHAR(255) NOT NULL,
+        fullname VARCHAR(255) NOT NULL,
+        comment TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_comment_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS post_reactions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        post_id INT NOT NULL,
+        user_email VARCHAR(255) NOT NULL,
+        reaction_type ENUM('like', 'love', 'wow', 'haha', 'sad', 'angry') NOT NULL,
+        UNIQUE KEY unique_user_reaction (post_id, user_email),
+        CONSTRAINT fk_reaction_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+
+    await pool.query(`
+      UPDATE experiences
+      SET
+        booking_open_date = COALESCE(booking_open_date, CURDATE()),
+        booking_close_date = COALESCE(booking_close_date, DATE_ADD(CURDATE(), INTERVAL 90 DAY))
+    `);
     await pool.query(`
       INSERT INTO experiences
         (title, location, duration, price, image, category, description, rating, host_count, reviews_count)
@@ -299,6 +511,13 @@ class RelationalDatabase {
           0
       ) seed
       WHERE NOT EXISTS (SELECT 1 FROM experiences)
+    `);
+
+    await pool.query(`
+      UPDATE experiences
+      SET
+        booking_open_date = COALESCE(booking_open_date, CURDATE()),
+        booking_close_date = COALESCE(booking_close_date, DATE_ADD(CURDATE(), INTERVAL 90 DAY))
     `);
 
     await pool.query(
@@ -375,9 +594,11 @@ class RelationalDatabase {
       throw new Error('Email đã được đăng ký trên hệ thống');
     }
 
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+
     const [result] = await pool.query<mysql.ResultSetHeader>(
       'INSERT INTO users (email, password, role, fullname) VALUES (?, ?, ?, ?)',
-      [normalizedEmail, user.password, user.role, user.fullname.trim()]
+      [normalizedEmail, hashedPassword, user.role, user.fullname.trim()]
     );
 
     return {
@@ -388,9 +609,32 @@ class RelationalDatabase {
     };
   }
 
+  public async updateUserProfile(email: string, payload: any): Promise<boolean> {
+    if (payload.password) {
+      payload.password = await bcrypt.hash(payload.password, 10);
+    }
+
+    const allowedFields = ['fullname', 'password', 'avatar', 'phone', 'address'] as const;
+    const entries = allowedFields
+      .filter((field) => payload[field] !== undefined)
+      .map((field) => [field, payload[field]] as const);
+
+    if (entries.length === 0) return false;
+
+    const setClause = entries.map(([field]) => `${field} = ?`).join(', ');
+    const values = entries.map(([, value]) => value);
+
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      `UPDATE users SET ${setClause} WHERE LOWER(email) = LOWER(?)`,
+      [...values, email.trim()]
+    );
+
+    return result.affectedRows > 0;
+  }
+
   public async getExperiences(): Promise<ExperienceTable[]> {
     const [rows] = await pool.query<ExperienceRow[]>(
-      'SELECT * FROM experiences ORDER BY id DESC'
+      'SELECT * FROM experiences WHERE is_deleted = FALSE ORDER BY id DESC'
     );
     return rows.map(normalizeExperience);
   }
@@ -398,8 +642,8 @@ class RelationalDatabase {
   public async addExperience(exp: Omit<ExperienceTable, 'id'>): Promise<ExperienceTable> {
     const [result] = await pool.query<mysql.ResultSetHeader>(
       `INSERT INTO experiences
-        (title, location, duration, price, image, category, description, rating, host_count, reviews_count, max_guests, host_email)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (title, location, duration, price, image, category, description, rating, host_count, reviews_count, max_guests, booking_open_date, booking_close_date, host_email, rooms, beds, amenities, images)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         exp.title,
         exp.location,
@@ -412,7 +656,13 @@ class RelationalDatabase {
         exp.host_count,
         exp.reviews_count,
         exp.max_guests ?? 50,
-        exp.host_email ?? null
+        exp.booking_open_date ?? null,
+        exp.booking_close_date ?? null,
+        exp.host_email ?? null,
+        exp.rooms ?? 0,
+        exp.beds ?? 0,
+        exp.amenities ?? '[]',
+        exp.images ?? '[]'
       ]
     );
 
@@ -438,7 +688,17 @@ class RelationalDatabase {
       'host_count',
       'reviews_count',
       'max_guests',
-      'host_email'
+      'booking_open_date',
+      'booking_close_date',
+      'host_email',
+      'rooms',
+      'beds',
+      'amenities',
+      'images',
+      'daily_capacity',
+      'registration_open_date',
+      'registration_close_date',
+      'status'
     ] as const;
 
     const entries = allowedFields
@@ -474,7 +734,7 @@ class RelationalDatabase {
 
   public async deleteExperience(id: number): Promise<boolean> {
     const [result] = await pool.query<mysql.ResultSetHeader>(
-      'DELETE FROM experiences WHERE id = ?',
+      'UPDATE experiences SET is_deleted = TRUE WHERE id = ?',
       [id]
     );
     return result.affectedRows > 0;
@@ -505,35 +765,116 @@ class RelationalDatabase {
   }
 
   public async addBooking(
-    booking: Omit<BookingTable, 'id' | 'created_at' | 'status'>
+    booking: Omit<BookingTable, 'id' | 'created_at' | 'status' | 'payment_status' | 'commission_amount' | 'host_earnings' | 'refund_status'>
   ): Promise<BookingTable> {
-    const [result] = await pool.query<mysql.ResultSetHeader>(
-      `INSERT INTO bookings
-        (user_email, experience_id, booking_date, guests, contact_name, contact_phone, note, total_price, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-      [
-        booking.user_email,
-        booking.experience_id,
-        booking.booking_date,
-        booking.guests,
-        booking.contact_name,
-        booking.contact_phone,
-        booking.note,
-        booking.total_price
-      ]
-    );
+    const commission_amount = booking.total_price * 0.3;
+    const host_earnings = booking.total_price * 0.7;
 
-    const created = await this.findBookingById(result.insertId);
-    if (!created) {
-      throw new Error('Không thể tạo đơn đặt tour mới');
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+      const exp = await this.findExperienceById(booking.experience_id);
+      if (!exp) throw new Error('Không tìm thấy tour cần đặt');
+
+      const [totalRows] = await connection.query<RowDataPacket[]>(
+        'SELECT SUM(guests) as total FROM bookings WHERE experience_id = ? AND status != "cancelled"',
+        [booking.experience_id]
+      );
+      const totalBooked = Number(totalRows[0]?.total || 0);
+      if (totalBooked + booking.guests > (exp.max_guests || 50)) {
+        throw new Error('Đã vượt quá tổng số khách cho phép của tour này.');
+      }
+
+      await connection.query(
+        'INSERT IGNORE INTO experience_daily_quotas (experience_id, booking_date, max_capacity, booked_count) VALUES (?, ?, ?, 0)',
+        [booking.experience_id, booking.booking_date, exp.daily_capacity || exp.max_guests || 50]
+      );
+
+      const [dailyRows] = await connection.query<RowDataPacket[]>(
+        'SELECT max_capacity, booked_count FROM experience_daily_quotas WHERE experience_id = ? AND booking_date = ? FOR UPDATE',
+        [booking.experience_id, booking.booking_date]
+      );
+
+      const dailyQuota = dailyRows[0];
+      if (!dailyQuota || dailyQuota.booked_count + booking.guests > dailyQuota.max_capacity) {
+        throw new Error(`Tour này chỉ còn chỗ cho ${Math.max(0, (dailyQuota?.max_capacity || 0) - (dailyQuota?.booked_count || 0))} khách vào ngày ${booking.booking_date}.`);
+      }
+
+      await connection.query(
+        'UPDATE experience_daily_quotas SET booked_count = booked_count + ? WHERE experience_id = ? AND booking_date = ?',
+        [booking.guests, booking.experience_id, booking.booking_date]
+      );
+
+      const [result] = await connection.query<mysql.ResultSetHeader>(
+        `INSERT INTO bookings
+          (user_email, experience_id, schedule_id, booking_date, guests, contact_name, contact_phone, note, total_price, commission_amount, host_earnings, status, payment_status, refund_status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'unpaid', 'none')`,
+        [
+          booking.user_email,
+          booking.experience_id,
+          booking.schedule_id ?? null,
+          booking.booking_date,
+          booking.guests,
+          booking.contact_name,
+          booking.contact_phone,
+          booking.note,
+          booking.total_price,
+          commission_amount,
+          host_earnings
+        ]
+      );
+
+      if (booking.schedule_id) {
+        const [updateResult] = await connection.query<mysql.ResultSetHeader>(
+          'UPDATE tour_schedules SET remaining_slots = remaining_slots - ? WHERE id = ? AND remaining_slots >= ?',
+          [booking.guests, booking.schedule_id, booking.guests]
+        );
+        if (updateResult.affectedRows === 0) {
+          throw new Error('Lịch khởi hành này đã hết chỗ hoặc không đủ số lượng bạn cần.');
+        }
+      }
+
+      await connection.commit();
+      
+      const created = await this.findBookingById(result.insertId);
+      if (!created) throw new Error('Không thể tạo đơn đặt tour mới');
+      return created;
+    } catch (e) {
+      await connection.rollback();
+      throw e;
+    } finally {
+      connection.release();
     }
-    return created;
   }
 
   public async updateBookingStatus(
     id: number,
     status: 'pending' | 'confirmed' | 'cancelled'
   ): Promise<BookingTable> {
+    const current = await this.findBookingById(id);
+    if (!current) throw new Error('Không tìm thấy đơn đặt tour này');
+
+    if (current.status !== status) {
+      if (current.schedule_id) {
+        if (status === 'cancelled' && current.status !== 'cancelled') {
+          await pool.query('UPDATE tour_schedules SET remaining_slots = remaining_slots + ? WHERE id = ?', [current.guests, current.schedule_id]);
+        } else if (current.status === 'cancelled' && status !== 'cancelled') {
+          await pool.query('UPDATE tour_schedules SET remaining_slots = remaining_slots - ? WHERE id = ?', [current.guests, current.schedule_id]);
+        }
+      } else {
+        if (status === 'cancelled' && current.status !== 'cancelled') {
+          await pool.query('UPDATE experience_daily_quotas SET booked_count = GREATEST(0, booked_count - ?) WHERE experience_id = ? AND booking_date = ?', [current.guests, current.experience_id, current.booking_date]);
+        } else if (current.status === 'cancelled' && status !== 'cancelled') {
+          await pool.query('UPDATE experience_daily_quotas SET booked_count = booked_count + ? WHERE experience_id = ? AND booking_date = ?', [current.guests, current.experience_id, current.booking_date]);
+        }
+      }
+      
+      if (status === 'cancelled' && current.status !== 'cancelled' && current.payment_status === 'paid') {
+        await pool.query('UPDATE bookings SET refund_status = "pending" WHERE id = ?', [id]);
+      }
+    }
+
     const [result] = await pool.query<mysql.ResultSetHeader>(
       'UPDATE bookings SET status = ? WHERE id = ?',
       [status, id]
@@ -550,6 +891,43 @@ class RelationalDatabase {
     return updated;
   }
 
+  public async updateBookingPaymentStatus(
+    id: number,
+    payment_status: 'unpaid' | 'paid' | 'refunded'
+  ): Promise<BookingTable> {
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      'UPDATE bookings SET payment_status = ? WHERE id = ?',
+      [payment_status, id]
+    );
+
+    if (result.affectedRows === 0) {
+      throw new Error('Không tìm thấy đơn đặt tour này');
+    }
+
+    const updated = await this.findBookingById(id);
+    if (!updated) {
+      throw new Error('Không tìm thấy đơn đặt tour này');
+    }
+    return updated;
+  }
+
+  public async completeRefund(id: number): Promise<BookingTable> {
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      'UPDATE bookings SET payment_status = "refunded", refund_status = "completed" WHERE id = ? AND refund_status = "pending"',
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      throw new Error('Không tìm thấy yêu cầu hoàn tiền hợp lệ hoặc đơn đã được hoàn tiền');
+    }
+
+    const updated = await this.findBookingById(id);
+    if (!updated) {
+      throw new Error('Lỗi truy xuất đơn đặt tour');
+    }
+    return updated;
+  }
+
   public async getHosts(): Promise<HostApplicationTable[]> {
     const [rows] = await pool.query<HostApplicationRow[]>(
       'SELECT * FROM hosts ORDER BY created_at DESC'
@@ -557,13 +935,89 @@ class RelationalDatabase {
     return rows.map(normalizeHost);
   }
 
+  public async getHostProfileByEmail(email: string): Promise<any> {
+    const normalizedEmail = email.trim().toLowerCase();
+    const [hostRows] = await pool.query<RowDataPacket[]>(
+      'SELECT name, description, avatar FROM hosts WHERE LOWER(email) = ? LIMIT 1',
+      [normalizedEmail]
+    );
+    if (!hostRows.length) return null;
+
+    const [statsRows] = await pool.query<RowDataPacket[]>(
+      `SELECT 
+         COUNT(*) as total_experiences, 
+         SUM(reviews_count) as total_reviews,
+         AVG(NULLIF(rating, 0)) as average_rating
+       FROM experiences 
+       WHERE LOWER(host_email) = ? AND is_deleted = FALSE`,
+      [normalizedEmail]
+    );
+
+    const host = hostRows[0];
+    const stats = statsRows[0];
+
+    return {
+      host_name: host.name,
+      description: host.description,
+      avatar: host.avatar,
+      total_experiences: toNumber(stats.total_experiences),
+      total_reviews: toNumber(stats.total_reviews),
+      average_rating: toNumber(stats.average_rating) || 0
+    };
+  }
+
+  public async getWishlists(email: string): Promise<number[]> {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT experience_id FROM wishlists WHERE LOWER(user_email) = LOWER(?)',
+      [email]
+    );
+    return rows.map(r => Number(r.experience_id));
+  }
+
+  public async toggleWishlist(email: string, experienceId: number): Promise<{ added: boolean }> {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT id FROM wishlists WHERE LOWER(user_email) = LOWER(?) AND experience_id = ? LIMIT 1',
+      [email, experienceId]
+    );
+
+    if (rows.length > 0) {
+      await pool.query('DELETE FROM wishlists WHERE id = ?', [rows[0].id]);
+      return { added: false };
+    } else {
+      await pool.query(
+        'INSERT INTO wishlists (user_email, experience_id) VALUES (?, ?)',
+        [email.toLowerCase(), experienceId]
+      );
+      return { added: true };
+    }
+  }
+
+  public async getWishlistDetails(email: string): Promise<ExperienceTable[]> {
+    const [rows] = await pool.query<ExperienceRow[]>(
+      `SELECT e.* FROM experiences e
+       JOIN wishlists w ON e.id = w.experience_id
+       WHERE LOWER(w.user_email) = LOWER(?) AND e.is_deleted = FALSE
+       ORDER BY w.created_at DESC`,
+      [email]
+    );
+    return rows.map(normalizeExperience);
+  }
+
   public async addHostApplication(
     app: Omit<HostApplicationTable, 'id' | 'created_at' | 'status'>
   ): Promise<HostApplicationTable> {
+    const [existing] = await pool.query<HostApplicationRow[]>(
+      'SELECT id FROM hosts WHERE email = ? OR id_number = ?',
+      [app.email, app.id_number]
+    );
+    if (existing.length > 0) {
+      throw new Error('Email hoặc số CCCD/Passport này đã được đăng ký làm host');
+    }
+
     const [result] = await pool.query<mysql.ResultSetHeader>(
-      `INSERT INTO hosts (name, email, phone, description, status)
-       VALUES (?, ?, ?, ?, 'pending')`,
-      [app.name, app.email, app.phone, app.description]
+      `INSERT INTO hosts (name, email, phone, address, id_number, experience_location, description, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')`,
+      [app.name, app.email, app.phone, app.address, app.id_number, app.experience_location, app.description]
     );
 
     const created = await this.findHostById(result.insertId);
@@ -575,7 +1029,7 @@ class RelationalDatabase {
 
   public async updateHostStatus(
     id: number,
-    status: 'pending' | 'approved'
+    status: 'pending' | 'approved' | 'rejected' | 'suspended'
   ): Promise<HostApplicationTable> {
     const [result] = await pool.query<mysql.ResultSetHeader>(
       'UPDATE hosts SET status = ? WHERE id = ?',
@@ -591,6 +1045,35 @@ class RelationalDatabase {
       throw new Error('Không tìm thấy đơn đăng ký làm host');
     }
     return updated;
+  }
+
+  public async updateHostProfile(
+    email: string,
+    profile: {
+      name: string;
+      phone: string;
+      address: string;
+      id_number: string;
+      experience_location: string;
+      description: string;
+    }
+  ): Promise<HostApplicationTable> {
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      `UPDATE hosts 
+       SET name = ?, phone = ?, address = ?, id_number = ?, experience_location = ?, description = ?
+       WHERE email = ?`,
+      [profile.name, profile.phone, profile.address, profile.id_number, profile.experience_location, profile.description, email]
+    );
+
+    if (result.affectedRows === 0) {
+      throw new Error('Không tìm thấy host để cập nhật');
+    }
+
+    const [rows] = await pool.query<HostApplicationRow[]>('SELECT * FROM hosts WHERE email = ?', [email]);
+    if (rows.length === 0) {
+      throw new Error('Lỗi khi lấy thông tin host sau khi cập nhật');
+    }
+    return normalizeHost(rows[0]);
   }
 
   public async getReviews(experienceId?: number): Promise<ReviewTable[]> {
@@ -655,7 +1138,7 @@ class RelationalDatabase {
     return result.affectedRows > 0;
   }
 
-  private async findExperienceById(id: number): Promise<ExperienceTable | undefined> {
+  public async findExperienceById(id: number): Promise<ExperienceTable | undefined> {
     const [rows] = await pool.query<ExperienceRow[]>(
       'SELECT * FROM experiences WHERE id = ? LIMIT 1',
       [id]
@@ -663,7 +1146,14 @@ class RelationalDatabase {
     return rows[0] ? normalizeExperience(rows[0]) : undefined;
   }
 
-  private async findBookingById(id: number): Promise<BookingTable | undefined> {
+  public async findScheduleById(id: number): Promise<TourScheduleTable | undefined> {
+    const [rows] = await pool.query<ScheduleRow[]>(
+      'SELECT * FROM tour_schedules WHERE id = ? LIMIT 1', [id]
+    );
+    return rows[0] ? normalizeSchedule(rows[0]) : undefined;
+  }
+
+  public async findBookingById(id: number): Promise<BookingTable | undefined> {
     const [rows] = await pool.query<BookingRow[]>(
       `SELECT b.*, COALESCE(e.title, 'Trải nghiệm không tên') AS experience_title
        FROM bookings b
@@ -683,25 +1173,6 @@ class RelationalDatabase {
     return rows[0] ? normalizeHost(rows[0]) : undefined;
   }
 
-  public async toggleWishlist(userEmail: string, experienceId: number): Promise<boolean> {
-    const [existing] = await pool.query<RowDataPacket[]>(
-      'SELECT id FROM wishlists WHERE user_email = ? AND experience_id = ?',
-      [userEmail, experienceId]
-    );
-
-    if (existing.length > 0) {
-      await pool.query('DELETE FROM wishlists WHERE id = ?', [existing[0].id]);
-      return false; // Removed
-    } else {
-      await pool.query('INSERT INTO wishlists (user_email, experience_id) VALUES (?, ?)', [userEmail, experienceId]);
-      return true; // Added
-    }
-  }
-
-  public async getWishlists(userEmail: string): Promise<number[]> {
-    const [rows] = await pool.query<RowDataPacket[]>('SELECT experience_id FROM wishlists WHERE user_email = ?', [userEmail]);
-    return rows.map(r => Number(r.experience_id));
-  }
 
   public async getPromotions(): Promise<any[]> {
     const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM promotions ORDER BY id DESC');
@@ -724,17 +1195,204 @@ class RelationalDatabase {
     return { id: result.insertId, code, discount_percent, discount_amount, expiry_date, is_active: true };
   }
 
-  public async getAvailability(experienceId: number, date: string): Promise<{ booked: number, max: number }> {
+  public async getExperienceAvailability(experienceId: number, date: string): Promise<{ totalRemaining: number, dailyRemaining: number, isAvailable: boolean }> {
     const exp = await this.findExperienceById(experienceId);
-    if (!exp) return { booked: 0, max: 0 };
-    
-    const [rows] = await pool.query<RowDataPacket[]>(
-      'SELECT SUM(guests) as total FROM bookings WHERE experience_id = ? AND booking_date = ? AND status != "cancelled"',
+    if (!exp) return { totalRemaining: 0, dailyRemaining: 0, isAvailable: false };
+
+    const [totalRows] = await pool.query<RowDataPacket[]>(
+      'SELECT SUM(guests) as total FROM bookings WHERE experience_id = ? AND status != "cancelled"',
+      [experienceId]
+    );
+    const totalBooked = Number(totalRows[0]?.total || 0);
+    const totalRemaining = Math.max(0, (exp.max_guests || 50) - totalBooked);
+
+    const [dailyRows] = await pool.query<RowDataPacket[]>(
+      'SELECT booked_count FROM experience_daily_quotas WHERE experience_id = ? AND booking_date = ?',
       [experienceId, date]
     );
-    const booked = Number(rows[0]?.total || 0);
-    return { booked, max: exp.max_guests || 50 };
+    const dailyBooked = Number(dailyRows[0]?.booked_count || 0);
+    const dailyRemaining = Math.max(0, (exp.daily_capacity || exp.max_guests || 50) - dailyBooked);
+
+    return {
+      totalRemaining,
+      dailyRemaining,
+      isAvailable: totalRemaining > 0 && dailyRemaining > 0
+    };
+  }
+
+  // ─── Tour Schedules ───────────────────────────────────────────
+
+  public async getSchedules(experienceId?: number): Promise<TourScheduleTable[]> {
+    const sql = `
+      SELECT * FROM tour_schedules
+      ${experienceId ? 'WHERE experience_id = ?' : ''}
+      ORDER BY start_date ASC
+    `;
+    const [rows] = await pool.query<ScheduleRow[]>(sql, experienceId ? [experienceId] : []);
+    return rows.map(normalizeSchedule);
+  }
+
+  public async addSchedule(
+    schedule: Omit<TourScheduleTable, 'id' | 'created_at' | 'remaining_slots'>
+  ): Promise<TourScheduleTable> {
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      `INSERT INTO tour_schedules (experience_id, start_date, end_date, max_slots, remaining_slots)
+       VALUES (?, ?, ?, ?, ?)`,
+      [schedule.experience_id, schedule.start_date, schedule.end_date, schedule.max_slots, schedule.max_slots]
+    );
+    const created = await this.findScheduleById(result.insertId);
+    if (!created) throw new Error('Không thể tạo lịch khởi hành');
+    return created;
+  }
+
+  public async updateSchedule(
+    id: number,
+    fields: Partial<Pick<TourScheduleTable, 'start_date' | 'end_date' | 'max_slots' | 'remaining_slots'>>
+  ): Promise<TourScheduleTable> {
+    const allowed = ['start_date', 'end_date', 'max_slots', 'remaining_slots'] as const;
+    const entries = allowed
+      .filter(f => fields[f] !== undefined)
+      .map(f => [f, fields[f]] as const);
+
+    if (entries.length === 0) {
+      const current = await this.findScheduleById(id);
+      if (!current) throw new Error('Không tìm thấy lịch khởi hành');
+      return current;
+    }
+
+    const setClause = entries.map(([f]) => `${f} = ?`).join(', ');
+    const values = entries.map(([, v]) => v);
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      `UPDATE tour_schedules SET ${setClause} WHERE id = ?`,
+      [...values, id]
+    );
+    if (result.affectedRows === 0) throw new Error('Không tìm thấy lịch khởi hành');
+    const updated = await this.findScheduleById(id);
+    if (!updated) throw new Error('Không tìm thấy lịch khởi hành');
+    return updated;
+  }
+
+  public async deleteSchedule(id: number): Promise<boolean> {
+    const [bookings] = await pool.query<RowDataPacket[]>('SELECT id FROM bookings WHERE schedule_id = ? AND status != "cancelled"', [id]);
+    if (bookings.length > 0) {
+      throw new Error('Không thể xóa lịch này vì đã có khách đặt. Vui lòng hủy các đơn đặt trước.');
+    }
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      'DELETE FROM tour_schedules WHERE id = ?', [id]
+    );
+    return result.affectedRows > 0;
+  }
+
+  // --- Phase 6: Host Reviews ---
+  public async addHostReview(review: Omit<HostReviewTable, 'id' | 'created_at'>): Promise<HostReviewTable> {
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      'INSERT INTO host_reviews (booking_id, host_email, guest_email, rating, comment) VALUES (?, ?, ?, ?, ?)',
+      [review.booking_id, review.host_email, review.guest_email, review.rating, review.comment]
+    );
+    const [rows] = await pool.query<HostReviewRow[]>('SELECT * FROM host_reviews WHERE id = ?', [result.insertId]);
+    return normalizeHostReview(rows[0]);
+  }
+
+  public async getHostReviews(email: string, role: 'host' | 'guest'): Promise<HostReviewTable[]> {
+    const column = role === 'host' ? 'host_email' : 'guest_email';
+    const [rows] = await pool.query<HostReviewRow[]>(
+      `SELECT r.*, u.fullname as guest_name, e.title as experience_title
+       FROM host_reviews r
+       JOIN bookings b ON r.booking_id = b.id
+       JOIN experiences e ON b.experience_id = e.id
+       LEFT JOIN users u ON r.guest_email = u.email
+       WHERE r.${column} = ? ORDER BY r.created_at DESC`,
+      [email]
+    );
+    return rows.map(row => ({
+      ...normalizeHostReview(row),
+      guest_name: row.guest_name,
+      experience_title: row.experience_title
+    }));
+  }
+
+  // --- Phase 7: Community Feed ---
+  public async getPosts(): Promise<PostTable[]> {
+    const [rows] = await pool.query<PostRow[]>(`
+      SELECT p.*,
+        (SELECT COUNT(*) FROM post_reactions WHERE post_id = p.id) as likes_count,
+        (SELECT COUNT(*) FROM post_comments WHERE post_id = p.id) as comments_count
+      FROM posts p
+      WHERE p.status = 'active'
+      ORDER BY p.created_at DESC
+    `);
+    return rows.map(normalizePost);
+  }
+
+  public async addPost(post: Omit<PostTable, 'id' | 'status' | 'created_at' | 'likes_count' | 'comments_count'>): Promise<PostTable> {
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      'INSERT INTO posts (user_email, fullname, role, content, media_url, media_type) VALUES (?, ?, ?, ?, ?, ?)',
+      [post.user_email, post.fullname, post.role, post.content, post.media_url || null, post.media_type || null]
+    );
+    const [rows] = await pool.query<PostRow[]>('SELECT * FROM posts WHERE id = ?', [result.insertId]);
+    return normalizePost(rows[0]);
+  }
+
+  public async updatePostStatus(id: number, status: 'active' | 'hidden' | 'deleted'): Promise<boolean> {
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      'UPDATE posts SET status = ? WHERE id = ?',
+      [status, id]
+    );
+    return result.affectedRows > 0;
+  }
+
+  public async addPostComment(comment: Omit<PostCommentTable, 'id' | 'created_at'>): Promise<PostCommentTable> {
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      'INSERT INTO post_comments (post_id, user_email, fullname, comment) VALUES (?, ?, ?, ?)',
+      [comment.post_id, comment.user_email, comment.fullname, comment.comment]
+    );
+    const [rows] = await pool.query<PostCommentRow[]>('SELECT * FROM post_comments WHERE id = ?', [result.insertId]);
+    return normalizePostComment(rows[0]);
+  }
+
+  public async getPostComments(postId: number): Promise<PostCommentTable[]> {
+    const [rows] = await pool.query<PostCommentRow[]>(
+      'SELECT * FROM post_comments WHERE post_id = ? ORDER BY created_at ASC',
+      [postId]
+    );
+    return rows.map(normalizePostComment);
+  }
+
+  public async togglePostReaction(reaction: Omit<PostReactionTable, 'id'>): Promise<boolean> {
+    // Check if exists
+    const [existing] = await pool.query<PostReactionRow[]>(
+      'SELECT * FROM post_reactions WHERE post_id = ? AND user_email = ?',
+      [reaction.post_id, reaction.user_email]
+    );
+
+    if (existing.length > 0) {
+      if (existing[0].reaction_type === reaction.reaction_type) {
+        // Toggle off (delete)
+        await pool.query('DELETE FROM post_reactions WHERE id = ?', [existing[0].id]);
+        return false; // Not added, but removed
+      } else {
+        // Update reaction
+        await pool.query('UPDATE post_reactions SET reaction_type = ? WHERE id = ?', [reaction.reaction_type, existing[0].id]);
+        return true;
+      }
+    } else {
+      // Add new
+      await pool.query(
+        'INSERT INTO post_reactions (post_id, user_email, reaction_type) VALUES (?, ?, ?)',
+        [reaction.post_id, reaction.user_email, reaction.reaction_type]
+      );
+      return true;
+    }
+  }
+
+  public async getPostReactions(postId: number): Promise<PostReactionTable[]> {
+    const [rows] = await pool.query<PostReactionRow[]>(
+      'SELECT * FROM post_reactions WHERE post_id = ?',
+      [postId]
+    );
+    return rows.map(normalizePostReaction);
   }
 }
 
 export const db = new RelationalDatabase();
+

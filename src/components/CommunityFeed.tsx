@@ -1,0 +1,450 @@
+import React, { useState, useEffect } from 'react';
+import { Heart, MessageCircle, Send, ThumbsUp, MoreHorizontal, ShieldAlert, Image as ImageIcon, Video, Trash2, MapPin } from 'lucide-react';
+import { PostTable, PostCommentTable, PostReactionTable } from '../types';
+
+interface CommunityFeedProps {
+  currentUser: any;
+  onLogin: () => void;
+}
+
+const reactionIcons: Record<string, React.ReactNode> = {
+  like: <ThumbsUp className="h-4 w-4 text-blue-500" />,
+  love: <Heart className="h-4 w-4 fill-rose-500 text-rose-500" />,
+  wow: <span className="text-sm">😲</span>,
+  haha: <span className="text-sm">😂</span>,
+  sad: <span className="text-sm">😢</span>,
+  angry: <span className="text-sm">😡</span>
+};
+
+const reactionLabels: Record<string, string> = {
+  like: 'Thích',
+  love: 'Yêu thích',
+  wow: 'Wow',
+  haha: 'Haha',
+  sad: 'Buồn',
+  angry: 'Phẫn nộ'
+};
+
+export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedProps) {
+  const [posts, setPosts] = useState<PostTable[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [postContent, setPostContent] = useState('');
+  const [mediaUrl, setMediaUrl] = useState('');
+  const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
+  const [submitting, setSubmitting] = useState(false);
+  const [activeComments, setActiveComments] = useState<number | null>(null);
+  const [commentsData, setCommentsData] = useState<Record<number, PostCommentTable[]>>({});
+  const [reactionsData, setReactionsData] = useState<Record<number, PostReactionTable[]>>({});
+  const [commentInput, setCommentInput] = useState('');
+  
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!currentUser) {
+      onLogin();
+      return;
+    }
+
+    const isVideo = file.type.startsWith('video/');
+    if (!file.type.startsWith('image/') && !isVideo) {
+      alert('Vui lòng chọn file hình ảnh hoặc video.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMediaUrl(data.url);
+        setMediaType(isVideo ? 'video' : 'image');
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Lỗi tải lên file');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi tải lên file');
+    } finally {
+      setSubmitting(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const fetchPosts = async () => {
+    try {
+      const res = await fetch('/api/posts');
+      const data = await res.json();
+      setPosts(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const handleCreatePost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) return onLogin();
+    if (!postContent.trim()) return;
+
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          user_email: currentUser.email,
+          fullname: currentUser.fullname,
+          role: currentUser.role,
+          content: postContent,
+          media_url: mediaUrl || undefined,
+          media_type: mediaUrl ? mediaType : undefined
+        })
+      });
+      if (res.ok) {
+        setPostContent('');
+        setMediaUrl('');
+        fetchPosts();
+      } else {
+        const err = await res.json();
+        alert(err.error);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const fetchComments = async (postId: number) => {
+    try {
+      const res = await fetch(`/api/posts/${postId}/comments`);
+      const data = await res.json();
+      setCommentsData(prev => ({ ...prev, [postId]: data }));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const fetchReactions = async (postId: number) => {
+    try {
+      const res = await fetch(`/api/posts/${postId}/reactions`);
+      const data = await res.json();
+      setReactionsData(prev => ({ ...prev, [postId]: data }));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const toggleComments = (postId: number) => {
+    if (activeComments === postId) {
+      setActiveComments(null);
+    } else {
+      setActiveComments(postId);
+      fetchComments(postId);
+    }
+  };
+
+  const submitComment = async (e: React.FormEvent, postId: number) => {
+    e.preventDefault();
+    if (!currentUser) return onLogin();
+    if (!commentInput.trim()) return;
+
+    try {
+      const res = await fetch(`/api/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          user_email: currentUser.email,
+          fullname: currentUser.fullname,
+          comment: commentInput
+        })
+      });
+      if (res.ok) {
+        setCommentInput('');
+        fetchComments(postId);
+        fetchPosts(); // Refresh comment count
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const toggleReaction = async (postId: number, reactionType: string) => {
+    if (!currentUser) return onLogin();
+    try {
+      const res = await fetch(`/api/posts/${postId}/reactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          user_email: currentUser.email,
+          reaction_type: reactionType
+        })
+      });
+      if (res.ok) {
+        fetchReactions(postId);
+        fetchPosts(); // Refresh likes count
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const deletePost = async (postId: number) => {
+    if (!window.confirm('Xóa bài viết này?')) return;
+    try {
+      const res = await fetch(`/api/posts/${postId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ status: 'deleted' })
+      });
+      if (res.ok) {
+        fetchPosts();
+      } else {
+        alert('Có lỗi xảy ra');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  if (loading) {
+    return <div className="p-8 text-center text-zinc-500">Đang tải bảng tin...</div>;
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
+      <div className="mb-8 text-center">
+        <h2 className="text-3xl font-black tracking-tight text-zinc-900">Cộng đồng Travel</h2>
+        <p className="mt-2 text-sm text-zinc-500">Chia sẻ khoảnh khắc và trải nghiệm của bạn cùng những người đam mê du lịch.</p>
+      </div>
+
+      <div className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+        <div className="p-4">
+          <form onSubmit={handleCreatePost}>
+            <textarea
+              className="w-full resize-none bg-transparent text-lg outline-none placeholder:text-zinc-400"
+              rows={3}
+              placeholder={currentUser ? `${currentUser.fullname} ơi, bạn đang nghĩ gì?` : 'Đăng nhập để chia sẻ trải nghiệm của bạn...'}
+              value={postContent}
+              onChange={(e) => setPostContent(e.target.value)}
+              onClick={() => !currentUser && onLogin()}
+            />
+            
+            {mediaUrl && (
+              <div className="relative mt-2 rounded-xl bg-zinc-100 p-2">
+                {mediaType === 'image' ? (
+                  <img src={mediaUrl} alt="Preview" className="max-h-64 rounded-lg object-contain" />
+                ) : (
+                  <video src={mediaUrl} controls className="max-h-64 rounded-lg object-contain" />
+                )}
+                <button
+                  type="button"
+                  onClick={() => setMediaUrl('')}
+                  className="absolute right-4 top-4 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            <hr className="my-4 border-zinc-100" />
+            
+            <div className="flex items-center justify-between">
+              <div className="flex gap-2">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*,video/*"
+                  onChange={handleFileUpload}
+                />
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => {
+                    if (!currentUser) return onLogin();
+                    fileInputRef.current?.click();
+                  }}
+                  className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
+                >
+                  <ImageIcon className="h-4 w-4 text-emerald-500" /> Ảnh / Video
+                </button>
+              </div>
+              
+              <button
+                type="submit"
+                disabled={submitting || !postContent.trim()}
+                className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2 text-sm font-bold text-white hover:bg-indigo-700 disabled:opacity-50"
+              >
+                Đăng bài <Send className="h-4 w-4" />
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {posts.map(post => {
+          const postReactions = reactionsData[post.id] || [];
+          const myReaction = currentUser ? postReactions.find(r => r.user_email === currentUser.email)?.reaction_type : null;
+
+          return (
+            <div key={post.id} className="rounded-2xl border border-zinc-200 bg-white shadow-sm">
+              <div className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-700">
+                    {post.fullname.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-zinc-900">{post.fullname}</span>
+                      {post.role === 'host' && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black uppercase text-emerald-700">Host</span>}
+                      {post.role === 'admin' && <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-black uppercase text-rose-700">Admin</span>}
+                    </div>
+                    <div className="text-xs text-zinc-500">{new Date(post.created_at).toLocaleString('vi-VN')}</div>
+                  </div>
+                </div>
+                {currentUser?.role === 'admin' && (
+                  <button onClick={() => deletePost(post.id)} className="text-zinc-400 hover:text-rose-500">
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+
+              <div className="px-4 pb-3">
+                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-800">{post.content}</p>
+              </div>
+
+              {post.media_url && (
+                <div className="bg-zinc-50">
+                  {post.media_type === 'image' ? (
+                    <img src={post.media_url} alt="Post media" className="max-h-[500px] w-full object-cover" />
+                  ) : (
+                    <video src={post.media_url} controls className="max-h-[500px] w-full object-cover" />
+                  )}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between px-4 py-3 text-sm text-zinc-500">
+                <div className="flex items-center gap-1.5">
+                  <div className="flex -space-x-1">
+                    {post.likes_count ? <Heart className="h-5 w-5 rounded-full border-2 border-white bg-rose-500 p-1 text-white" /> : null}
+                  </div>
+                  <span>{post.likes_count || 0}</span>
+                </div>
+                <div className="flex gap-3">
+                  <span>{post.comments_count || 0} bình luận</span>
+                </div>
+              </div>
+
+              <hr className="border-zinc-100" />
+
+              <div className="flex items-center gap-1 p-1">
+                <div className="group relative flex-1">
+                  <div className="absolute bottom-full left-0 mb-2 hidden items-center gap-2 rounded-full border border-zinc-200 bg-white p-2 shadow-xl group-hover:flex">
+                    {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
+                      <button
+                        key={reaction}
+                        onClick={() => toggleReaction(post.id, reaction)}
+                        className="transform transition hover:scale-125"
+                        title={reactionLabels[reaction]}
+                      >
+                        {reactionIcons[reaction]}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => toggleReaction(post.id, 'like')}
+                    className={`flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-bold ${myReaction ? 'text-indigo-600' : 'text-zinc-600 hover:bg-zinc-100'}`}
+                  >
+                    {myReaction ? reactionIcons[myReaction] : <ThumbsUp className="h-5 w-5" />}
+                    {myReaction ? reactionLabels[myReaction] : 'Thích'}
+                  </button>
+                </div>
+                
+                <button
+                  onClick={() => toggleComments(post.id)}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-sm font-bold text-zinc-600 hover:bg-zinc-100"
+                >
+                  <MessageCircle className="h-5 w-5" /> Bình luận
+                </button>
+              </div>
+
+              {activeComments === post.id && (
+                <div className="border-t border-zinc-100 bg-zinc-50 p-4">
+                  {commentsData[post.id]?.length > 0 ? (
+                    <div className="mb-4 space-y-3">
+                      {commentsData[post.id].map(comment => (
+                        <div key={comment.id} className="flex gap-2">
+                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600">
+                            {comment.fullname.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1 rounded-2xl bg-white px-3 py-2 shadow-sm">
+                            <div className="text-sm font-bold text-zinc-900">{comment.fullname}</div>
+                            <div className="text-sm text-zinc-800">{comment.comment}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mb-4 text-center text-sm text-zinc-500">Chưa có bình luận nào.</div>
+                  )}
+
+                  <form onSubmit={(e) => submitComment(e, post.id)} className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
+                      {currentUser?.fullname?.charAt(0).toUpperCase() || '?'}
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Viết bình luận..."
+                      value={commentInput}
+                      onChange={(e) => setCommentInput(e.target.value)}
+                      onClick={() => !currentUser && onLogin()}
+                      className="flex-1 rounded-full border border-zinc-300 bg-white px-4 py-1.5 text-sm outline-none focus:border-indigo-500"
+                    />
+                    <button type="submit" disabled={!commentInput.trim()} className="rounded-full p-2 text-indigo-600 hover:bg-indigo-50 disabled:text-zinc-300">
+                      <Send className="h-4 w-4" />
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {posts.length === 0 && (
+          <div className="py-12 text-center text-zinc-500">Chưa có bài viết nào. Hãy là người đầu tiên!</div>
+        )}
+      </div>
+    </div>
+  );
+}

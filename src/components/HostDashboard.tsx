@@ -17,8 +17,18 @@ import {
   Star,
   Trash2,
   Users,
-  Calendar
+  Calendar,
+  TrendingUp
 } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer
+} from 'recharts';
 import {
   BookingTable,
   ExperienceTable,
@@ -33,13 +43,13 @@ import ModalConfirm, { ConfirmConfig } from './ModalConfirm';
 import ModalExperienceDetail from './ModalExperienceDetail';
 import ScheduleManager from './ScheduleManager';
 
-interface AdminPanelProps {
+interface HostDashboardProps {
   onExperiencesChange: () => void;
   activeSection: string;
   currentUser?: any;
 }
 
-type AdminTab = 'overview' | 'categories' | 'experiences' | 'bookings' | 'users' | 'hosts' | 'promotions';
+type HostTab = 'overview' | 'experiences' | 'bookings' | 'profile' | 'reviews';
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1200&auto=format&fit=crop';
@@ -89,14 +99,13 @@ const statusClass = (status: string) => {
   return 'bg-amber-50 text-amber-700 border-amber-100';
 };
 
-export default function AdminPanel({ onExperiencesChange, activeSection, currentUser }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
+export default function HostDashboard({ onExperiencesChange, activeSection, currentUser }: HostDashboardProps) {
+  const [activeTab, setActiveTab] = useState<HostTab>('overview');
   const [experiences, setExperiences] = useState<ExperienceTable[]>([]);
   const [bookings, setBookings] = useState<BookingTable[]>([]);
-  const [users, setUsers] = useState<UserTable[]>([]);
   const [hosts, setHosts] = useState<HostApplicationTable[]>([]);
   const [dbCategories, setDbCategories] = useState<{ id: number; name: string }[]>([]);
-  const [newCategory, setNewCategory] = useState('');
+  const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -106,23 +115,19 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewExperienceDetail, setViewExperienceDetail] = useState<ExperienceTable | null>(null);
   const [scheduleExperience, setScheduleExperience] = useState<ExperienceTable | null>(null);
-  const [promotions, setPromotions] = useState<any[]>([]);
-  const [showPromoForm, setShowPromoForm] = useState(false);
-  const [promoForm, setPromoForm] = useState({ code: '', discount_percent: 0, discount_amount: 0, expiry_date: '' });
   const [confirmConfig, setConfirmConfig] = useState<ConfirmConfig | null>(null);
+  const [profileForm, setProfileForm] = useState({ name: '', phone: '', address: '', id_number: '', experience_location: '', description: '' });
+  const [isProfileInitialized, setIsProfileInitialized] = useState(false);
+  const [evaluatingBooking, setEvaluatingBooking] = useState<BookingTable | null>(null);
+  const [hostReviewForm, setHostReviewForm] = useState({ rating: 5, comment: '' });
 
-  const isHost = currentUser?.role === 'host';
-  const tabs = isHost 
-    ? [{ id: 'experiences', label: 'Quản lý Tour' }, { id: 'bookings', label: 'Quản lý Đơn' }]
-    : [
-        { id: 'overview', label: 'Tổng quan' },
-        { id: 'categories', label: 'Danh mục' },
-        { id: 'experiences', label: 'Tour' },
-        { id: 'bookings', label: 'Đơn đặt' },
-        { id: 'promotions', label: 'Khuyến mãi' },
-        { id: 'users', label: 'Người dùng' },
-        { id: 'hosts', label: 'Host' }
-      ];
+  const tabs = [
+    { id: 'overview', label: 'Tổng quan' },
+    { id: 'experiences', label: 'Quản lý Tour' },
+    { id: 'bookings', label: 'Đơn đặt tour' },
+    { id: 'reviews', label: 'Đánh giá' },
+    { id: 'profile', label: 'Hồ sơ cá nhân' }
+  ];
 
   const categories = useMemo(
     () => Array.from(new Set(dbCategories.map(c => c.name))),
@@ -148,21 +153,60 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
     const pendingBookings = bookings.filter((booking) => booking.status === 'pending').length;
     const confirmedRevenue = bookings
       .filter((booking) => booking.status === 'confirmed')
-      .reduce((sum, booking) => sum + Number(booking.total_price || 0), 0);
-    const pendingHosts = hosts.filter((host) => host.status === 'pending').length;
+      .reduce((sum, booking) => sum + Number(booking.host_earnings || 0), 0);
+
+    // Prepare revenue data for the chart (daily revenue)
+    const revenueByDate: Record<string, number> = {};
+    bookings
+      .filter(b => b.status === 'confirmed')
+      .forEach(b => {
+        const date = new Date(b.created_at || new Date()).toISOString().split('T')[0];
+        if (!revenueByDate[date]) revenueByDate[date] = 0;
+        revenueByDate[date] += Number(b.host_earnings || 0);
+      });
+
+    // Get last 7 days including days with 0 revenue
+    const chartData = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const displayDate = `${d.getDate()}/${d.getMonth() + 1}`;
+      chartData.push({
+        name: displayDate,
+        revenue: revenueByDate[dateStr] || 0
+      });
+    }
 
     return {
       tours: experiences.length,
-      users: users.length,
+      reviews: reviews.length,
       pendingBookings,
-      pendingHosts,
-      confirmedRevenue
+      confirmedRevenue,
+      chartData
     };
-  }, [bookings, experiences, hosts, users]);
+  }, [bookings, experiences, reviews]);
 
   useEffect(() => {
     fetchAllData();
   }, []);
+
+  useEffect(() => {
+    if (!isProfileInitialized && hosts.length > 0 && currentUser) {
+      const currentHost = hosts.find(h => h.email === currentUser.email);
+      if (currentHost) {
+        setProfileForm({
+          name: currentHost.name,
+          phone: currentHost.phone,
+          address: currentHost.address,
+          id_number: currentHost.id_number,
+          experience_location: currentHost.experience_location,
+          description: currentHost.description
+        });
+        setIsProfileInitialized(true);
+      }
+    }
+  }, [hosts, currentUser, isProfileInitialized]);
 
   const fetchJson = async <T,>(url: string, options?: RequestInit): Promise<T> => {
     const headers = {
@@ -184,21 +228,21 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
     setError(null);
 
     try {
-      const [experienceData, bookingData, userData, hostData, categoryData, promoData] = await Promise.all([
+      const isAdmin = currentUser?.role === 'admin';
+      const [experienceData, bookingsData, categoryData, reviewsData, hostsData] = await Promise.all([
         fetchJson<ExperienceTable[]>('/api/experiences'),
-        fetchJson<BookingTable[]>(isHost ? `/api/bookings?role=host&email=${encodeURIComponent(currentUser?.email)}` : '/api/bookings?role=admin'),
-        fetchJson<UserTable[]>('/api/users'),
-        fetchJson<HostApplicationTable[]>('/api/hosts'),
+        fetchJson<BookingTable[]>(`/api/bookings?role=${currentUser?.role}&email=${encodeURIComponent(currentUser?.email)}`),
         fetchJson<{ id: number; name: string }[]>('/api/categories'),
-        fetchJson<any[]>('/api/promotions')
+        fetchJson<any[]>('/api/reviews'),
+        isAdmin ? fetchJson<HostApplicationTable[]>('/api/hosts') : Promise.resolve([])
       ]);
 
-      setExperiences(isHost ? (experienceData || []).filter(e => e.host_email === currentUser?.email) : (experienceData || []));
-      setBookings(bookingData || []);
-      setUsers(userData || []);
-      setHosts(hostData || []);
+      const hostExperiences = isAdmin ? (experienceData || []) : (experienceData || []).filter(e => e.host_email === currentUser?.email);
+      setExperiences(hostExperiences);
+      setBookings(bookingsData || []);
+      setHosts(hostsData || []);
       setDbCategories(categoryData || []);
-      setPromotions(promoData || []);
+      setReviews((reviewsData || []).filter((r: any) => hostExperiences.some(e => e.id === r.experience_id)));
     } catch (err: any) {
       setError(err.message || 'Không thể tải dữ liệu quản trị');
     } finally {
@@ -214,6 +258,41 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
 
   const updateForm = (field: keyof typeof EMPTY_FORM, value: string | number) => {
     setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'image' | 'images') => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!file.type.startsWith('image/')) {
+        alert('Vui lòng chọn file hình ảnh.');
+        continue;
+      }
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+          body: formData
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (field === 'image') {
+            updateForm('image', data.url);
+          } else {
+            setForm(prev => ({ ...prev, images: prev.images ? prev.images + '\\n' + data.url : data.url }));
+          }
+        } else {
+          alert('Lỗi tải ảnh lên');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    e.target.value = '';
   };
 
   const editExperience = (experience: ExperienceTable) => {
@@ -301,25 +380,21 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
     }
   };
 
-  const savePromotion = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!promoForm.code.trim() || !promoForm.expiry_date.trim()) {
-      setError('Vui lòng nhập mã và ngày hết hạn');
-      return;
-    }
+  const updateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      await fetchJson('/api/promotions', {
-        method: 'POST',
+      await fetchJson('/api/hosts/profile', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(promoForm)
+        body: JSON.stringify({ email: currentUser?.email, ...profileForm })
       });
-      setShowPromoForm(false);
-      setPromoForm({ code: '', discount_percent: 0, discount_amount: 0, expiry_date: '' });
+      alert('Cập nhật hồ sơ thành công!');
       await fetchAllData();
     } catch (err: any) {
       setError(err.message);
     }
   };
+
 
   const deleteExperience = async (id: number) => {
     setConfirmConfig({
@@ -369,6 +444,17 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
     }
   };
 
+  const handleRefundComplete = async (id: number) => {
+    if (!confirm('Xác nhận bạn đã hoàn tiền cho khách hàng?')) return;
+    try {
+      await fetchJson(`/api/bookings/${id}/refund_complete`, { method: 'PUT' });
+      await fetchAllData();
+      alert('Đã cập nhật trạng thái hoàn tiền thành công.');
+    } catch (err: any) {
+      alert(err.message || 'Lỗi xử lý hoàn tiền');
+    }
+  };
+
   const updateHostStatus = async (
     id: number,
     status: HostApplicationTable['status']
@@ -385,77 +471,36 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
     }
   };
 
-  const updateUserRole = async (id: number, role: UserTable['role']) => {
-    try {
-      await fetchJson<UserTable>(`/api/users/${id}/role`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role })
-      });
-      await fetchAllData();
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  const deleteUser = async (id: number) => {
-    setConfirmConfig({
-      title: 'Xóa người dùng',
-      message: 'Xóa người dùng này? Các dữ liệu liên quan có thể sẽ không thuộc về người dùng này nữa.',
-      onConfirm: async () => {
-        try {
-          await fetchJson(`/api/users/${id}`, { method: 'DELETE' });
-          await fetchAllData();
-        } catch (err: any) {
-          setError(err.message);
-        }
-      }
-    });
-  };
-
-
-
-  const addCategory = async (e: React.FormEvent) => {
+  const submitHostReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCategory.trim()) return;
+    if (!evaluatingBooking) return;
+    
+    if (hostReviewForm.comment.trim().length < 5) {
+      alert('Bình luận cần tối thiểu 5 ký tự');
+      return;
+    }
+
     try {
-      await fetchJson('/api/categories', {
+      await fetchJson('/api/host_reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newCategory.trim() })
+        body: JSON.stringify({
+          booking_id: evaluatingBooking.id,
+          host_email: currentUser?.email,
+          guest_email: evaluatingBooking.user_email,
+          rating: hostReviewForm.rating,
+          comment: hostReviewForm.comment.trim()
+        })
       });
-      setNewCategory('');
-      await fetchAllData();
+
+      alert('Đã gửi đánh giá khách hàng thành công');
+      setEvaluatingBooking(null);
+      setHostReviewForm({ rating: 5, comment: '' });
     } catch (err: any) {
-      setError(err.message);
+      alert(err.message);
     }
   };
 
-  const deleteCategory = async (id: number) => {
-    setConfirmConfig({
-      title: 'Xóa danh mục',
-      message: 'Bạn có chắc chắn muốn xóa danh mục này?',
-      onConfirm: async () => {
-        try {
-          await fetchJson(`/api/categories/${id}`, { method: 'DELETE' });
-          await fetchAllData();
-        } catch (err: any) {
-          setError(err.message);
-        }
-      }
-    });
-  };
-
-  const handleRefundComplete = async (id: number) => {
-    if (!confirm('Xác nhận bạn đã hoàn tiền cho khách hàng?')) return;
-    try {
-      await fetchJson(`/api/bookings/${id}/refund_complete`, { method: 'PUT' });
-      await fetchAllData();
-      alert('Đã cập nhật trạng thái hoàn tiền thành công.');
-    } catch (err: any) {
-      alert(err.message || 'Lỗi xử lý hoàn tiền');
-    }
-  };
 
   if (activeSection === 'preview') {
     return (
@@ -597,7 +642,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
             <button
               key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id as AdminTab)}
+              onClick={() => setActiveTab(tab.id as HostTab)}
               className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-bold ${activeTab === tab.id
                 ? 'bg-emerald-600 text-white'
                 : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
@@ -622,12 +667,61 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
 
         {!loading && activeTab === 'overview' && (
           <div className="space-y-5">
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <StatCard icon={FileCheck2} label="Tour đang bán" value={stats.tours} tone="emerald" />
-              <StatCard icon={Users} label="Người dùng" value={stats.users} tone="zinc" />
+              <StatCard icon={Star} label="Đánh giá" value={stats.reviews} tone="sky" />
               <StatCard icon={Clock3} label="Đơn chờ duyệt" value={stats.pendingBookings} tone="amber" />
-              <StatCard icon={ShieldCheck} label="Host chờ duyệt" value={stats.pendingHosts} tone="sky" />
-              <StatCard icon={CheckCircle2} label="Doanh thu đã xác nhận" value={formatVnd(stats.confirmedRevenue)} tone="emerald" />
+              <StatCard icon={TrendingUp} label="Thực nhận dự kiến" value={formatVnd(stats.confirmedRevenue)} tone="emerald" />
+            </div>
+
+            <div className="rounded-2xl border border-zinc-200 p-6">
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-black text-zinc-950">Biểu đồ doanh thu</h3>
+                  <p className="mt-1 text-sm text-zinc-500">Thống kê thực nhận trong 7 ngày gần nhất</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs font-bold uppercase tracking-wide text-zinc-400">Tổng 7 ngày</div>
+                  <div className="text-xl font-black text-emerald-700">
+                    {formatVnd(stats.chartData.reduce((acc, item) => acc + item.revenue, 0))}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="h-72 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={stats.chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#71717a', fontSize: 12, fontWeight: 600 }}
+                      dy={10}
+                    />
+                    <YAxis 
+                      tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#71717a', fontSize: 12, fontWeight: 600 }}
+                      width={60}
+                    />
+                    <RechartsTooltip 
+                      formatter={(value: number) => [formatVnd(value), 'Thực nhận']}
+                      labelStyle={{ fontWeight: 'bold', color: '#18181b' }}
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="revenue" 
+                      stroke="#059669" 
+                      strokeWidth={3}
+                      dot={{ r: 4, fill: '#059669', strokeWidth: 2, stroke: '#fff' }}
+                      activeDot={{ r: 6, fill: '#059669', strokeWidth: 2, stroke: '#fff' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
@@ -652,20 +746,23 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
               </div>
 
               <div className="rounded-2xl border border-zinc-200">
-                <div className="border-b border-zinc-200 px-4 py-3 font-black text-zinc-950">Người dùng mới</div>
+                <div className="border-b border-zinc-200 px-4 py-3 font-black text-zinc-950">Đánh giá mới</div>
                 <div className="divide-y divide-zinc-100">
-                  {users.slice(0, 5).map((item) => (
-                    <div key={item.id} className="flex items-center justify-between gap-4 p-4 text-sm">
-                      <div>
-                        <div className="font-bold text-zinc-900">{item.fullname}</div>
-                        <div className="text-xs text-zinc-500">{item.email}</div>
+                  {reviews.slice(0, 5).map((review) => (
+                    <div key={review.id} className="flex items-start justify-between gap-4 p-4 text-sm">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <div className="font-bold text-zinc-900">{review.fullname}</div>
+                          <div className="flex items-center gap-1 text-amber-500">
+                            <Star className="h-3 w-3 fill-current" />
+                            <span className="text-xs font-bold">{review.rating}</span>
+                          </div>
+                        </div>
+                        <div className="mt-1 text-xs text-zinc-500 line-clamp-2">{review.comment}</div>
                       </div>
-                      <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-bold text-zinc-700 capitalize">
-                        {item.role}
-                      </span>
                     </div>
                   ))}
-                  {users.length === 0 && <EmptyRow text="Chưa có người dùng." />}
+                  {reviews.length === 0 && <EmptyRow text="Chưa có đánh giá nào." />}
                 </div>
               </div>
             </div>
@@ -691,15 +788,33 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
 
             {showForm && (
               <form onSubmit={saveExperience} className="grid gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 lg:grid-cols-6">
-                <input value={form.title} onChange={(event) => updateForm('title', event.target.value)} placeholder="Tên tour" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
-                <input value={form.location} onChange={(event) => updateForm('location', event.target.value)} placeholder="Địa điểm" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <input value={form.duration} onChange={(event) => updateForm('duration', event.target.value)} placeholder="Thời lượng" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <input type="number" min="1000" step="1000" value={form.price} onChange={(event) => updateForm('price', Number(event.target.value))} placeholder="Giá" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <select value={form.category} onChange={(event) => updateForm('category', event.target.value)} className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500">
-                  <option value="" disabled>Chọn danh mục</option>
-                  {dbCategories.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}
-                </select>
-                <input type="number" min="1" max="1000" value={form.max_guests} onChange={(event) => updateForm('max_guests', Number(event.target.value))} placeholder="Số khách tối đa" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <label className="block lg:col-span-2">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500">Tên tour</span>
+                  <input value={form.title} onChange={(event) => updateForm('title', event.target.value)} placeholder="Nhập tên tour" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500">Địa điểm</span>
+                  <input value={form.location} onChange={(event) => updateForm('location', event.target.value)} placeholder="Nhập địa điểm" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500">Thời lượng</span>
+                  <input value={form.duration} onChange={(event) => updateForm('duration', event.target.value)} placeholder="VD: 2 ngày 1 đêm" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500">Giá (VND)</span>
+                  <input type="number" min="1000" step="1000" value={form.price} onChange={(event) => updateForm('price', Number(event.target.value))} placeholder="Nhập giá" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500">Danh mục</span>
+                  <select value={form.category} onChange={(event) => updateForm('category', event.target.value)} className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500">
+                    <option value="" disabled>Chọn danh mục</option>
+                    {dbCategories.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500">Số khách tối đa</span>
+                  <input type="number" min="1" max="1000" value={form.max_guests} onChange={(event) => updateForm('max_guests', Number(event.target.value))} placeholder="Số lượng" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500">Mở đặt từ ngày</span>
                   <input type="date" value={form.booking_open_date} onChange={(event) => updateForm('booking_open_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
@@ -708,15 +823,45 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                   <span className="mb-1 block text-xs font-bold text-zinc-500">Đóng đặt sau ngày</span>
                   <input type="date" min={form.booking_open_date} value={form.booking_close_date} onChange={(event) => updateForm('booking_close_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
-                <input type="number" min="0" value={form.rooms} onChange={(event) => updateForm('rooms', Number(event.target.value))} placeholder="Số phòng" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <input type="number" min="0" value={form.beds} onChange={(event) => updateForm('beds', Number(event.target.value))} placeholder="Số giường" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <input value={form.amenities} onChange={(event) => updateForm('amenities', event.target.value)} placeholder="Tiện ích (cách nhau dấu phẩy)" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
-                <input value={form.image} onChange={(event) => updateForm('image', event.target.value)} placeholder="URL ảnh đại diện" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
-                <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder="Danh sách ảnh khác (mỗi link 1 dòng)" rows={3} className="resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
-                <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} placeholder="Mô tả tour (hiển thị khi khách xem chi tiết)" rows={3} className="resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-4" />
-                <div className="flex gap-2 lg:col-span-2">
-                  <button type="submit" className="flex-1 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-bold text-white hover:bg-emerald-700">Lưu</button>
-                  <button type="button" onClick={resetForm} className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-600 hover:bg-zinc-100">Hủy</button>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500">Số phòng</span>
+                  <input type="number" min="0" value={form.rooms} onChange={(event) => updateForm('rooms', Number(event.target.value))} placeholder="Phòng" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500">Số giường</span>
+                  <input type="number" min="0" value={form.beds} onChange={(event) => updateForm('beds', Number(event.target.value))} placeholder="Giường" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <label className="block lg:col-span-2">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500">Tiện ích</span>
+                  <input value={form.amenities} onChange={(event) => updateForm('amenities', event.target.value)} placeholder="Nhập các tiện ích (cách nhau bằng dấu phẩy)" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <div className="lg:col-span-2 space-y-1">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500">Ảnh đại diện</span>
+                  <div className="flex gap-2">
+                    <input value={form.image} onChange={(event) => updateForm('image', event.target.value)} placeholder="URL hoặc tải lên" className="flex-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                    <label className="flex cursor-pointer items-center justify-center rounded-xl bg-zinc-100 px-3 py-2 text-sm font-bold text-zinc-600 hover:bg-zinc-200">
+                      Tải lên
+                      <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'image')} />
+                    </label>
+                  </div>
+                </div>
+                <div className="lg:col-span-2 space-y-1">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500">Danh sách ảnh phụ</span>
+                  <div className="flex gap-2 items-start">
+                    <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder="Mỗi link một dòng" rows={3} className="flex-1 resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                    <label className="flex cursor-pointer items-center justify-center rounded-xl bg-zinc-100 px-3 py-2 text-sm font-bold text-zinc-600 hover:bg-zinc-200 h-9">
+                      Tải lên
+                      <input type="file" className="hidden" accept="image/*" multiple onChange={(e) => handleImageUpload(e, 'images')} />
+                    </label>
+                  </div>
+                </div>
+                <label className="block lg:col-span-4">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500">Mô tả chi tiết</span>
+                  <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} placeholder="Nhập mô tả chi tiết về tour để thu hút khách hàng" rows={3} className="w-full resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <div className="flex items-end justify-end gap-2 lg:col-span-6">
+                  <button type="submit" className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-bold text-white hover:bg-emerald-700">Lưu</button>
+                  <button type="button" onClick={resetForm} className="rounded-xl border border-zinc-200 bg-white px-5 py-2 text-sm font-bold text-zinc-600 hover:bg-zinc-100">Hủy</button>
                 </div>
               </form>
             )}
@@ -772,62 +917,8 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
           </div>
         )}
 
-        {!loading && activeTab === 'categories' && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-black text-zinc-950">Quản lý danh mục tour</h3>
-
-            <form onSubmit={addCategory} className="flex gap-2">
-              <input
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                placeholder="Tên danh mục mới..."
-                className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm outline-none focus:border-emerald-500"
-              />
-              <button
-                type="submit"
-                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
-              >
-                Thêm
-              </button>
-            </form>
-
-            <div className="overflow-x-auto rounded-2xl border border-zinc-200 mt-4">
-              <table className="min-w-full text-sm">
-                <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
-                  <tr>
-                    <th className="px-4 py-3 text-left">ID</th>
-                    <th className="px-4 py-3 text-left">Tên danh mục</th>
-                    <th className="px-4 py-3 text-right">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-200">
-                  {dbCategories.map((item) => (
-                    <tr key={item.id}>
-                      <td className="px-4 py-3 text-zinc-500">#{item.id}</td>
-                      <td className="px-4 py-3 font-bold text-zinc-900">{item.name}</td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => deleteCategory(item.id)}
-                          className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50"
-                          aria-label="Xóa danh mục"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {dbCategories.length === 0 && (
-                    <tr><td colSpan={3}><EmptyRow text="Chưa có danh mục nào." /></td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
         {!loading && activeTab === 'bookings' && (
-          <AdminTable title="Quản lý đơn đặt tour">
+          <HostTable title="Quản lý đơn đặt tour">
             <table className="min-w-full text-sm">
               <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
                 <tr>
@@ -853,7 +944,6 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                     <td className="px-4 py-3">
                       <div className="font-bold text-emerald-700">{formatVnd(booking.total_price)}</div>
                       <div className="mt-1 flex flex-col gap-0.5 text-xs">
-                        {!isHost && <div className="font-semibold text-amber-600">Hoa hồng: {formatVnd(booking.commission_amount || 0)}</div>}
                         <div className="font-semibold text-sky-600">Thực nhận: {formatVnd(booking.host_earnings || 0)}</div>
                       </div>
                     </td>
@@ -895,6 +985,18 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                             Đã hoàn tiền
                           </div>
                         )}
+                        
+                        {booking.status === 'confirmed' && (
+                          <button
+                            onClick={() => {
+                              setEvaluatingBooking(booking);
+                              setHostReviewForm({ rating: 5, comment: '' });
+                            }}
+                            className="mt-2 w-full rounded-lg bg-indigo-50 border border-indigo-200 px-2 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100"
+                          >
+                            Đánh giá khách
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -904,243 +1006,114 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                 )}
               </tbody>
             </table>
-          </AdminTable>
+          </HostTable>
         )}
 
-        {!loading && activeTab === 'promotions' && !isHost && (
-          <div className="space-y-4">
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowPromoForm(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-emerald-700"
-              >
-                <Plus className="h-4 w-4" />
-                Thêm Mã Khuyến Mãi
-              </button>
-            </div>
-            
-            {showPromoForm && (
-              <form onSubmit={savePromotion} className="mb-8 rounded-2xl border border-zinc-200 bg-zinc-50 p-6">
-                <h3 className="mb-6 text-lg font-black text-zinc-900">Thêm mã mới</h3>
-                <div className="grid gap-6 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-bold text-zinc-700">Mã giảm giá</span>
-                    <input
-                      value={promoForm.code}
-                      onChange={(e) => setPromoForm({ ...promoForm, code: e.target.value })}
-                      className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                      placeholder="VD: SUMMER2024"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-bold text-zinc-700">Ngày hết hạn</span>
-                    <input
-                      type="date"
-                      value={promoForm.expiry_date}
-                      onChange={(e) => setPromoForm({ ...promoForm, expiry_date: e.target.value })}
-                      className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-bold text-zinc-700">Giảm theo %</span>
-                    <input
-                      type="number"
-                      value={promoForm.discount_percent}
-                      onChange={(e) => setPromoForm({ ...promoForm, discount_percent: Number(e.target.value) })}
-                      className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-bold text-zinc-700">Hoặc Giảm tiền mặt (VNĐ)</span>
-                    <input
-                      type="number"
-                      value={promoForm.discount_amount}
-                      onChange={(e) => setPromoForm({ ...promoForm, discount_amount: Number(e.target.value) })}
-                      className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                    />
-                  </label>
-                </div>
-                <div className="mt-6 flex justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowPromoForm(false)}
-                    className="rounded-xl px-5 py-2.5 text-sm font-bold text-zinc-600 hover:bg-zinc-200"
-                  >
-                    Hủy
-                  </button>
-                  <button
-                    type="submit"
-                    className="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-emerald-700"
-                  >
-                    Lưu
-                  </button>
-                </div>
-              </form>
-            )}
-
-            <div className="overflow-x-auto rounded-2xl border border-zinc-200">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-zinc-50 font-bold text-zinc-900">
-                  <tr>
-                    <th className="p-4">Mã</th>
-                    <th className="p-4">Giảm giá</th>
-                    <th className="p-4">Hết hạn</th>
-                    <th className="p-4">Trạng thái</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-200 bg-white">
-                  {promotions.map((p) => (
-                    <tr key={p.id} className="hover:bg-zinc-50">
-                      <td className="p-4 font-bold">{p.code}</td>
-                      <td className="p-4">{p.discount_percent ? `${p.discount_percent}%` : formatVnd(p.discount_amount)}</td>
-                      <td className="p-4">{new Date(p.expiry_date).toLocaleDateString()}</td>
-                      <td className="p-4">
-                        <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${p.is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-zinc-100 text-zinc-600 border-zinc-200'}`}>
-                          {p.is_active ? 'Hoạt động' : 'Tạm dừng'}
-                        </span>
+        {!loading && activeTab === 'reviews' && (
+          <HostTable title="Đánh giá từ khách hàng">
+            <table className="min-w-full text-sm">
+              <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
+                <tr>
+                  <th className="px-4 py-3 text-left">Tour</th>
+                  <th className="px-4 py-3 text-left">Khách hàng</th>
+                  <th className="px-4 py-3 text-left">Đánh giá</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200">
+                {reviews.map((review) => {
+                  const experience = experiences.find(e => e.id === review.experience_id);
+                  return (
+                    <tr key={review.id}>
+                      <td className="px-4 py-3">
+                        <div className="font-bold text-zinc-900 line-clamp-1">{experience?.title || 'Tour đã xóa'}</div>
+                        <div className="text-xs text-zinc-500">{new Date(review.created_at).toLocaleDateString('vi-VN')}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="font-bold text-zinc-900">{review.fullname}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1 text-amber-500 mb-1">
+                          <Star className="h-4 w-4 fill-current" />
+                          <span className="font-bold">{review.rating}</span>
+                        </div>
+                        <p className="text-zinc-600 line-clamp-2">{review.comment}</p>
                       </td>
                     </tr>
-                  ))}
-                  {promotions.length === 0 && (
-                    <tr><td colSpan={4}><EmptyRow text="Chưa có mã khuyến mãi nào." /></td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  );
+                })}
+                {reviews.length === 0 && (
+                  <tr><td colSpan={3}><EmptyRow text="Chưa có đánh giá nào." /></td></tr>
+                )}
+              </tbody>
+            </table>
+          </HostTable>
+        )}
+
+        {!loading && activeTab === 'profile' && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-black text-zinc-950">Hồ sơ cá nhân</h3>
+            <form onSubmit={updateProfile} className="max-w-2xl rounded-2xl border border-zinc-200 bg-zinc-50 p-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block sm:col-span-2">
+                  <span className="mb-1 block text-sm font-bold text-zinc-700">Tên hiển thị</span>
+                  <input
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                    className="w-full rounded-xl border border-zinc-200 px-4 py-2 outline-none focus:border-emerald-500"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-sm font-bold text-zinc-700">Số điện thoại</span>
+                  <input
+                    value={profileForm.phone}
+                    onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                    className="w-full rounded-xl border border-zinc-200 px-4 py-2 outline-none focus:border-emerald-500"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-sm font-bold text-zinc-700">CMND/CCCD</span>
+                  <input
+                    value={profileForm.id_number}
+                    onChange={(e) => setProfileForm({ ...profileForm, id_number: e.target.value })}
+                    className="w-full rounded-xl border border-zinc-200 px-4 py-2 outline-none focus:border-emerald-500"
+                  />
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="mb-1 block text-sm font-bold text-zinc-700">Địa chỉ</span>
+                  <input
+                    value={profileForm.address}
+                    onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
+                    className="w-full rounded-xl border border-zinc-200 px-4 py-2 outline-none focus:border-emerald-500"
+                  />
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="mb-1 block text-sm font-bold text-zinc-700">Khu vực hoạt động</span>
+                  <input
+                    value={profileForm.experience_location}
+                    onChange={(e) => setProfileForm({ ...profileForm, experience_location: e.target.value })}
+                    className="w-full rounded-xl border border-zinc-200 px-4 py-2 outline-none focus:border-emerald-500"
+                  />
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="mb-1 block text-sm font-bold text-zinc-700">Mô tả bản thân</span>
+                  <textarea
+                    value={profileForm.description}
+                    onChange={(e) => setProfileForm({ ...profileForm, description: e.target.value })}
+                    rows={4}
+                    className="w-full resize-none rounded-xl border border-zinc-200 px-4 py-2 outline-none focus:border-emerald-500"
+                  />
+                </label>
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button
+                  type="submit"
+                  className="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-emerald-700"
+                >
+                  Cập nhật hồ sơ
+                </button>
+              </div>
+            </form>
           </div>
-        )}
-
-        {!loading && activeTab === 'users' && (
-          <AdminTable title="Phân quyền người dùng">
-            <table className="min-w-full text-sm">
-              <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
-                <tr>
-                  <th className="px-4 py-3 text-left">Người dùng</th>
-                  <th className="px-4 py-3 text-left">Email</th>
-                  <th className="px-4 py-3 text-left">Quyền</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-200">
-                {users.map((item) => (
-                  <tr key={item.id}>
-                    <td className="px-4 py-3 font-bold text-zinc-900">{item.fullname}</td>
-                    <td className="px-4 py-3 text-zinc-600">{item.email}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={item.role}
-                          onChange={(event) => updateUserRole(item.id, event.target.value as UserTable['role'])}
-                          className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-700 outline-none focus:border-emerald-500"
-                        >
-                          <option value="user">User</option>
-                          <option value="admin">Admin</option>
-                          <option value="host">Host</option>
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => deleteUser(item.id)}
-                          className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50"
-                          aria-label="Xóa người dùng"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {users.length === 0 && (
-                  <tr><td colSpan={3}><EmptyRow text="Chưa có người dùng." /></td></tr>
-                )}
-              </tbody>
-            </table>
-          </AdminTable>
-        )}
-
-        {!loading && activeTab === 'hosts' && (
-          <AdminTable title="Duyệt đăng ký Host">
-            <table className="min-w-full text-sm">
-              <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
-                <tr>
-                  <th className="px-4 py-3 text-left">Người đăng ký</th>
-                  <th className="px-4 py-3 text-left">Liên hệ</th>
-                  <th className="px-4 py-3 text-left">Địa chỉ & CCCD</th>
-                  <th className="px-4 py-3 text-left">Địa điểm & Mô tả</th>
-                  <th className="px-4 py-3 text-right">Trạng thái</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-200">
-                {hosts.map((item) => (
-                  <tr key={item.id}>
-                    <td className="px-4 py-3">
-                      <div className="font-bold text-zinc-900">{item.name}</div>
-                      <div className="mt-1 text-xs text-zinc-400">#{item.id} · {new Date(item.created_at).toLocaleDateString('vi-VN')}</div>
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600">
-                      <div>{item.email}</div>
-                      <div className="mt-1 font-semibold text-zinc-500">{item.phone}</div>
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600">
-                      <div className="text-xs"><span className="font-bold text-zinc-500">Đ/c:</span> {item.address || 'Chưa cập nhật'}</div>
-                      <div className="mt-1 text-xs"><span className="font-bold text-zinc-500">CCCD:</span> {item.id_number || 'Chưa cập nhật'}</div>
-                    </td>
-                    <td className="max-w-xs px-4 py-3 text-zinc-600">
-                      <div className="text-xs font-bold text-emerald-600 mb-1">{item.experience_location || 'Chưa cập nhật'}</div>
-                      <div className="text-xs line-clamp-2" title={item.description}>{item.description}</div>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex flex-col items-end gap-2">
-                        <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${statusClass(item.status)}`}>
-                          {statusLabels[item.status]}
-                        </span>
-                        <div className="flex gap-1.5 flex-wrap justify-end">
-                          {item.status === 'pending' && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => updateHostStatus(item.id, 'approved')}
-                                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700"
-                              >
-                                Duyệt
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => updateHostStatus(item.id, 'rejected')}
-                                className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50"
-                              >
-                                Từ chối
-                              </button>
-                            </>
-                          )}
-                          {item.status === 'approved' && (
-                            <button
-                              type="button"
-                              onClick={() => updateHostStatus(item.id, 'suspended')}
-                              className="rounded-lg border border-orange-200 px-3 py-1.5 text-xs font-bold text-orange-600 hover:bg-orange-50"
-                            >
-                              Tạm khóa
-                            </button>
-                          )}
-                          {(item.status === 'rejected' || item.status === 'suspended') && (
-                            <button
-                              type="button"
-                              onClick={() => updateHostStatus(item.id, 'approved')}
-                              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700"
-                            >
-                              Kích hoạt lại
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {hosts.length === 0 && (
-                  <tr><td colSpan={5}><EmptyRow text="Chưa có đăng ký host." /></td></tr>
-                )}
-              </tbody>
-            </table>
-          </AdminTable>
         )}
       </div>
 
@@ -1149,6 +1122,59 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
           {...confirmConfig}
           onClose={() => setConfirmConfig(null)}
         />
+      )}
+
+      {evaluatingBooking && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <h3 className="mb-4 text-xl font-black text-zinc-900">Đánh giá khách hàng</h3>
+            <div className="mb-4 rounded-lg bg-zinc-50 p-3 text-sm">
+              Đánh giá khách hàng <span className="font-bold">{evaluatingBooking.contact_name}</span> cho đơn hàng <span className="font-bold">#{evaluatingBooking.id}</span>
+            </div>
+            <form onSubmit={submitHostReview} className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-bold text-zinc-700">Chất lượng (sao)</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setHostReviewForm({ ...hostReviewForm, rating: value })}
+                      className={`rounded-lg border p-2 ${hostReviewForm.rating >= value ? 'border-amber-200 bg-amber-50 text-amber-500' : 'border-zinc-200 bg-white text-zinc-300'}`}
+                    >
+                      <Star className="h-5 w-5 fill-current" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-bold text-zinc-700">Nhận xét của bạn</label>
+                <textarea
+                  value={hostReviewForm.comment}
+                  onChange={(e) => setHostReviewForm({ ...hostReviewForm, comment: e.target.value })}
+                  rows={4}
+                  className="w-full resize-none rounded-xl border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                  placeholder="Khách hàng đã trải nghiệm như thế nào..."
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setEvaluatingBooking(null)}
+                  className="flex-1 rounded-xl bg-zinc-100 py-2.5 text-sm font-bold text-zinc-700 hover:bg-zinc-200"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-bold text-white hover:bg-indigo-700"
+                >
+                  Gửi đánh giá
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {scheduleExperience && (
@@ -1191,7 +1217,7 @@ function StatCard({
   );
 }
 
-function AdminTable({ title, children }: { title: string; children: React.ReactNode }) {
+function HostTable({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-3">
       <h3 className="text-lg font-black text-zinc-950">{title}</h3>

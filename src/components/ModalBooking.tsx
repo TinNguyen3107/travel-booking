@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertCircle, BadgeCheck, Calendar, MessageSquare, Phone, User, Users, X, Tag } from 'lucide-react';
-import { ExperienceTable, formatVnd } from '../types';
+import { ExperienceTable, TourScheduleTable, formatDateVi, formatVnd, todayIso } from '../types';
 
 interface ModalBookingProps {
   experience: ExperienceTable;
@@ -22,14 +22,44 @@ export default function ModalBooking({
   onClose,
   onBookingSuccess
 }: ModalBookingProps) {
-  const today = new Date().toISOString().slice(0, 10);
-  const [bookingDate, setBookingDate] = useState(today);
-  const [guests, setGuests] = useState(2);
+  const today = todayIso();
+  const maxGuests = Number(experience.max_guests || 50);
+  const minBookingDate = experience.booking_open_date && experience.booking_open_date > today ? experience.booking_open_date : today;
+  const maxBookingDate = experience.booking_close_date || '';
+  const isBookableWindow = !maxBookingDate || maxBookingDate >= minBookingDate;
+  const [bookingDate, setBookingDate] = useState(minBookingDate);
+  const [guests, setGuests] = useState(Math.min(2, maxGuests));
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [schedules, setSchedules] = useState<TourScheduleTable[]>([]);
+  const [selectedScheduleId, setSelectedScheduleId] = useState<number | ''>('');
+  const [availability, setAvailability] = useState<{ totalRemaining: number, dailyRemaining: number, isAvailable: boolean } | null>(null);
+
+  useEffect(() => {
+    if (schedules.length > 0) return;
+    const fetchAvailability = async () => {
+      try {
+        const res = await fetch(`/api/experiences/${experience.id}/availability?date=${bookingDate}`);
+        const data = await res.json();
+        if (!data.error) setAvailability(data);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchAvailability();
+  }, [experience.id, bookingDate, schedules.length]);
+
+  useEffect(() => {
+    fetch(`/api/schedules?experience_id=${experience.id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) setSchedules(data);
+      })
+      .catch(console.error);
+  }, [experience.id]);
 
   const [promoCode, setPromoCode] = useState('');
   const [promoMessage, setPromoMessage] = useState<string | null>(null);
@@ -48,12 +78,27 @@ export default function ModalBooking({
 
   const setGuestCount = (value: number) => {
     if (Number.isNaN(value)) return;
-    setGuests(Math.min(50, Math.max(1, value)));
+    setGuests(Math.min(maxGuests, Math.max(1, value)));
   };
 
   const validate = () => {
-    if (bookingDate < today) {
-      return 'Ngày đặt tour không được ở trong quá khứ';
+    if (schedules.length > 0) {
+      if (!selectedScheduleId) return 'Vui lòng chọn lịch trình';
+      const sched = schedules.find(s => s.id === selectedScheduleId);
+      if (sched && sched.remaining_slots < guests) return `Lịch trình này chỉ còn ${sched.remaining_slots} chỗ`;
+    } else {
+      if (!isBookableWindow) return 'Tour này đã hết thời gian nhận đặt';
+      if (bookingDate < minBookingDate) return 'Ngày đi phải nằm trong thời gian tour đang nhận đặt';
+      if (maxBookingDate && bookingDate > maxBookingDate) return 'Ngày đi đã vượt quá ngày đóng nhận đặt của tour';
+      if (availability) {
+        if (!availability.isAvailable) return 'Tour này đã hết chỗ trong ngày được chọn.';
+        if (guests > availability.dailyRemaining) return `Tour này chỉ còn ${availability.dailyRemaining} chỗ trong ngày này.`;
+        if (guests > availability.totalRemaining) return `Tour này chỉ còn ${availability.totalRemaining} chỗ tổng cộng.`;
+      }
+    }
+
+    if (guests > maxGuests) {
+      return `Tour này chỉ nhận tối đa ${maxGuests} khách cho một ngày`;
     }
 
     if (contactName.trim().length < 2) {
@@ -108,11 +153,15 @@ export default function ModalBooking({
     try {
       const res = await fetch('/api/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({
           user_email: userEmail,
           experience_id: experience.id,
-          booking_date: bookingDate,
+          schedule_id: schedules.length > 0 ? selectedScheduleId : undefined,
+          booking_date: schedules.length > 0 ? schedules.find(s => s.id === selectedScheduleId)?.start_date : bookingDate,
           guests,
           contact_name: contactName.trim(),
           contact_phone: contactPhone.trim(),
@@ -172,6 +221,16 @@ export default function ModalBooking({
               <p className="mt-1 text-sm text-zinc-500">
                 {experience.location} · {formatVnd(experience.price)} / khách
               </p>
+              <div className="mt-3 grid gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-xs font-bold text-zinc-600">
+                <span className="inline-flex items-center gap-1.5">
+                  <Users className="h-3.5 w-3.5 text-emerald-600" />
+                  Tối đa {maxGuests} khách/ngày
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-emerald-600" />
+                  Nhận đặt: {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
+                </span>
+              </div>
             </div>
 
             <form onSubmit={handleBookingSubmit} className="space-y-4">
@@ -180,14 +239,40 @@ export default function ModalBooking({
                   <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Ngày đi</span>
                   <span className="relative block">
                     <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                    <input
-                      type="date"
-                      min={today}
-                      value={bookingDate}
-                      onChange={(event) => setBookingDate(event.target.value)}
-                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
-                    />
+                    {schedules.length > 0 ? (
+                      <select
+                        value={selectedScheduleId}
+                        onChange={(e) => setSelectedScheduleId(Number(e.target.value) || '')}
+                        className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                      >
+                        <option value="">-- Chọn lịch trình --</option>
+                        {schedules.filter(s => s.remaining_slots >= guests).map(s => (
+                          <option key={s.id} value={s.id}>
+                            {formatDateVi(s.start_date)} - {formatDateVi(s.end_date)} (Còn {s.remaining_slots} chỗ)
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="date"
+                        min={minBookingDate}
+                        max={maxBookingDate || undefined}
+                        value={bookingDate}
+                        onChange={(event) => setBookingDate(event.target.value)}
+                        className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                      />
+                    )}
                   </span>
+                  {schedules.length === 0 && availability && (
+                    <div className="mt-2 grid gap-1 text-xs font-bold text-zinc-500">
+                      <span className={availability.dailyRemaining > 0 ? 'text-emerald-600' : 'text-rose-500'}>
+                        • Còn {availability.dailyRemaining} chỗ trong ngày này
+                      </span>
+                      <span className={availability.totalRemaining > 0 ? 'text-blue-600' : 'text-rose-500'}>
+                        • Còn {availability.totalRemaining} chỗ của toàn tour
+                      </span>
+                    </div>
+                  )}
                 </label>
 
                 <label className="block">
@@ -203,7 +288,7 @@ export default function ModalBooking({
                     <input
                       type="number"
                       min={1}
-                      max={50}
+                      max={maxGuests}
                       value={guests}
                       onChange={(event) => setGuestCount(Number(event.target.value))}
                       className="min-w-0 flex-1 bg-transparent text-center text-sm font-black outline-none"
@@ -330,11 +415,25 @@ export default function ModalBooking({
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={
+                    loading || 
+                    !isBookableWindow || 
+                    (schedules.length === 0 && availability && (!availability.isAvailable || guests > availability.dailyRemaining || guests > availability.totalRemaining))
+                  }
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-400 sm:w-2/3"
                 >
                   {loading ? (
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  ) : (!isBookableWindow && schedules.length === 0) ? (
+                    <>
+                      <BadgeCheck className="h-4 w-4" />
+                      Tour đã đóng
+                    </>
+                  ) : (schedules.length === 0 && availability && !availability.isAvailable) ? (
+                    <>
+                      <X className="h-4 w-4" />
+                      Hết chỗ
+                    </>
                   ) : (
                     <>
                       <BadgeCheck className="h-4 w-4" />

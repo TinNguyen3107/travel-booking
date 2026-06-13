@@ -1,6 +1,7 @@
-import React from 'react';
-import { Clock, MapPin, Star, X, CalendarCheck } from 'lucide-react';
-import { ExperienceTable, formatVnd } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Clock, MapPin, Star, X, CalendarCheck, Users, Bed, Home, CheckCircle2, Calendar } from 'lucide-react';
+import { ExperienceTable, TourScheduleTable, formatDateVi, formatVnd, isExperienceOpen } from '../types';
+import HostProfileWidget from './HostProfileWidget';
 
 interface ModalExperienceDetailProps {
   experience: ExperienceTable;
@@ -11,6 +12,30 @@ interface ModalExperienceDetailProps {
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1200&auto=format&fit=crop';
 
 export default function ModalExperienceDetail({ experience, onClose, onBook }: ModalExperienceDetailProps) {
+  const isOpen = isExperienceOpen(experience);
+  const [schedules, setSchedules] = useState<TourScheduleTable[]>([]);
+
+  useEffect(() => {
+    fetch(`/api/schedules?experience_id=${experience.id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) setSchedules(data);
+      })
+      .catch(console.error);
+  }, [experience.id]);
+
+  let parsedAmenities: string[] = [];
+  try {
+    parsedAmenities = typeof experience.amenities === 'string' && experience.amenities !== '[]' && experience.amenities !== '' 
+      ? JSON.parse(experience.amenities) : [];
+  } catch(e) {}
+
+  let parsedImages: string[] = [];
+  try {
+    parsedImages = typeof experience.images === 'string' && experience.images !== '[]' && experience.images !== ''
+      ? JSON.parse(experience.images) : [];
+  } catch(e) {}
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm overflow-y-auto py-10">
       <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl my-auto">
@@ -70,12 +95,116 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
             </div>
           </div>
 
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500">
+                <Users className="h-4 w-4 text-emerald-600" />
+                Sức chứa
+              </div>
+              <div className="mt-2 text-base font-black text-zinc-950">
+                {Number(experience.max_guests || 50)} khách/ngày
+              </div>
+            </div>
+            <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500">
+                <CalendarCheck className="h-4 w-4 text-emerald-600" />
+                Nhận đặt
+              </div>
+              <div className="mt-2 text-sm font-black text-zinc-950">
+                {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
+              </div>
+            </div>
+            <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+              <div className="text-xs font-bold uppercase text-zinc-500">Trạng thái</div>
+              <div className={`mt-2 inline-flex rounded-full border px-2.5 py-1 text-xs font-black ${isOpen ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
+                {isOpen ? 'Đang mở bán' : 'Đã đóng nhận đặt'}
+              </div>
+            </div>
+          </div>
+
+          {(experience.rooms || experience.beds) ? (
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              {experience.rooms ? (
+                <div className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                    <Home className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold uppercase text-zinc-500">Số phòng</div>
+                    <div className="text-base font-black text-zinc-950">{experience.rooms} phòng</div>
+                  </div>
+                </div>
+              ) : null}
+              {experience.beds ? (
+                <div className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                    <Bed className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold uppercase text-zinc-500">Số giường</div>
+                    <div className="text-base font-black text-zinc-950">{experience.beds} giường</div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {parsedAmenities.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-black text-zinc-900 mb-3">Tiện ích</h3>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {parsedAmenities.map((amenity, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm font-semibold text-zinc-700">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    {amenity}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {schedules.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-black text-zinc-900 mb-3">Lịch khởi hành sắp tới</h3>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {schedules.filter(s => s.remaining_slots > 0).slice(0, 4).map(schedule => (
+                  <div key={schedule.id} className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
+                    <Calendar className="h-5 w-5 text-emerald-600" />
+                    <div>
+                      <div className="text-sm font-bold text-emerald-900">
+                        {formatDateVi(schedule.start_date)} - {formatDateVi(schedule.end_date)}
+                      </div>
+                      <div className="text-xs font-semibold text-emerald-700">
+                        Còn {schedule.remaining_slots} chỗ
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {parsedImages.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-black text-zinc-900 mb-3">Thư viện ảnh</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {parsedImages.map((img, idx) => (
+                  <img key={idx} src={img} alt={`${experience.title} ${idx}`} className="h-32 w-full object-cover rounded-xl border border-zinc-200" />
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="mt-6">
             <h3 className="text-lg font-black text-zinc-900 mb-3">Mô tả trải nghiệm</h3>
             <div className="text-zinc-600 leading-relaxed space-y-3 whitespace-pre-wrap">
               {experience.description || 'Chưa có mô tả cho tour này.'}
             </div>
           </div>
+
+          {experience.host_email && (
+            <HostProfileWidget email={experience.host_email} />
+          )}
 
           <div className="mt-6">
             <h3 className="text-lg font-black text-zinc-900 mb-3">Bản đồ khu vực</h3>
@@ -103,13 +232,15 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
             <button
               type="button"
               onClick={() => {
+                if (!isOpen) return;
                 onClose();
                 onBook();
               }}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-black text-white shadow-sm hover:bg-emerald-700"
+              disabled={!isOpen}
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-black text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
             >
               <CalendarCheck className="h-4 w-4" />
-              Đặt tour ngay
+              {isOpen ? 'Đặt tour ngay' : 'Tour đã đóng'}
             </button>
           </div>
         </div>

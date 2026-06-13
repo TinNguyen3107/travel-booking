@@ -25,7 +25,27 @@ export interface ExperienceTable {
   host_count: number;
   reviews_count: number;
   max_guests?: number;
+  booking_open_date?: string;
+  booking_close_date?: string;
   host_email?: string;
+  rooms?: number;
+  beds?: number;
+  amenities?: string;
+  images?: string;
+  daily_capacity?: number;
+  registration_open_date?: string;
+  registration_close_date?: string;
+  status?: 'active' | 'hidden' | 'suspended';
+}
+
+export interface TourScheduleTable {
+  id: number;
+  experience_id: number;
+  start_date: string;
+  end_date: string;
+  max_slots: number;
+  remaining_slots: number;
+  created_at: string;
 }
 
 export interface BookingTable {
@@ -40,6 +60,11 @@ export interface BookingTable {
   total_price: number;
   status: 'pending' | 'confirmed' | 'cancelled';
   created_at: string;
+  schedule_id?: number;
+  payment_status?: 'unpaid' | 'paid' | 'refunded';
+  refund_status?: 'none' | 'pending' | 'completed';
+  commission_amount?: number;
+  host_earnings?: number;
   experience_title?: string;
   host_email?: string;
 }
@@ -64,8 +89,11 @@ export interface HostApplicationTable {
   name: string;
   email: string;
   phone: string;
+  address: string;
+  id_number: string;
+  experience_location: string;
   description: string;
-  status: 'pending' | 'approved';
+  status: 'pending' | 'approved' | 'rejected' | 'suspended';
   created_at: string;
 }
 
@@ -76,8 +104,70 @@ export interface ReviewTable {
   fullname: string;
   rating: number;
   comment: string;
+  images?: string;
   created_at: string;
+}
+
+export interface HostReviewTable {
+  id: number;
+  booking_id: number;
+  host_email: string;
+  guest_email: string;
+  guest_name?: string;
+  experience_title?: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+}
+
+// Phase 7: Community Feed
+export interface PostTable {
+  id: number;
+  user_email: string;
+  fullname: string;
+  role: 'user' | 'admin' | 'host';
+  content: string;
+  media_url?: string;
+  media_type?: 'image' | 'video';
+  status: 'active' | 'hidden' | 'deleted';
+  created_at: string;
+  likes_count?: number;
+  comments_count?: number;
+}
+
+export interface PostCommentTable {
+  id: number;
+  post_id: number;
+  user_email: string;
+  fullname: string;
+  comment: string;
+  created_at: string;
+}
+
+export interface PostReactionTable {
+  id: number;
+  post_id: number;
+  user_email: string;
+  reaction_type: 'like' | 'love' | 'wow' | 'haha' | 'sad' | 'angry';
 }
 
 export const formatVnd = (value: number) =>
   `${Number(value || 0).toLocaleString('vi-VN')} VN\u0110`;
+
+export const todayIso = () => {
+  const date = new Date();
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return localDate.toISOString().slice(0, 10);
+};
+
+export const formatDateVi = (value?: string) => {
+  if (!value) return 'Chưa cập nhật';
+  return new Date(`${value}T00:00:00`).toLocaleDateString('vi-VN');
+};
+
+export const isExperienceOpen = (experience: Pick<ExperienceTable, 'booking_open_date' | 'booking_close_date'>) => {
+  const today = todayIso();
+  const openDate = experience.booking_open_date || today;
+  const closeDate = experience.booking_close_date || '9999-12-31';
+  return openDate <= today && today <= closeDate;
+};

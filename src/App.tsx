@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 
 import AdminPanel from './components/AdminPanel';
+import CommunityFeed from './components/CommunityFeed';
+import HostDashboard from './components/HostDashboard';
 import FAQSection from './components/FAQSection';
 import Footer from './components/Footer';
 import Header from './components/Header';
@@ -31,7 +33,8 @@ import ModalBooking from './components/ModalBooking';
 import ModalConfirm, { ConfirmConfig } from './components/ModalConfirm';
 import ModalExperienceDetail from './components/ModalExperienceDetail';
 import ModalLogin from './components/ModalLogin';
-import { BookingTable, ExperienceTable, formatVnd, ReviewTable } from './types';
+import UserProfile from './components/UserProfile';
+import { ExperienceTable, formatDateVi, formatVnd, isExperienceOpen, ReviewTable } from './types';
 
 type CurrentUser = { email: string; fullname: string; role: 'user' | 'admin' | 'host' };
 
@@ -42,13 +45,15 @@ const phonePattern = /^(0|\+84)[0-9\s.-]{8,13}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function App() {
-  const [user, setUser] = useState<CurrentUser | null>(null);
+  const [user, setUser] = useState<CurrentUser | null>(() => {
+    const saved = localStorage.getItem('currentUser');
+    try { return saved ? JSON.parse(saved) : null; } catch { return null; }
+  });
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [selectedExperience, setSelectedExperience] = useState<ExperienceTable | null>(null);
   const [viewExperienceDetail, setViewExperienceDetail] = useState<ExperienceTable | null>(null);
   const [experiences, setExperiences] = useState<ExperienceTable[]>([]);
   const [reviews, setReviews] = useState<ReviewTable[]>([]);
-  const [userBookings, setUserBookings] = useState<BookingTable[]>([]);
   const [activeSection, setActiveSection] = useState('hero');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -57,10 +62,14 @@ export default function App() {
   const [reviewComment, setReviewComment] = useState('');
   const [reviewMessage, setReviewMessage] = useState<string | null>(null);
   const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewImage, setReviewImage] = useState('');
   const [hostForm, setHostForm] = useState({
     name: '',
     email: '',
     phone: '',
+    address: '',
+    id_number: '',
+    experience_location: '',
     description: ''
   });
   const [hostMessage, setHostMessage] = useState<string | null>(null);
@@ -83,19 +92,29 @@ export default function App() {
 
   useEffect(() => {
     if (user && user.role === 'user') {
-      fetchUserBookings();
       fetchWishlists(user.email);
     } else {
-      setUserBookings([]);
       setWishlists([]);
     }
   }, [user]);
 
   const fetchWishlists = async (email: string) => {
     try {
-      const res = await fetch(`/api/wishlists?email=${encodeURIComponent(email)}`);
-      setWishlists(await res.json());
-    } catch (e) { console.error(e); }
+      const res = await fetch(`/api/wishlists?email=${encodeURIComponent(email)}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('currentUser');
+          setUser(null);
+        }
+        setWishlists([]);
+        return;
+      }
+      const data = await res.json();
+      setWishlists(Array.isArray(data) ? data : []);
+    } catch (e) { console.error(e); setWishlists([]); }
   };
 
   const toggleWishlist = async (experienceId: number) => {
@@ -107,7 +126,10 @@ export default function App() {
     try {
       const res = await fetch('/api/wishlists/toggle', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ user_email: user.email, experience_id: experienceId })
       });
       const data = await res.json();
@@ -116,9 +138,14 @@ export default function App() {
     } catch (e) { console.error(e); }
   };
 
-  const categories = useMemo(
-    () => Array.from(new Set(experiences.map((item) => item.category).filter(Boolean))),
+  const openExperiences = useMemo(
+    () => experiences.filter((item) => isExperienceOpen(item)),
     [experiences]
+  );
+
+  const categories = useMemo(
+    () => Array.from(new Set(openExperiences.map((item) => item.category).filter(Boolean))),
+    [openExperiences]
   );
 
   const filteredExperiences = useMemo(() => {
@@ -126,7 +153,7 @@ export default function App() {
     const min = minPrice ? Number(minPrice) : 0;
     const max = maxPrice ? Number(maxPrice) : Infinity;
 
-    return experiences.filter((item) => {
+    return openExperiences.filter((item) => {
       const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
       const matchesKeyword =
         !keyword ||
@@ -136,7 +163,7 @@ export default function App() {
       const matchesPrice = item.price >= min && item.price <= max;
       return matchesCategory && matchesKeyword && matchesPrice;
     });
-  }, [experiences, searchTerm, selectedCategory, minPrice, maxPrice]);
+  }, [openExperiences, searchTerm, selectedCategory, minPrice, maxPrice]);
 
   const fetchExperiences = async () => {
     try {
@@ -158,18 +185,6 @@ export default function App() {
     }
   };
 
-  const fetchUserBookings = async () => {
-    if (!user || user.role !== 'user') return;
-
-    try {
-      const res = await fetch(`/api/bookings?email=${encodeURIComponent(user.email)}`);
-      const data = await res.json();
-      setUserBookings(data || []);
-    } catch (err) {
-      console.error('Error fetching bookings:', err);
-    }
-  };
-
   const scrollToSection = (id: string) => {
     setActiveSection(id);
     const element = document.getElementById(id);
@@ -178,15 +193,20 @@ export default function App() {
     }
   };
 
-  const handleLoginSuccess = (loggedUser: CurrentUser) => {
+  const handleLoginSuccess = (loggedUser: CurrentUser & { token?: string }) => {
     setUser(loggedUser);
+    localStorage.setItem('currentUser', JSON.stringify(loggedUser));
+    if (loggedUser.token) {
+      localStorage.setItem('token', loggedUser.token);
+    }
     setShowLoginModal(false);
     setActiveSection(loggedUser.role === 'admin' || loggedUser.role === 'host' ? 'dashboard' : 'hero');
   };
 
   const handleLogout = () => {
     setUser(null);
-    setUserBookings([]);
+    localStorage.removeItem('token');
+    localStorage.removeItem('currentUser');
     setActiveSection('hero');
     alert('Đăng xuất thành công');
   };
@@ -198,37 +218,16 @@ export default function App() {
       return;
     }
 
+    if (!isExperienceOpen(experience)) {
+      alert('Tour này chưa mở hoặc đã hết thời gian nhận đặt.');
+      return;
+    }
+
     setSelectedExperience(experience);
   };
 
   const handleViewDetails = (experience: ExperienceTable) => {
     setViewExperienceDetail(experience);
-  };
-
-  const handleCancelBooking = async (bookingId: number) => {
-    setConfirmConfig({
-      title: 'Hủy đơn đặt tour',
-      message: 'Bạn chắc chắn muốn hủy đơn đặt tour này? Hành động này không thể hoàn tác.',
-      confirmText: 'Hủy đơn',
-      onConfirm: async () => {
-        try {
-          const res = await fetch(`/api/bookings/${bookingId}/status`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'cancelled' })
-          });
-          const data = await res.json();
-
-          if (!res.ok) {
-            throw new Error(data.error || 'Không thể hủy đơn');
-          }
-
-          await fetchUserBookings();
-        } catch (err: any) {
-          alert(err.message);
-        }
-      }
-    });
   };
 
   const submitReview = async (event: React.FormEvent) => {
@@ -255,13 +254,17 @@ export default function App() {
     try {
       const res = await fetch('/api/reviews', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({
           experience_id: reviewExperienceId,
           user_email: user.email,
           fullname: user.fullname,
           rating: reviewRating,
-          comment: reviewComment.trim()
+          comment: reviewComment.trim(),
+          images: reviewImage.trim() ? [reviewImage.trim()] : []
         })
       });
       const data = await res.json();
@@ -272,6 +275,7 @@ export default function App() {
 
       setReviewComment('');
       setReviewRating(5);
+      setReviewImage('');
       setReviewMessage('Đã gửi bình luận thành công');
       await Promise.all([fetchReviews(), fetchExperiences()]);
     } catch (err: any) {
@@ -285,13 +289,18 @@ export default function App() {
     event.preventDefault();
     setHostMessage(null);
 
-    if (!hostForm.name.trim() || !hostForm.email.trim() || !hostForm.phone.trim() || !hostForm.description.trim()) {
+    if (!hostForm.name.trim() || !hostForm.email.trim() || !hostForm.phone.trim() || !hostForm.address.trim() || !hostForm.id_number.trim() || !hostForm.experience_location.trim() || !hostForm.description.trim()) {
       setHostMessage('Vui lòng nhập đầy đủ thông tin đăng ký host');
       return;
     }
 
     if (!emailPattern.test(hostForm.email.trim()) || !phonePattern.test(hostForm.phone.trim())) {
       setHostMessage('Email hoặc số điện thoại không hợp lệ');
+      return;
+    }
+
+    if (!/^\d{12}$/.test(hostForm.id_number.trim())) {
+      setHostMessage('Số CCCD/Passport phải gồm đúng 12 chữ số');
       return;
     }
 
@@ -305,11 +314,17 @@ export default function App() {
     try {
       const res = await fetch('/api/hosts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({
           name: hostForm.name.trim(),
           email: hostForm.email.trim().toLowerCase(),
           phone: hostForm.phone.trim(),
+          address: hostForm.address.trim(),
+          id_number: hostForm.id_number.trim(),
+          experience_location: hostForm.experience_location.trim(),
           description: hostForm.description.trim()
         })
       });
@@ -319,8 +334,8 @@ export default function App() {
         throw new Error(data.error || 'Không thể gửi đăng ký host');
       }
 
-      setHostForm({ name: '', email: '', phone: '', description: '' });
-      setHostMessage('Đã gửi đăng ký host. Admin sẽ duyệt trong bảng điều khiển.');
+      setHostForm({ name: '', email: '', phone: '', address: '', id_number: '', experience_location: '', description: '' });
+      setHostMessage('Đã gửi đăng ký host thành công! Admin sẽ duyệt đơn của bạn.');
     } catch (err: any) {
       setHostMessage(err.message);
     } finally {
@@ -342,7 +357,13 @@ export default function App() {
 
         <main id="dashboard" className="px-4 py-6 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
-            <AdminPanel onExperiencesChange={fetchExperiences} activeSection={activeSection === 'hero' ? 'dashboard' : activeSection} currentUser={user} />
+            {activeSection !== 'hero' && user?.role === 'admin' && (
+              <AdminPanel onExperiencesChange={fetchExperiences} activeSection={activeSection === 'hero' ? 'dashboard' : activeSection} currentUser={user} />
+            )}
+
+            {activeSection !== 'hero' && user?.role === 'host' && (
+              <HostDashboard onExperiencesChange={fetchExperiences} activeSection={activeSection === 'hero' ? 'dashboard' : activeSection} currentUser={user} />
+            )}
           </div>
         </main>
       </div>
@@ -382,7 +403,7 @@ export default function App() {
               </button>
               <button
                 type="button"
-                onClick={() => scrollToSection('community')}
+                onClick={() => scrollToSection('host-register')}
                 className="rounded-xl border border-zinc-200 bg-white px-5 py-3 text-sm font-black text-zinc-800 hover:bg-zinc-100"
               >
                 Đăng ký làm host
@@ -514,6 +535,23 @@ export default function App() {
                       <span>{Number(experience.rating || 0).toFixed(1)}</span>
                       <span className="font-semibold text-zinc-400">({experience.reviews_count} đánh giá)</span>
                     </div>
+                    <div className="mt-3 grid gap-1 rounded-xl border border-zinc-100 bg-zinc-50 p-3 text-xs font-bold text-zinc-600">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Users className="h-3.5 w-3.5 text-emerald-600" />
+                        Tối đa {Number(experience.max_guests || 50)} khách/ngày
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <Calendar className="h-3.5 w-3.5 text-emerald-600" />
+                        Nhận đặt: {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
+                      </span>
+                      {(experience.rooms || experience.beds) ? (
+                        <span className="inline-flex items-center gap-1.5 text-zinc-500">
+                          {experience.rooms ? `${experience.rooms} phòng` : ''} 
+                          {(experience.rooms && experience.beds) ? ' · ' : ''}
+                          {experience.beds ? `${experience.beds} giường` : ''}
+                        </span>
+                      ) : null}
+                    </div>
                     <div className="mt-auto flex flex-col gap-3 border-t border-zinc-100 pt-4">
                       <div className="flex items-end justify-between">
                         <div>
@@ -594,6 +632,14 @@ export default function App() {
                 className="w-full resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
               />
 
+              <input
+                type="url"
+                value={reviewImage}
+                onChange={(event) => setReviewImage(event.target.value)}
+                placeholder="Đường dẫn hình ảnh minh họa (không bắt buộc)"
+                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
+              />
+
               {reviewMessage && (
                 <div className="rounded-xl border border-zinc-200 bg-white p-3 text-sm font-semibold text-zinc-700">
                   {reviewMessage}
@@ -628,6 +674,15 @@ export default function App() {
                     </div>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-zinc-600">{review.comment}</p>
+                  
+                  {review.images && JSON.parse(review.images).length > 0 && (
+                    <div className="mt-3 flex gap-2 overflow-x-auto pb-2">
+                      {JSON.parse(review.images).map((imgUrl: string, idx: number) => (
+                        <img key={idx} src={imgUrl} alt="Review" className="h-20 w-20 rounded-lg object-cover border border-zinc-200 flex-shrink-0" />
+                      ))}
+                    </div>
+                  )}
+
                   <div className="mt-3 text-xs font-semibold text-zinc-400">
                     {new Date(review.created_at).toLocaleDateString('vi-VN')}
                   </div>
@@ -658,7 +713,7 @@ export default function App() {
         </div>
       </section>
 
-      <section id="community" className="px-4 py-16 sm:px-6 lg:px-8">
+      <section id="host-register" className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">
           <div>
             <SectionHeader
@@ -672,6 +727,11 @@ export default function App() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <input value={hostForm.email} onChange={(event) => setHostForm((current) => ({ ...current, email: event.target.value }))} placeholder="Email" className="rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
                 <input value={hostForm.phone} onChange={(event) => setHostForm((current) => ({ ...current, phone: event.target.value }))} placeholder="Số điện thoại" className="rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+              </div>
+              <input value={hostForm.address} onChange={(event) => setHostForm((current) => ({ ...current, address: event.target.value }))} placeholder="Địa chỉ (VD: 123 Nguyễn Văn Cừ, Q.5, TP.HCM)" className="rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input value={hostForm.id_number} onChange={(event) => setHostForm((current) => ({ ...current, id_number: event.target.value.replace(/\D/g, '').slice(0, 12) }))} placeholder="Số CCCD/Passport (12 số)" maxLength={12} className="rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+                <input value={hostForm.experience_location} onChange={(event) => setHostForm((current) => ({ ...current, experience_location: event.target.value }))} placeholder="Địa điểm trải nghiệm (VD: Vịnh Hạ Long, Hội An)" className="rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
               </div>
               <textarea value={hostForm.description} onChange={(event) => setHostForm((current) => ({ ...current, description: event.target.value }))} rows={4} placeholder="Bạn muốn tổ chức trải nghiệm gì? Mô tả tối thiểu 20 ký tự." className="resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
               {hostMessage && (
@@ -690,58 +750,36 @@ export default function App() {
             </form>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 p-5">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Chuyến đi của tôi</p>
-                <h3 className="mt-1 text-xl font-black text-zinc-950">Đơn đã đặt</h3>
-              </div>
-              <Calendar className="h-6 w-6 text-emerald-600" />
-            </div>
-
-            {!user && (
-              <div className="mt-5 rounded-xl border border-dashed border-zinc-300 p-6 text-sm font-semibold text-zinc-500">
-                Đăng nhập để xem các đơn tour đã đặt.
-              </div>
-            )}
-
-            {user && userBookings.length === 0 && (
-              <div className="mt-5 rounded-xl border border-dashed border-zinc-300 p-6 text-sm font-semibold text-zinc-500">
-                Bạn chưa có đơn đặt tour nào.
-              </div>
-            )}
-
-            {user && userBookings.length > 0 && (
-              <div className="mt-5 grid gap-3">
-                {userBookings.map((booking) => (
-                  <div key={booking.id} className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div className="font-black text-zinc-950">{booking.experience_title}</div>
-                        <div className="mt-1 text-xs font-semibold text-zinc-500">
-                          {booking.booking_date} · {booking.guests} khách · {booking.contact_phone}
-                        </div>
-                      </div>
-                      <StatusBadge status={booking.status} />
-                    </div>
-                    <div className="mt-3 flex items-center justify-between gap-3 border-t border-zinc-200 pt-3">
-                      <span className="font-black text-emerald-700">{formatVnd(booking.total_price)}</span>
-                      {booking.status === 'pending' && (
-                        <button
-                          type="button"
-                          onClick={() => handleCancelBooking(booking.id)}
-                          className="rounded-lg border border-red-100 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50"
-                        >
-                          Hủy đơn
-                        </button>
-                      )}
-                    </div>
+          <div className="rounded-2xl">
+            {user ? (
+              <UserProfile user={{ email: user.email, fullname: user.fullname }} />
+            ) : (
+              <div className="rounded-2xl border border-zinc-200 p-5 bg-white">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Chuyến đi của tôi</p>
+                    <h3 className="mt-1 text-xl font-black text-zinc-950">Đơn đã đặt</h3>
                   </div>
-                ))}
+                  <Calendar className="h-6 w-6 text-emerald-600" />
+                </div>
+                <div className="mt-5 rounded-xl border border-dashed border-zinc-300 p-6 text-sm font-semibold text-zinc-500">
+                  Đăng nhập để xem hồ sơ và các đơn tour đã đặt.
+                </div>
               </div>
             )}
           </div>
         </div>
+      </section>
+
+      {/* Phase 7: Community Feed Section */}
+      <section
+        id="community"
+        className="bg-zinc-50 py-16"
+      >
+        <CommunityFeed
+          currentUser={user}
+          onLogin={() => setShowLoginModal(true)}
+        />
       </section>
 
       <FAQSection />
@@ -760,7 +798,6 @@ export default function App() {
           userEmail={user.email}
           onClose={() => setSelectedExperience(null)}
           onBookingSuccess={() => {
-            fetchUserBookings();
             fetchExperiences();
             scrollToSection('community');
           }}
@@ -853,21 +890,4 @@ function HeroStat({
   );
 }
 
-function StatusBadge({ status }: { status: BookingTable['status'] }) {
-  const labels = {
-    pending: 'Chờ xử lý',
-    confirmed: 'Đã xác nhận',
-    cancelled: 'Đã hủy'
-  };
-  const classes = {
-    pending: 'border-amber-100 bg-amber-50 text-amber-700',
-    confirmed: 'border-emerald-100 bg-emerald-50 text-emerald-700',
-    cancelled: 'border-red-100 bg-red-50 text-red-700'
-  };
 
-  return (
-    <span className={`rounded-full border px-2.5 py-1 text-xs font-black ${classes[status]}`}>
-      {labels[status]}
-    </span>
-  );
-}
