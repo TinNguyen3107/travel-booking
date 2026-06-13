@@ -16,7 +16,7 @@ import crypto from 'crypto';
 if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
   console.warn('WARNING: JWT_SECRET is not defined. Tokens will be invalidated on restart.');
 }
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+const JWT_SECRET = process.env.JWT_SECRET || 'travel_booking_fallback_secret_key_12345_do_not_use_in_production_unless_set';
 
 const PORT = 3000;
 const FALLBACK_IMAGE =
