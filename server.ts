@@ -118,16 +118,6 @@ app.use(async (req, res, next) => {
 });
 
 
-  app.post('/api/upload', authenticateToken, upload.single('file'), (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: 'Không có file được tải lên' });
-      }
-      const fileUrl = `/uploads/${req.file.filename}`;
-      res.json({ url: fileUrl });
-    } catch (e: any) { handleError(res, e); }
-  });
-
   app.post('/api/auth/login', async (req, res) => {
     try {
       const email = cleanText(req.body.email).toLowerCase();
@@ -260,6 +250,17 @@ app.use(async (req, res, next) => {
     }
     next();
   };
+
+  app.post('/api/upload', authenticateToken, upload.single('file'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Không có file được tải lên' });
+      }
+      const fileUrl = `/uploads/${req.file.filename}`;
+      res.json({ url: fileUrl });
+    } catch (e: any) { handleError(res, e); }
+  });
+
 
   const verifyExperienceOwnership = async (req: express.Request, res: express.Response, experienceId: number) => {
     const user = (req as any).user;
