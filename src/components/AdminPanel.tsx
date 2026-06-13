@@ -337,6 +337,23 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
     });
   };
 
+  const toggleExperienceStatus = async (id: number, currentStatus?: string) => {
+    const newStatus = currentStatus === 'hidden' ? 'active' : 'hidden';
+    try {
+      await fetchJson(`/api/experiences/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      await fetchAllData();
+      onExperiencesChange();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+
+
   const updateBookingStatus = async (
     id: number,
     status: BookingTable['status']
@@ -672,10 +689,78 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
           </div>
         )}
 
-        {!loading && activeTab === 'experiences' && (
+        {!loading && activeTab === 'experiences' && !isHost && (
           <div className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-lg font-black text-zinc-950">Quản lý tour</h3>
+              <div>
+                <h3 className="text-lg font-black text-zinc-950">Duyệt & Quản lý Tour</h3>
+                <p className="mt-0.5 text-sm text-zinc-500">Chỉ Host mới được tạo tour. Admin có thể ẩn hoặc xóa tour vi phạm.</p>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-zinc-200">
+              <table className="min-w-full text-sm">
+                <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
+                  <tr>
+                    <th className="px-4 py-3 text-left">Tour</th>
+                    <th className="px-4 py-3 text-left">Host</th>
+                    <th className="px-4 py-3 text-left">Giá</th>
+                    <th className="px-4 py-3 text-left">Sức chứa</th>
+                    <th className="px-4 py-3 text-left">Đánh giá</th>
+                    <th className="px-4 py-3 text-center">Trạng thái</th>
+                    <th className="px-4 py-3 text-right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-200">
+                  {experiences.map((item) => (
+                    <tr key={item.id} className={item.status === 'hidden' ? 'opacity-50' : ''}>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <img src={item.image || FALLBACK_IMAGE} alt={item.title} className="h-12 w-16 rounded-lg object-cover" />
+                          <div>
+                            <div className="font-bold text-zinc-900">{item.title}</div>
+                            <div className="text-xs text-zinc-500">{item.location} · {item.duration}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-zinc-500">{item.host_email || '—'}</td>
+                      <td className="px-4 py-3 font-bold text-emerald-700">{formatVnd(item.price)}</td>
+                      <td className="px-4 py-3 text-zinc-600">{Number(item.max_guests || 50)} khách</td>
+                      <td className="px-4 py-3 text-zinc-600">{Number(item.rating || 0).toFixed(1)} ({item.reviews_count})</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${
+                          item.status === 'hidden' ? 'border-zinc-200 bg-zinc-100 text-zinc-500'
+                          : item.status === 'suspended' ? 'border-orange-200 bg-orange-50 text-orange-700'
+                          : 'border-emerald-100 bg-emerald-50 text-emerald-700'
+                        }`}>
+                          {item.status === 'hidden' ? 'Đã ẩn' : item.status === 'suspended' ? 'Tạm khóa' : 'Đang hiện'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => toggleExperienceStatus(item.id, item.status)}
+                          className={`mr-2 rounded-lg border px-2 py-1.5 text-xs font-bold ${item.status === 'hidden' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
+                        >
+                          {item.status === 'hidden' ? 'Hiện' : 'Ẩn'}
+                        </button>
+                        <button type="button" onClick={() => deleteExperience(item.id)} className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50" aria-label="Xóa tour"><Trash2 className="h-4 w-4" /></button>
+                      </td>
+                    </tr>
+                  ))}
+                  {experiences.length === 0 && (
+                    <tr><td colSpan={7}><EmptyRow text="Chưa có tour nào trong hệ thống. Host cần tạo tour trước." /></td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {!loading && activeTab === 'experiences' && isHost && (
+          <div className="space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-lg font-black text-zinc-950">Quản lý tour của tôi</h3>
               <button
                 type="button"
                 onClick={() => {
@@ -764,13 +849,15 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                     </tr>
                   ))}
                   {experiences.length === 0 && (
-                    <tr><td colSpan={7}><EmptyRow text="Chưa có tour trong hệ thống." /></td></tr>
+                    <tr><td colSpan={7}><EmptyRow text="Bạn chưa có tour nào. Nhấn 'Thêm tour' để tạo mới." /></td></tr>
                   )}
                 </tbody>
               </table>
             </div>
           </div>
         )}
+
+
 
         {!loading && activeTab === 'categories' && (
           <div className="space-y-4">

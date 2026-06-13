@@ -577,6 +577,20 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
+  // Admin-only: toggle experience status (active / hidden / suspended)
+  app.patch('/api/experiences/:id/status', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const status = cleanText(req.body.status);
+      if (!['active', 'hidden', 'suspended'].includes(status)) {
+        res.status(400).json({ error: 'Trạng thái không hợp lệ (active | hidden | suspended)' });
+        return;
+      }
+      res.json(await db.updateExperience(id, { status: status as 'active' | 'hidden' | 'suspended' }));
+    } catch (e: any) { handleError(res, e); }
+  });
+
+
   app.get('/api/schedules', async (req, res) => {
     try {
       const experienceId = req.query.experience_id ? Number(req.query.experience_id) : undefined;
