@@ -69,9 +69,14 @@ const handleError = (res: express.Response, e: any) => {
   }
 };
 
-const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+const isVercel = !!process.env.VERCEL;
+const uploadDir = isVercel ? '/tmp/uploads' : path.join(process.cwd(), 'public', 'uploads');
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+  try {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  } catch (e) {
+    console.warn('[Warning] Không thể tạo thư mục upload:', e);
+  }
 }
 
 const storage = multer.diskStorage({
