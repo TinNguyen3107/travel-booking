@@ -59,6 +59,7 @@ const EMPTY_FORM = {
   category: 'Thiên nhiên',
   description: '',
   max_guests: 50,
+  daily_capacity_max: 50,
   booking_open_date: todayIso(),
   booking_close_date: addDaysIso(90),
   rooms: 0,
@@ -227,6 +228,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
       category: experience.category,
       description: experience.description || '',
       max_guests: Number(experience.max_guests) || 50,
+      daily_capacity_max: Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests) || 50,
       booking_open_date: experience.booking_open_date || todayIso(),
       booking_close_date: experience.booking_close_date || addDaysIso(90),
       rooms: experience.rooms || 0,
@@ -276,6 +278,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
       category: form.category.trim(),
       description: form.description.trim(),
       max_guests: maxGuests,
+      daily_capacity_max: Number(form.daily_capacity_max) || maxGuests,
       booking_open_date: form.booking_open_date,
       booking_close_date: form.booking_close_date,
       host_email: currentUser?.email || '',
@@ -338,7 +341,12 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
   };
 
   const toggleExperienceStatus = async (id: number, currentStatus?: string) => {
-    const newStatus = currentStatus === 'hidden' ? 'active' : 'hidden';
+    // pending_review: Admin duyệt → active
+    // hidden: mở lại → active
+    // active/else: ẩn → hidden
+    const newStatus = currentStatus === 'pending_review' ? 'active'
+                    : currentStatus === 'hidden' ? 'active'
+                    : 'hidden';
     try {
       await fetchJson(`/api/experiences/${id}/status`, {
         method: 'PATCH',
@@ -351,6 +359,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
       setError(err.message);
     }
   };
+
 
 
 
@@ -713,7 +722,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                 </thead>
                 <tbody className="divide-y divide-zinc-200">
                   {experiences.map((item) => (
-                    <tr key={item.id} className={item.status === 'hidden' ? 'opacity-50' : ''}>
+                    <tr key={item.id} className={['hidden', 'suspended', 'closed'].includes(item.status || '') ? 'opacity-60' : ''}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <img src={item.image || FALLBACK_IMAGE} alt={item.title} className="h-12 w-16 rounded-lg object-cover" />
@@ -725,25 +734,44 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                       </td>
                       <td className="px-4 py-3 text-xs text-zinc-500">{item.host_email || '—'}</td>
                       <td className="px-4 py-3 font-bold text-emerald-700">{formatVnd(item.price)}</td>
-                      <td className="px-4 py-3 text-zinc-600">{Number(item.max_guests || 50)} khách</td>
+                      <td className="px-4 py-3 text-zinc-600">
+                        <div>{Number(item.max_guests || 50)} khách (tổng)</div>
+                        <div className="text-xs text-zinc-400">{Number(item.daily_capacity_max ?? item.daily_capacity ?? item.max_guests ?? 50)}/ngày</div>
+                      </td>
                       <td className="px-4 py-3 text-zinc-600">{Number(item.rating || 0).toFixed(1)} ({item.reviews_count})</td>
                       <td className="px-4 py-3 text-center">
                         <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${
                           item.status === 'hidden' ? 'border-zinc-200 bg-zinc-100 text-zinc-500'
                           : item.status === 'suspended' ? 'border-orange-200 bg-orange-50 text-orange-700'
+                          : item.status === 'closed' ? 'border-red-200 bg-red-50 text-red-700'
+                          : item.status === 'pending_review' ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
                           : 'border-emerald-100 bg-emerald-50 text-emerald-700'
                         }`}>
-                          {item.status === 'hidden' ? 'Đã ẩn' : item.status === 'suspended' ? 'Tạm khóa' : 'Đang hiện'}
+                          {item.status === 'hidden' ? 'Đã ẩn'
+                          : item.status === 'suspended' ? 'Tạm khóa'
+                          : item.status === 'closed' ? 'Đã đóng'
+                          : item.status === 'pending_review' ? 'Chờ duyệt'
+                          : 'Đang hiện'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => toggleExperienceStatus(item.id, item.status)}
-                          className={`mr-2 rounded-lg border px-2 py-1.5 text-xs font-bold ${item.status === 'hidden' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
-                        >
-                          {item.status === 'hidden' ? 'Hiện' : 'Ẩn'}
-                        </button>
+                        {item.status === 'pending_review' ? (
+                          <button
+                            type="button"
+                            onClick={() => toggleExperienceStatus(item.id, 'pending_review')}
+                            className="mr-2 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
+                          >
+                            Duyệt mở lại
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => toggleExperienceStatus(item.id, item.status)}
+                            className={`mr-2 rounded-lg border px-2 py-1.5 text-xs font-bold ${item.status === 'hidden' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
+                          >
+                            {item.status === 'hidden' ? 'Hiện' : item.status === 'closed' ? 'Đã đóng' : 'Ẩn'}
+                          </button>
+                        )}
                         <button type="button" onClick={() => deleteExperience(item.id)} className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50" aria-label="Xóa tour"><Trash2 className="h-4 w-4" /></button>
                       </td>
                     </tr>
@@ -784,7 +812,8 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                   <option value="" disabled>Chọn danh mục</option>
                   {dbCategories.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}
                 </select>
-                <input type="number" min="1" max="1000" value={form.max_guests} onChange={(event) => updateForm('max_guests', Number(event.target.value))} placeholder="Số khách tối đa" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <input type="number" min="1" max="1000" value={form.max_guests} onChange={(event) => updateForm('max_guests', Number(event.target.value))} placeholder="Số khách tối đa (toàn tour)" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <input type="number" min="1" max={form.max_guests} value={form.daily_capacity_max} onChange={(event) => updateForm('daily_capacity_max', Number(event.target.value))} placeholder="Khách tối đa mỗi ngày" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500">Mở đặt từ ngày</span>
                   <input type="date" value={form.booking_open_date} onChange={(event) => updateForm('booking_open_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />

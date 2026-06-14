@@ -370,8 +370,10 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
               <hr className="border-zinc-100" />
 
               <div className="flex items-center gap-1 p-1">
-                <div className="group relative flex-1">
-                  <div className="absolute bottom-full left-0 mb-2 hidden items-center gap-2 rounded-full border border-zinc-200 bg-white p-2 shadow-xl group-hover:flex">
+              <div className="group relative flex-1">
+                  {/* invisible bridge: fills the gap so mouse stays inside .group when moving from button to popup */}
+                  <div className="absolute bottom-full left-0 h-4 w-full" />
+                  <div className="absolute bottom-full left-0 hidden items-center gap-2 rounded-full border border-zinc-200 bg-white p-2 pb-6 shadow-xl group-hover:flex">
                     {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
                       <button
                         key={reaction}

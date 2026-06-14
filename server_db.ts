@@ -83,6 +83,9 @@ const toDateTimeString = (value: unknown) => {
 
 const normalizeExperience = (row: ExperienceRow): ExperienceTable => {
   const reviewsCount = toNumber(row.reviews_count);
+  const maxGuests = toNumber(row.max_guests) || 50;
+  // daily_capacity_max: new explicit field; fallback to daily_capacity then max_guests
+  const dailyCapacityMax = toNumber(row.daily_capacity_max) || toNumber(row.daily_capacity) || maxGuests;
 
   return {
     ...row,
@@ -91,8 +94,9 @@ const normalizeExperience = (row: ExperienceRow): ExperienceTable => {
     rating: reviewsCount > 0 ? toNumber(row.rating) : 0,
     host_count: toNumber(row.host_count),
     reviews_count: reviewsCount,
-    max_guests: toNumber(row.max_guests) || 50,
-    daily_capacity: toNumber(row.daily_capacity) || toNumber(row.max_guests) || 50,
+    max_guests: maxGuests,
+    daily_capacity: dailyCapacityMax, // keep for backward compat
+    daily_capacity_max: dailyCapacityMax,
     booking_open_date: toDateString(row.booking_open_date),
     booking_close_date: toDateString(row.booking_close_date),
     registration_open_date: toDateString(row.registration_open_date),
@@ -350,8 +354,13 @@ class RelationalDatabase {
     try { await pool.query('ALTER TABLE experiences ADD COLUMN daily_capacity INT NOT NULL DEFAULT 0 AFTER max_guests'); } catch (e: any) { }
     try { await pool.query('ALTER TABLE experiences ADD COLUMN registration_open_date DATE NULL AFTER booking_close_date'); } catch (e: any) { }
     try { await pool.query('ALTER TABLE experiences ADD COLUMN registration_close_date DATE NULL AFTER registration_open_date'); } catch (e: any) { }
-    try { await pool.query("ALTER TABLE experiences ADD COLUMN status ENUM('active', 'hidden', 'suspended') NOT NULL DEFAULT 'active' AFTER is_deleted"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN status ENUM('active', 'hidden', 'suspended', 'closed', 'pending_review') NOT NULL DEFAULT 'active' AFTER is_deleted"); } catch (e: any) { }
+    // Phase new: add daily_capacity_max as a distinct field from total max_guests
+    try { await pool.query('ALTER TABLE experiences ADD COLUMN daily_capacity_max INT NOT NULL DEFAULT 0 AFTER daily_capacity'); } catch (e: any) { }
+    // Modify status enum to include new values if needed
+    try { await pool.query("ALTER TABLE experiences MODIFY COLUMN status ENUM('active', 'hidden', 'suspended', 'closed', 'pending_review') NOT NULL DEFAULT 'active'"); } catch (e: any) { }
     await pool.query("UPDATE experiences SET daily_capacity = max_guests, registration_open_date = booking_open_date, registration_close_date = booking_close_date WHERE daily_capacity = 0");
+    await pool.query("UPDATE experiences SET daily_capacity_max = daily_capacity WHERE daily_capacity_max = 0");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS experience_daily_quotas (
@@ -640,10 +649,11 @@ class RelationalDatabase {
   }
 
   public async addExperience(exp: Omit<ExperienceTable, 'id'>): Promise<ExperienceTable> {
+    const dailyCapMax = exp.daily_capacity_max ?? exp.daily_capacity ?? exp.max_guests ?? 50;
     const [result] = await pool.query<mysql.ResultSetHeader>(
       `INSERT INTO experiences
-        (title, location, duration, price, image, category, description, rating, host_count, reviews_count, max_guests, booking_open_date, booking_close_date, host_email, rooms, beds, amenities, images)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (title, location, duration, price, image, category, description, rating, host_count, reviews_count, max_guests, daily_capacity, daily_capacity_max, booking_open_date, booking_close_date, host_email, rooms, beds, amenities, images)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         exp.title,
         exp.location,
@@ -656,6 +666,8 @@ class RelationalDatabase {
         exp.host_count,
         exp.reviews_count,
         exp.max_guests ?? 50,
+        dailyCapMax,
+        dailyCapMax,
         exp.booking_open_date ?? null,
         exp.booking_close_date ?? null,
         exp.host_email ?? null,
@@ -696,6 +708,7 @@ class RelationalDatabase {
       'amenities',
       'images',
       'daily_capacity',
+      'daily_capacity_max',
       'registration_open_date',
       'registration_close_date',
       'status'
@@ -788,7 +801,7 @@ class RelationalDatabase {
 
       await connection.query(
         'INSERT IGNORE INTO experience_daily_quotas (experience_id, booking_date, max_capacity, booked_count) VALUES (?, ?, ?, 0)',
-        [booking.experience_id, booking.booking_date, exp.daily_capacity || exp.max_guests || 50]
+        [booking.experience_id, booking.booking_date, exp.daily_capacity_max || exp.daily_capacity || exp.max_guests || 50]
       );
 
       const [dailyRows] = await connection.query<RowDataPacket[]>(
@@ -836,7 +849,21 @@ class RelationalDatabase {
       }
 
       await connection.commit();
-      
+
+      // ── Auto-close tour khi đủ tổng khách ──
+      const [totalAfterRows] = await pool.query<RowDataPacket[]>(
+        'SELECT SUM(guests) as total FROM bookings WHERE experience_id = ? AND status != "cancelled"',
+        [booking.experience_id]
+      );
+      const totalAfterBooked = Number(totalAfterRows[0]?.total || 0);
+      const refreshed = await this.findExperienceById(booking.experience_id);
+      if (refreshed && totalAfterBooked >= (refreshed.max_guests || 50)) {
+        await pool.query(
+          "UPDATE experiences SET status = 'closed' WHERE id = ? AND status = 'active'",
+          [booking.experience_id]
+        );
+      }
+
       const created = await this.findBookingById(result.insertId);
       if (!created) throw new Error('Không thể tạo đơn đặt tour mới');
       return created;
@@ -1211,7 +1238,7 @@ class RelationalDatabase {
       [experienceId, date]
     );
     const dailyBooked = Number(dailyRows[0]?.booked_count || 0);
-    const dailyRemaining = Math.max(0, (exp.daily_capacity || exp.max_guests || 50) - dailyBooked);
+    const dailyRemaining = Math.max(0, (exp.daily_capacity_max || exp.daily_capacity || exp.max_guests || 50) - dailyBooked);
 
     return {
       totalRemaining,

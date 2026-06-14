@@ -443,6 +443,7 @@ app.use(async (req, res, next) => {
       const category = cleanText(req.body.category);
       const description = cleanText(req.body.description);
       const max_guests = req.body.max_guests ? Number(req.body.max_guests) : 50;
+      const daily_capacity_max = req.body.daily_capacity_max ? Number(req.body.daily_capacity_max) : max_guests;
       const booking_open_date = cleanText(req.body.booking_open_date);
       const booking_close_date = cleanText(req.body.booking_close_date);
       const host_email = cleanText(req.body.host_email) || '';
@@ -480,6 +481,11 @@ app.use(async (req, res, next) => {
         return;
       }
 
+      if (daily_capacity_max < 1 || daily_capacity_max > max_guests) {
+        res.status(400).json({ error: `Số khách tối đa mỗi ngày phải từ 1 đến ${max_guests} (tổng tour)` });
+        return;
+      }
+
       const newExp = await db.addExperience({
         title,
         location,
@@ -492,6 +498,8 @@ app.use(async (req, res, next) => {
         host_count: 1,
         reviews_count: 0,
         max_guests,
+        daily_capacity: daily_capacity_max,
+        daily_capacity_max,
         booking_open_date,
         booking_close_date,
         host_email,
@@ -537,6 +545,17 @@ app.use(async (req, res, next) => {
           return;
         }
         payload.max_guests = maxGuests;
+      }
+
+      if (req.body.daily_capacity_max !== undefined) {
+        const dcMax = Number(req.body.daily_capacity_max);
+        const totalMax = Number(payload.max_guests ?? ((await db.getExperiences()).find(e => e.id === Number(req.params.id))?.max_guests ?? 50));
+        if (dcMax < 1 || dcMax > totalMax) {
+          res.status(400).json({ error: `Số khách tối đa mỗi ngày phải từ 1 đến ${totalMax}` });
+          return;
+        }
+        payload.daily_capacity_max = dcMax;
+        payload.daily_capacity = dcMax; // keep in sync with legacy field
       }
 
       for (const field of ['rooms', 'beds'] as const) {
@@ -588,16 +607,41 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
-  // Admin-only: toggle experience status (active / hidden / suspended)
-  app.patch('/api/experiences/:id/status', authenticateToken, requireAdmin, async (req, res) => {
+  // Admin-only: toggle experience status
+  // Admin: active / hidden / suspended / closed
+  // Host: pending_review (yêu cầu admin duyệt lại)
+  app.patch('/api/experiences/:id/status', authenticateToken, async (req, res) => {
     try {
+      const user = (req as any).user;
       const id = Number(req.params.id);
       const status = cleanText(req.body.status);
-      if (!['active', 'hidden', 'suspended'].includes(status)) {
-        res.status(400).json({ error: 'Trạng thái không hợp lệ (active | hidden | suspended)' });
+
+      if (user.role === 'host') {
+        // Host chỉ được gửi lại yêu cầu duyệt khi tour đang closed
+        if (status !== 'pending_review') {
+          res.status(403).json({ error: 'Host chỉ có thể gửi yêu cầu mở lại tour (pending_review)' });
+          return;
+        }
+        const exp = (await db.getExperiences()).find(e => e.id === id);
+        if (!exp) { res.status(404).json({ error: 'Không tìm thấy tour' }); return; }
+        if (exp.host_email?.toLowerCase() !== user.email.toLowerCase()) {
+          res.status(403).json({ error: 'Bạn không có quyền chỉnh sửa tour này' }); return;
+        }
+        if (exp.status !== 'closed') {
+          res.status(400).json({ error: 'Chỉ có thể gửi yêu cầu mở lại khi tour đang ở trạng thái Đã đóng' }); return;
+        }
+        res.json(await db.updateExperience(id, { status: 'pending_review' }));
         return;
       }
-      res.json(await db.updateExperience(id, { status: status as 'active' | 'hidden' | 'suspended' }));
+
+      // Admin
+      if (user.role !== 'admin') {
+        res.status(403).json({ error: 'Không có quyền' }); return;
+      }
+      if (!['active', 'hidden', 'suspended', 'closed', 'pending_review'].includes(status)) {
+        res.status(400).json({ error: 'Trạng thái không hợp lệ' }); return;
+      }
+      res.json(await db.updateExperience(id, { status: status as 'active' | 'hidden' | 'suspended' | 'closed' | 'pending_review' }));
     } catch (e: any) { handleError(res, e); }
   });
 

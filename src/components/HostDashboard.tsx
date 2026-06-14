@@ -69,6 +69,7 @@ const EMPTY_FORM = {
   category: 'Thiên nhiên',
   description: '',
   max_guests: 50,
+  daily_capacity_max: 50,
   booking_open_date: todayIso(),
   booking_close_date: addDaysIso(90),
   rooms: 0,
@@ -306,6 +307,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       category: experience.category,
       description: experience.description || '',
       max_guests: Number(experience.max_guests) || 50,
+      daily_capacity_max: Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests) || 50,
       booking_open_date: experience.booking_open_date || todayIso(),
       booking_close_date: experience.booking_close_date || addDaysIso(90),
       rooms: experience.rooms || 0,
@@ -355,6 +357,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       category: form.category.trim(),
       description: form.description.trim(),
       max_guests: maxGuests,
+      daily_capacity_max: Number(form.daily_capacity_max) || maxGuests,
       booking_open_date: form.booking_open_date,
       booking_close_date: form.booking_close_date,
       host_email: currentUser?.email || '',
@@ -403,6 +406,26 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       onConfirm: async () => {
         try {
           await fetchJson(`/api/experiences/${id}`, { method: 'DELETE' });
+          await fetchAllData();
+          onExperiencesChange();
+        } catch (err: any) {
+          setError(err.message);
+        }
+      }
+    });
+  };
+
+  const requestReopen = async (id: number) => {
+    setConfirmConfig({
+      title: 'Yêu cầu mở lại tour',
+      message: 'Tour sẽ được gửi cho Admin duyệt. Sau khi Admin phê duyệt, tour sẽ hiển thị trở lại cho khách đặt.',
+      onConfirm: async () => {
+        try {
+          await fetchJson(`/api/experiences/${id}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'pending_review' })
+          });
           await fetchAllData();
           onExperiencesChange();
         } catch (err: any) {
@@ -812,8 +835,12 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   </select>
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500">Số khách tối đa</span>
+                  <span className="mb-1 block text-xs font-bold text-zinc-500">Tổng khách tối đa (toàn tour)</span>
                   <input type="number" min="1" max="1000" value={form.max_guests} onChange={(event) => updateForm('max_guests', Number(event.target.value))} placeholder="Số lượng" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500">Khách tối đa mỗi ngày</span>
+                  <input type="number" min="1" max={form.max_guests} value={form.daily_capacity_max} onChange={(event) => updateForm('daily_capacity_max', Number(event.target.value))} placeholder="Khách/ngày" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500">Mở đặt từ ngày</span>
@@ -881,7 +908,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                 </thead>
                 <tbody className="divide-y divide-zinc-200">
                   {experiences.map((item) => (
-                    <tr key={item.id}>
+                    <tr key={item.id} className={['closed', 'hidden', 'suspended', 'pending_review'].includes(item.status || '') ? 'opacity-60' : ''}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <img src={item.image || FALLBACK_IMAGE} alt={item.title} className="h-12 w-16 rounded-lg object-cover" />
@@ -893,15 +920,36 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                       </td>
                       <td className="px-4 py-3 text-zinc-600">{item.category}</td>
                       <td className="px-4 py-3 font-bold text-emerald-700">{formatVnd(item.price)}</td>
-                      <td className="px-4 py-3 text-zinc-600">{Number(item.max_guests || 50)} khách/ngày</td>
+                      <td className="px-4 py-3 text-zinc-600">
+                        <div>{Number(item.max_guests || 50)} khách (tổng)</div>
+                        <div className="text-xs text-zinc-400">{Number(item.daily_capacity_max ?? item.daily_capacity ?? item.max_guests ?? 50)}/ngày</div>
+                      </td>
                       <td className="px-4 py-3 text-zinc-600">
                         <div className="text-xs font-semibold">{formatDateVi(item.booking_open_date)} - {formatDateVi(item.booking_close_date)}</div>
-                        <span className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs font-bold ${isExperienceOpen(item) ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : item.booking_open_date && item.booking_open_date > todayIso() ? 'border-sky-100 bg-sky-50 text-sky-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
-                          {isExperienceOpen(item) ? 'Đang mở' : item.booking_open_date && item.booking_open_date > todayIso() ? 'Chưa mở' : 'Đã đóng'}
+                        <span className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs font-bold ${
+                          item.status === 'closed' ? 'border-red-200 bg-red-50 text-red-700'
+                          : item.status === 'pending_review' ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
+                          : item.status === 'hidden' ? 'border-zinc-200 bg-zinc-100 text-zinc-500'
+                          : isExperienceOpen(item) ? 'border-emerald-100 bg-emerald-50 text-emerald-700'
+                          : item.booking_open_date && item.booking_open_date > todayIso() ? 'border-sky-100 bg-sky-50 text-sky-700'
+                          : 'border-red-100 bg-red-50 text-red-700'
+                        }`}>
+                          {item.status === 'closed' ? 'Đã đóng (đủ khách)'
+                          : item.status === 'pending_review' ? 'Chờ Admin duyệt'
+                          : item.status === 'hidden' ? 'Đã ẩn'
+                          : isExperienceOpen(item) ? 'Đang mở'
+                          : item.booking_open_date && item.booking_open_date > todayIso() ? 'Chưa mở'
+                          : 'Đã đóng'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-zinc-600">{Number(item.rating || 0).toFixed(1)} ({item.reviews_count})</td>
                       <td className="px-4 py-3 text-right">
+                        {item.status === 'closed' && (
+                          <button type="button" onClick={() => requestReopen(item.id)} className="mr-2 rounded-lg border border-yellow-200 bg-yellow-50 px-2 py-1.5 text-xs font-bold text-yellow-700 hover:bg-yellow-100" title="Gửi yêu cầu mở lại tour cho Admin duyệt">Mở lại</button>
+                        )}
+                        {item.status === 'pending_review' && (
+                          <span className="mr-2 inline-flex rounded-lg border border-yellow-200 bg-yellow-50 px-2 py-1.5 text-xs font-bold text-yellow-600">Đang chờ...</span>
+                        )}
                         <button type="button" onClick={() => setScheduleExperience(item)} className="mr-2 rounded-lg border border-emerald-100 bg-emerald-50 p-2 text-emerald-600 hover:bg-emerald-100" aria-label="Quản lý lịch"><Calendar className="h-4 w-4" /></button>
                         <button type="button" onClick={() => editExperience(item)} className="mr-2 rounded-lg border border-zinc-200 p-2 text-zinc-600 hover:bg-zinc-50" aria-label="Sửa tour"><Edit2 className="h-4 w-4" /></button>
                         <button type="button" onClick={() => deleteExperience(item.id)} className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50" aria-label="Xóa tour"><Trash2 className="h-4 w-4" /></button>

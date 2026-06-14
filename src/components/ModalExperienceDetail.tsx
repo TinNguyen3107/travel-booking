@@ -102,7 +102,10 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
                 Sức chứa
               </div>
               <div className="mt-2 text-base font-black text-zinc-950">
-                {Number(experience.max_guests || 50)} khách/ngày
+                {Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests ?? 50)} khách/ngày
+              </div>
+              <div className="text-xs text-zinc-500">
+                (Tổng {Number(experience.max_guests || 50)} khách)
               </div>
             </div>
             <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">

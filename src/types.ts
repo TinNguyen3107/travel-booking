@@ -24,7 +24,9 @@ export interface ExperienceTable {
   rating: number;
   host_count: number;
   reviews_count: number;
-  max_guests?: number;
+  max_guests?: number;         // tổng số khách tối đa cho toàn bộ tour
+  daily_capacity?: number;     // số khách tối đa trong 1 ngày (deprecated - will be removed)
+  daily_capacity_max?: number; // số khách tối đa nhận mỗi ngày (field mới rõ nghĩa)
   booking_open_date?: string;
   booking_close_date?: string;
   host_email?: string;
@@ -32,10 +34,9 @@ export interface ExperienceTable {
   beds?: number;
   amenities?: string;
   images?: string;
-  daily_capacity?: number;
   registration_open_date?: string;
   registration_close_date?: string;
-  status?: 'active' | 'hidden' | 'suspended';
+  status?: 'active' | 'hidden' | 'suspended' | 'closed' | 'pending_review';
 }
 
 export interface TourScheduleTable {
@@ -172,3 +173,4 @@ export const isExperienceOpen = (experience: Pick<ExperienceTable, 'booking_open
   const closeDate = experience.booking_close_date || '9999-12-31';
   return openDate <= today && today <= closeDate;
 };
+
