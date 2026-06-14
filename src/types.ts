@@ -36,7 +36,7 @@ export interface ExperienceTable {
   images?: string;
   registration_open_date?: string;
   registration_close_date?: string;
-  status?: 'active' | 'hidden' | 'suspended' | 'closed' | 'pending_review';
+  status?: 'active' | 'hidden' | 'suspended' | 'closed' | 'pending_review' | 'draft';
 }
 
 export interface TourScheduleTable {

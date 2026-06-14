@@ -316,7 +316,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
         ? JSON.parse(experience.amenities).join(', ') 
         : '',
       images: typeof experience.images === 'string' && experience.images !== '[]' && experience.images !== '' 
-        ? JSON.parse(experience.images).join('\n') 
+        ? JSON.parse(experience.images).join(', ') 
         : ''
     });
     setShowForm(true);
@@ -364,7 +364,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       rooms: form.rooms,
       beds: form.beds,
       amenities: form.amenities ? form.amenities.split(',').map(s => s.trim()).filter(Boolean) : [],
-      images: form.images ? form.images.split('\n').map(s => s.trim()).filter(Boolean) : []
+      images: form.images ? form.images.split(/[\s,]+/).map(s => s.trim()).filter(Boolean) : []
     };
     const endpoint = editingId ? `/api/experiences/${editingId}` : '/api/experiences';
     const method = editingId ? 'PUT' : 'POST';
@@ -875,7 +875,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                 <div className="lg:col-span-2 space-y-1">
                   <span className="mb-1 block text-xs font-bold text-zinc-500">Danh sách ảnh phụ</span>
                   <div className="flex gap-2 items-start">
-                    <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder="Mỗi link một dòng" rows={3} className="flex-1 resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                    <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder="Các link cách nhau bằng dấu phẩy hoặc khoảng trắng" rows={3} className="flex-1 resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                     <label className="flex cursor-pointer items-center justify-center rounded-xl bg-zinc-100 px-3 py-2 text-sm font-bold text-zinc-600 hover:bg-zinc-200 h-9">
                       Tải lên
                       <input type="file" className="hidden" accept="image/*" multiple onChange={(e) => handleImageUpload(e, 'images')} />
@@ -908,7 +908,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                 </thead>
                 <tbody className="divide-y divide-zinc-200">
                   {experiences.map((item) => (
-                    <tr key={item.id} className={['closed', 'hidden', 'suspended', 'pending_review'].includes(item.status || '') ? 'opacity-60' : ''}>
+                    <tr key={item.id} className={['closed', 'hidden', 'suspended', 'pending_review', 'draft'].includes(item.status || '') ? 'opacity-60' : ''}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <img src={item.image || FALLBACK_IMAGE} alt={item.title} className="h-12 w-16 rounded-lg object-cover" />
@@ -930,6 +930,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                           item.status === 'closed' ? 'border-red-200 bg-red-50 text-red-700'
                           : item.status === 'pending_review' ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
                           : item.status === 'hidden' ? 'border-zinc-200 bg-zinc-100 text-zinc-500'
+                          : item.status === 'draft' ? 'border-gray-200 bg-gray-100 text-gray-500'
                           : isExperienceOpen(item) ? 'border-emerald-100 bg-emerald-50 text-emerald-700'
                           : item.booking_open_date && item.booking_open_date > todayIso() ? 'border-sky-100 bg-sky-50 text-sky-700'
                           : 'border-red-100 bg-red-50 text-red-700'
@@ -937,6 +938,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                           {item.status === 'closed' ? 'Đã đóng (đủ khách)'
                           : item.status === 'pending_review' ? 'Chờ Admin duyệt'
                           : item.status === 'hidden' ? 'Đã ẩn'
+                          : item.status === 'draft' ? 'Bản nháp'
                           : isExperienceOpen(item) ? 'Đang mở'
                           : item.booking_open_date && item.booking_open_date > todayIso() ? 'Chưa mở'
                           : 'Đã đóng'}
@@ -946,6 +948,9 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                       <td className="px-4 py-3 text-right">
                         {item.status === 'closed' && (
                           <button type="button" onClick={() => requestReopen(item.id)} className="mr-2 rounded-lg border border-yellow-200 bg-yellow-50 px-2 py-1.5 text-xs font-bold text-yellow-700 hover:bg-yellow-100" title="Gửi yêu cầu mở lại tour cho Admin duyệt">Mở lại</button>
+                        )}
+                        {item.status === 'draft' && (
+                          <button type="button" onClick={() => requestReopen(item.id)} className="mr-2 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100" title="Gửi yêu cầu duyệt tour cho Admin">Gửi duyệt</button>
                         )}
                         {item.status === 'pending_review' && (
                           <span className="mr-2 inline-flex rounded-lg border border-yellow-200 bg-yellow-50 px-2 py-1.5 text-xs font-bold text-yellow-600">Đang chờ...</span>

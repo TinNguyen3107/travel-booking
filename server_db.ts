@@ -354,11 +354,11 @@ class RelationalDatabase {
     try { await pool.query('ALTER TABLE experiences ADD COLUMN daily_capacity INT NOT NULL DEFAULT 0 AFTER max_guests'); } catch (e: any) { }
     try { await pool.query('ALTER TABLE experiences ADD COLUMN registration_open_date DATE NULL AFTER booking_close_date'); } catch (e: any) { }
     try { await pool.query('ALTER TABLE experiences ADD COLUMN registration_close_date DATE NULL AFTER registration_open_date'); } catch (e: any) { }
-    try { await pool.query("ALTER TABLE experiences ADD COLUMN status ENUM('active', 'hidden', 'suspended', 'closed', 'pending_review') NOT NULL DEFAULT 'active' AFTER is_deleted"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN status ENUM('active', 'hidden', 'suspended', 'closed', 'pending_review', 'draft') NOT NULL DEFAULT 'draft' AFTER is_deleted"); } catch (e: any) { }
     // Phase new: add daily_capacity_max as a distinct field from total max_guests
     try { await pool.query('ALTER TABLE experiences ADD COLUMN daily_capacity_max INT NOT NULL DEFAULT 0 AFTER daily_capacity'); } catch (e: any) { }
     // Modify status enum to include new values if needed
-    try { await pool.query("ALTER TABLE experiences MODIFY COLUMN status ENUM('active', 'hidden', 'suspended', 'closed', 'pending_review') NOT NULL DEFAULT 'active'"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences MODIFY COLUMN status ENUM('active', 'hidden', 'suspended', 'closed', 'pending_review', 'draft') NOT NULL DEFAULT 'draft'"); } catch (e: any) { }
     await pool.query("UPDATE experiences SET daily_capacity = max_guests, registration_open_date = booking_open_date, registration_close_date = booking_close_date WHERE daily_capacity = 0");
     await pool.query("UPDATE experiences SET daily_capacity_max = daily_capacity WHERE daily_capacity_max = 0");
 
@@ -652,8 +652,8 @@ class RelationalDatabase {
     const dailyCapMax = exp.daily_capacity_max ?? exp.daily_capacity ?? exp.max_guests ?? 50;
     const [result] = await pool.query<mysql.ResultSetHeader>(
       `INSERT INTO experiences
-        (title, location, duration, price, image, category, description, rating, host_count, reviews_count, max_guests, daily_capacity, daily_capacity_max, booking_open_date, booking_close_date, host_email, rooms, beds, amenities, images)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (title, location, duration, price, image, category, description, rating, host_count, reviews_count, max_guests, daily_capacity, daily_capacity_max, booking_open_date, booking_close_date, host_email, rooms, beds, amenities, images, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         exp.title,
         exp.location,
@@ -674,7 +674,8 @@ class RelationalDatabase {
         exp.rooms ?? 0,
         exp.beds ?? 0,
         exp.amenities ?? '[]',
-        exp.images ?? '[]'
+        exp.images ?? '[]',
+        exp.status ?? 'draft'
       ]
     );
 

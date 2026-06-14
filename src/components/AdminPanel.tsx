@@ -237,7 +237,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         ? JSON.parse(experience.amenities).join(', ') 
         : '',
       images: typeof experience.images === 'string' && experience.images !== '[]' && experience.images !== '' 
-        ? JSON.parse(experience.images).join('\n') 
+        ? JSON.parse(experience.images).join(', ') 
         : ''
     });
     setShowForm(true);
@@ -285,7 +285,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
       rooms: form.rooms,
       beds: form.beds,
       amenities: form.amenities ? form.amenities.split(',').map(s => s.trim()).filter(Boolean) : [],
-      images: form.images ? form.images.split('\n').map(s => s.trim()).filter(Boolean) : []
+      images: form.images ? form.images.split(/[\s,]+/).map(s => s.trim()).filter(Boolean) : []
     };
     const endpoint = editingId ? `/api/experiences/${editingId}` : '/api/experiences';
     const method = editingId ? 'PUT' : 'POST';
@@ -721,7 +721,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-200">
-                  {experiences.map((item) => (
+                  {experiences.filter(exp => exp.status !== 'draft').map((item) => (
                     <tr key={item.id} className={['hidden', 'suspended', 'closed'].includes(item.status || '') ? 'opacity-60' : ''}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
@@ -826,7 +826,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                 <input type="number" min="0" value={form.beds} onChange={(event) => updateForm('beds', Number(event.target.value))} placeholder="Số giường" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 <input value={form.amenities} onChange={(event) => updateForm('amenities', event.target.value)} placeholder="Tiện ích (cách nhau dấu phẩy)" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
                 <input value={form.image} onChange={(event) => updateForm('image', event.target.value)} placeholder="URL ảnh đại diện" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
-                <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder="Danh sách ảnh khác (mỗi link 1 dòng)" rows={3} className="resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
+                <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder="Danh sách ảnh phụ (cách nhau dấu phẩy hoặc khoảng trắng)" rows={3} className="resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
                 <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} placeholder="Mô tả tour (hiển thị khi khách xem chi tiết)" rows={3} className="resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-4" />
                 <div className="flex gap-2 lg:col-span-2">
                   <button type="submit" className="flex-1 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-bold text-white hover:bg-emerald-700">Lưu</button>

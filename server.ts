@@ -627,8 +627,8 @@ app.use(async (req, res, next) => {
         if (exp.host_email?.toLowerCase() !== user.email.toLowerCase()) {
           res.status(403).json({ error: 'Bạn không có quyền chỉnh sửa tour này' }); return;
         }
-        if (exp.status !== 'closed') {
-          res.status(400).json({ error: 'Chỉ có thể gửi yêu cầu mở lại khi tour đang ở trạng thái Đã đóng' }); return;
+        if (exp.status !== 'closed' && exp.status !== 'draft') {
+          res.status(400).json({ error: 'Chỉ có thể gửi yêu cầu khi tour đang Đóng hoặc Nháp' }); return;
         }
         res.json(await db.updateExperience(id, { status: 'pending_review' }));
         return;
