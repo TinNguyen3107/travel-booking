@@ -18,7 +18,9 @@ import {
   Trash2,
   Users,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  Bell,
+  X
 } from 'lucide-react';
 import {
   LineChart,
@@ -121,6 +123,8 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
   const [isProfileInitialized, setIsProfileInitialized] = useState(false);
   const [evaluatingBooking, setEvaluatingBooking] = useState<BookingTable | null>(null);
   const [hostReviewForm, setHostReviewForm] = useState({ rating: 5, comment: '' });
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const tabs = [
     { id: 'overview', label: 'Tổng quan' },
@@ -244,6 +248,12 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       setHosts(hostsData || []);
       setDbCategories(categoryData || []);
       setReviews((reviewsData || []).filter((r: any) => hostExperiences.some(e => e.id === r.experience_id)));
+
+      // Fetch notifications
+      try {
+        const notiData = await fetchJson<any[]>('/api/notifications');
+        setNotifications(notiData || []);
+      } catch { /* ignore if no notifications */ }
     } catch (err: any) {
       setError(err.message || 'Không thể tải dữ liệu quản trị');
     } finally {
@@ -417,8 +427,10 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
 
   const requestReopen = async (id: number) => {
     setConfirmConfig({
-      title: 'Yêu cầu mở lại tour',
-      message: 'Tour sẽ được gửi cho Admin duyệt. Sau khi Admin phê duyệt, tour sẽ hiển thị trở lại cho khách đặt.',
+      title: 'Yêu cầu duyệt tour',
+      message: 'Tour sẽ được gửi cho Admin duyệt. Bạn sẽ nhận được thông báo sau khi Admin phản hồi.',
+      confirmText: 'Gửi duyệt',
+      isDanger: false,
       onConfirm: async () => {
         try {
           await fetchJson(`/api/experiences/${id}/status`, {
@@ -649,14 +661,78 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
             Quản lý tour, đơn đặt, host và phân quyền người dùng.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={fetchAllData}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 px-4 py-2 text-sm font-bold text-zinc-700 hover:bg-zinc-50"
-        >
-          <RefreshCcw className="h-4 w-4" />
-          Làm mới
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative inline-flex items-center justify-center rounded-xl border border-zinc-200 p-2.5 text-zinc-700 hover:bg-zinc-50"
+              title="Thông báo"
+            >
+              <Bell className="h-5 w-5" />
+              {notifications.filter(n => !n.is_read).length > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                  {notifications.filter(n => !n.is_read).length}
+                </span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <div className="absolute right-0 top-12 z-50 w-80 max-h-96 overflow-y-auto rounded-2xl border border-zinc-200 bg-white shadow-2xl">
+                <div className="flex items-center justify-between border-b border-zinc-100 p-4">
+                  <h4 className="text-sm font-black text-zinc-900">Thông báo</h4>
+                  <button type="button" onClick={() => setShowNotifications(false)} className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-100">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                {notifications.length === 0 ? (
+                  <div className="p-6 text-center text-sm text-zinc-400">Chưa có thông báo nào</div>
+                ) : (
+                  <div className="divide-y divide-zinc-100">
+                    {notifications.map((noti) => (
+                      <div
+                        key={noti.id}
+                        className={`p-3 text-sm cursor-pointer hover:bg-zinc-50 transition ${!noti.is_read ? 'bg-blue-50/50' : ''}`}
+                        onClick={async () => {
+                          if (!noti.is_read) {
+                            try {
+                              await fetchJson(`/api/notifications/${noti.id}/read`, { method: 'PUT' });
+                              setNotifications(prev => prev.map(n => n.id === noti.id ? { ...n, is_read: true } : n));
+                            } catch {}
+                          }
+                        }}
+                      >
+                        <div className="flex items-start gap-2">
+                          <div className={`mt-0.5 h-2 w-2 flex-shrink-0 rounded-full ${
+                            noti.type === 'success' ? 'bg-emerald-500'
+                            : noti.type === 'error' ? 'bg-red-500'
+                            : noti.type === 'warning' ? 'bg-yellow-500'
+                            : 'bg-blue-500'
+                          }`} />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-zinc-800">{noti.title}</div>
+                            <div className="mt-0.5 text-xs text-zinc-500 leading-relaxed">{noti.message}</div>
+                            <div className="mt-1 text-[10px] text-zinc-400">
+                              {new Date(noti.created_at).toLocaleString('vi-VN')}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={fetchAllData}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 px-4 py-2 text-sm font-bold text-zinc-700 hover:bg-zinc-50"
+          >
+            <RefreshCcw className="h-4 w-4" />
+            Làm mới
+          </button>
+        </div>
       </div>
 
       <div className="border-b border-zinc-200 p-4">

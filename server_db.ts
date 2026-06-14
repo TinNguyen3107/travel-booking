@@ -391,6 +391,20 @@ class RelationalDatabase {
     try { await pool.query("ALTER TABLE users ADD COLUMN address TEXT NULL"); } catch (e: any) { }
     try { await pool.query("ALTER TABLE hosts ADD COLUMN avatar VARCHAR(500) NULL"); } catch (e: any) { }
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_email VARCHAR(255) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        type ENUM('success', 'error', 'info', 'warning') NOT NULL DEFAULT 'info',
+        is_read BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_email (user_email)
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+
+
     // Phase 2: tour_schedules table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS tour_schedules (
@@ -1419,6 +1433,30 @@ class RelationalDatabase {
       [postId]
     );
     return rows.map(normalizePostReaction);
+  }
+
+  // ─── Notifications ──────────────────────────────────────────────
+
+  public async createNotification(userEmail: string, title: string, message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info'): Promise<void> {
+    await pool.query(
+      'INSERT INTO notifications (user_email, title, message, type) VALUES (?, ?, ?, ?)',
+      [userEmail, title, message, type]
+    );
+  }
+
+  public async getNotifications(userEmail: string): Promise<any[]> {
+    const [rows] = await pool.query<mysql.RowDataPacket[]>(
+      'SELECT * FROM notifications WHERE user_email = ? ORDER BY created_at DESC LIMIT 50',
+      [userEmail]
+    );
+    return rows;
+  }
+
+  public async markNotificationAsRead(id: number, userEmail: string): Promise<void> {
+    await pool.query(
+      'UPDATE notifications SET is_read = TRUE WHERE id = ? AND user_email = ?',
+      [id, userEmail]
+    );
   }
 }
 

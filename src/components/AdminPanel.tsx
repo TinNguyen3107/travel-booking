@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock3,
   Edit2,
+  Eye,
   FileCheck2,
   MapPin,
   Plus,
@@ -17,7 +18,8 @@ import {
   Star,
   Trash2,
   Users,
-  Calendar
+  Calendar,
+  XCircle
 } from 'lucide-react';
 import {
   BookingTable,
@@ -111,6 +113,8 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
   const [showPromoForm, setShowPromoForm] = useState(false);
   const [promoForm, setPromoForm] = useState({ code: '', discount_percent: 0, discount_amount: 0, expiry_date: '' });
   const [confirmConfig, setConfirmConfig] = useState<ConfirmConfig | null>(null);
+  const [rejectTourId, setRejectTourId] = useState<number | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   const isHost = currentUser?.role === 'host';
   const tabs = isHost 
@@ -353,6 +357,49 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
+      await fetchAllData();
+      onExperiencesChange();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const approveTour = async (id: number) => {
+    setConfirmConfig({
+      title: 'Duyệt tour',
+      message: 'Bạn có muốn duyệt tour này? Tour sẽ được công khai cho khách hàng đặt.',
+      confirmText: 'Đồng ý duyệt',
+      isDanger: false,
+      onConfirm: async () => {
+        try {
+          await fetchJson(`/api/experiences/${id}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'active' })
+          });
+          await fetchAllData();
+          onExperiencesChange();
+        } catch (err: any) {
+          setError(err.message);
+        }
+      }
+    });
+  };
+
+  const rejectTour = async () => {
+    if (!rejectTourId) return;
+    if (!rejectReason.trim()) {
+      setError('Vui lòng nhập lý do từ chối');
+      return;
+    }
+    try {
+      await fetchJson(`/api/experiences/${rejectTourId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'draft', reason: rejectReason.trim() })
+      });
+      setRejectTourId(null);
+      setRejectReason('');
       await fetchAllData();
       onExperiencesChange();
     } catch (err: any) {
@@ -756,23 +803,50 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                       </td>
                       <td className="px-4 py-3 text-right">
                         {item.status === 'pending_review' ? (
-                          <button
-                            type="button"
-                            onClick={() => toggleExperienceStatus(item.id, 'pending_review')}
-                            className="mr-2 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
-                          >
-                            Duyệt mở lại
-                          </button>
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setViewExperienceDetail(item)}
+                              className="rounded-lg border border-sky-200 bg-sky-50 p-2 text-sky-600 hover:bg-sky-100"
+                              title="Xem chi tiết tour"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => approveTour(item.id)}
+                              className="rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
+                            >
+                              Đồng ý
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setRejectTourId(item.id); setRejectReason(''); }}
+                              className="rounded-lg border border-red-200 bg-red-50 px-2 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100"
+                            >
+                              Từ chối
+                            </button>
+                          </div>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => toggleExperienceStatus(item.id, item.status)}
-                            className={`mr-2 rounded-lg border px-2 py-1.5 text-xs font-bold ${item.status === 'hidden' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
-                          >
-                            {item.status === 'hidden' ? 'Hiện' : item.status === 'closed' ? 'Đã đóng' : 'Ẩn'}
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setViewExperienceDetail(item)}
+                              className="mr-1 rounded-lg border border-sky-200 bg-sky-50 p-2 text-sky-600 hover:bg-sky-100"
+                              title="Xem chi tiết tour"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => toggleExperienceStatus(item.id, item.status)}
+                              className={`mr-1 rounded-lg border px-2 py-1.5 text-xs font-bold ${item.status === 'hidden' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
+                            >
+                              {item.status === 'hidden' ? 'Hiện' : item.status === 'closed' ? 'Đã đóng' : 'Ẩn'}
+                            </button>
+                            <button type="button" onClick={() => deleteExperience(item.id)} className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50" aria-label="Xóa tour"><Trash2 className="h-4 w-4" /></button>
+                          </>
                         )}
-                        <button type="button" onClick={() => deleteExperience(item.id)} className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50" aria-label="Xóa tour"><Trash2 className="h-4 w-4" /></button>
                       </td>
                     </tr>
                   ))}
@@ -1273,6 +1347,44 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
           experienceTitle={scheduleExperience.title}
           onClose={() => setScheduleExperience(null)}
         />
+      )}
+
+      {rejectTourId !== null && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white shadow-2xl">
+            <div className="p-6 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
+                <XCircle className="h-7 w-7" />
+              </div>
+              <h2 className="mb-2 text-xl font-black text-zinc-950">Từ chối duyệt tour</h2>
+              <p className="mb-4 text-sm leading-relaxed text-zinc-500">Vui lòng nhập lý do từ chối. Host sẽ nhận được thông báo kèm lý do này.</p>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Nhập lý do từ chối (bắt buộc)..."
+                rows={3}
+                className="w-full resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-red-400"
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-2 border-t border-zinc-100 bg-zinc-50 p-4">
+              <button
+                type="button"
+                onClick={() => { setRejectTourId(null); setRejectReason(''); }}
+                className="flex-1 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-bold text-zinc-700 hover:bg-zinc-100"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={rejectTour}
+                className="flex-1 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-red-700"
+              >
+                Xác nhận từ chối
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

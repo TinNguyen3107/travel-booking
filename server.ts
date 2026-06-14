@@ -638,10 +638,25 @@ app.use(async (req, res, next) => {
       if (user.role !== 'admin') {
         res.status(403).json({ error: 'Không có quyền' }); return;
       }
-      if (!['active', 'hidden', 'suspended', 'closed', 'pending_review'].includes(status)) {
+      if (!['active', 'hidden', 'suspended', 'closed', 'pending_review', 'draft'].includes(status)) {
         res.status(400).json({ error: 'Trạng thái không hợp lệ' }); return;
       }
-      res.json(await db.updateExperience(id, { status: status as 'active' | 'hidden' | 'suspended' | 'closed' | 'pending_review' }));
+      
+      const exp = (await db.getExperiences()).find(e => e.id === id);
+      if (!exp) { res.status(404).json({ error: 'Không tìm thấy tour' }); return; }
+
+      const reason = cleanText(req.body.reason || '');
+      if (status === 'draft' && exp.status === 'pending_review') { // Rejected
+        if (exp.host_email) {
+          await db.createNotification(exp.host_email, 'Tour bị từ chối', `Tour "${exp.title}" đã bị từ chối duyệt. Lý do: ${reason || 'Không có lý do'}`, 'error');
+        }
+      } else if (status === 'active' && exp.status === 'pending_review') { // Approved
+        if (exp.host_email) {
+          await db.createNotification(exp.host_email, 'Tour đã được duyệt', `Tour "${exp.title}" đã được admin phê duyệt và hiện có thể nhận khách.`, 'success');
+        }
+      }
+
+      res.json(await db.updateExperience(id, { status: status as 'active' | 'hidden' | 'suspended' | 'closed' | 'pending_review' | 'draft' }));
     } catch (e: any) { handleError(res, e); }
   });
 
@@ -1293,6 +1308,23 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
+
+  // ─── Notifications API ──────────────────────────────────────────────
+  app.get('/api/notifications', authenticateToken, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      res.json(await db.getNotifications(user.email));
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const id = Number(req.params.id);
+      await db.markNotificationAsRead(id, user.email);
+      res.json({ success: true });
+    } catch (e: any) { handleError(res, e); }
+  });
 
 async function startLocalServer() {
   await initDb();
