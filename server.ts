@@ -518,6 +518,12 @@ app.use(async (req, res, next) => {
       const id = Number(req.params.id);
       if (!(await verifyExperienceOwnership(req, res, id))) return;
       
+      const currentExperience = (await db.getExperiences()).find((item) => item.id === id);
+      if (!currentExperience) {
+        res.status(404).json({ error: 'Không tìm thấy tour cần cập nhật' });
+        return;
+      }
+
       const payload: Record<string, string | number> = {};
 
       for (const field of ['title', 'location', 'duration', 'category', 'description', 'host_email'] as const) {
@@ -576,12 +582,6 @@ app.use(async (req, res, next) => {
       }
 
       if (payload.booking_open_date !== undefined || payload.booking_close_date !== undefined) {
-        const currentExperience = (await db.getExperiences()).find((item) => item.id === id);
-        if (!currentExperience) {
-          res.status(404).json({ error: 'Không tìm thấy tour cần cập nhật' });
-          return;
-        }
-
         const openDate = String(payload.booking_open_date ?? currentExperience.booking_open_date ?? '');
         const closeDate = String(payload.booking_close_date ?? currentExperience.booking_close_date ?? '');
         if (openDate && closeDate && closeDate < openDate) {
@@ -601,6 +601,12 @@ app.use(async (req, res, next) => {
           return;
         }
         payload.price = price;
+      }
+
+      // Tự động chuyển trạng thái sang pending_update nếu tour đã được duyệt trước đó
+      const user = (req as any).user;
+      if (user.role === 'host' && ['active', 'hidden', 'closed'].includes(currentExperience.status || '')) {
+        payload.status = 'pending_update';
       }
 
       res.json(await db.updateExperience(id, payload));
@@ -646,17 +652,17 @@ app.use(async (req, res, next) => {
       if (!exp) { res.status(404).json({ error: 'Không tìm thấy tour' }); return; }
 
       const reason = cleanText(req.body.reason || '');
-      if (status === 'draft' && exp.status === 'pending_review') { // Rejected
+      if (status === 'draft' && (exp.status === 'pending_review' || exp.status === 'pending_update')) { // Rejected
         if (exp.host_email) {
-          await db.createNotification(exp.host_email, 'Tour bị từ chối', `Tour "${exp.title}" đã bị từ chối duyệt. Lý do: ${reason || 'Không có lý do'}`, 'error');
+          await db.createNotification(exp.host_email, 'Tour bị từ chối', `Tour "${exp.title}" đã bị từ chối. Lý do: ${reason || 'Không có lý do'}`, 'error');
         }
-      } else if (status === 'active' && exp.status === 'pending_review') { // Approved
+      } else if (status === 'active' && (exp.status === 'pending_review' || exp.status === 'pending_update')) { // Approved
         if (exp.host_email) {
           await db.createNotification(exp.host_email, 'Tour đã được duyệt', `Tour "${exp.title}" đã được admin phê duyệt và hiện có thể nhận khách.`, 'success');
         }
       }
 
-      res.json(await db.updateExperience(id, { status: status as 'active' | 'hidden' | 'suspended' | 'closed' | 'pending_review' | 'draft' }));
+      res.json(await db.updateExperience(id, { status: status as 'active' | 'hidden' | 'suspended' | 'closed' | 'pending_review' | 'draft' | 'pending_update' }));
     } catch (e: any) { handleError(res, e); }
   });
 

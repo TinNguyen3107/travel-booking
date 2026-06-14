@@ -964,7 +964,9 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} placeholder="Nhập mô tả chi tiết về tour để thu hút khách hàng" rows={3} className="w-full resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <div className="flex items-end justify-end gap-2 lg:col-span-6">
-                  <button type="submit" className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-bold text-white hover:bg-emerald-700">Lưu</button>
+                  <button type="submit" className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-bold text-white hover:bg-emerald-700">
+                    {editingId && !['draft', 'pending_review'].includes(experiences.find(e => e.id === editingId)?.status || '') ? 'Lưu & Gửi duyệt cập nhật' : 'Lưu'}
+                  </button>
                   <button type="button" onClick={resetForm} className="rounded-xl border border-zinc-200 bg-white px-5 py-2 text-sm font-bold text-zinc-600 hover:bg-zinc-100">Hủy</button>
                 </div>
               </form>
@@ -1005,7 +1007,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                         <div className="text-xs font-semibold">{formatDateVi(item.booking_open_date)} - {formatDateVi(item.booking_close_date)}</div>
                         <span className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs font-bold ${
                           item.status === 'closed' ? 'border-red-200 bg-red-50 text-red-700'
-                          : item.status === 'pending_review' ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
+                          : item.status === 'pending_review' || item.status === 'pending_update' ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
                           : item.status === 'hidden' ? 'border-zinc-200 bg-zinc-100 text-zinc-500'
                           : item.status === 'draft' ? 'border-gray-200 bg-gray-100 text-gray-500'
                           : isExperienceOpen(item) ? 'border-emerald-100 bg-emerald-50 text-emerald-700'
@@ -1014,6 +1016,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                         }`}>
                           {item.status === 'closed' ? 'Đã đóng (đủ khách)'
                           : item.status === 'pending_review' ? 'Chờ Admin duyệt'
+                          : item.status === 'pending_update' ? 'Chờ duyệt cập nhật'
                           : item.status === 'hidden' ? 'Đã ẩn'
                           : item.status === 'draft' ? 'Bản nháp'
                           : isExperienceOpen(item) ? 'Đang mở'

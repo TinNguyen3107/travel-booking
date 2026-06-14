@@ -791,18 +791,19 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                           item.status === 'hidden' ? 'border-zinc-200 bg-zinc-100 text-zinc-500'
                           : item.status === 'suspended' ? 'border-orange-200 bg-orange-50 text-orange-700'
                           : item.status === 'closed' ? 'border-red-200 bg-red-50 text-red-700'
-                          : item.status === 'pending_review' ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
+                          : item.status === 'pending_review' || item.status === 'pending_update' ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
                           : 'border-emerald-100 bg-emerald-50 text-emerald-700'
                         }`}>
                           {item.status === 'hidden' ? 'Đã ẩn'
                           : item.status === 'suspended' ? 'Tạm khóa'
                           : item.status === 'closed' ? 'Đã đóng'
-                          : item.status === 'pending_review' ? 'Chờ duyệt'
+                          : item.status === 'pending_review' ? 'Chờ duyệt mới'
+                          : item.status === 'pending_update' ? 'Chờ duyệt cập nhật'
                           : 'Đang hiện'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        {item.status === 'pending_review' ? (
+                        {item.status === 'pending_review' || item.status === 'pending_update' ? (
                           <div className="flex items-center justify-end gap-1">
                             <button
                               type="button"

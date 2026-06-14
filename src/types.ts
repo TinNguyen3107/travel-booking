@@ -36,7 +36,7 @@ export interface ExperienceTable {
   images?: string;
   registration_open_date?: string;
   registration_close_date?: string;
-  status?: 'active' | 'hidden' | 'suspended' | 'closed' | 'pending_review' | 'draft';
+  status?: 'active' | 'hidden' | 'suspended' | 'closed' | 'pending_review' | 'draft' | 'pending_update';
 }
 
 export interface TourScheduleTable {
@@ -166,11 +166,10 @@ export const formatDateVi = (value?: string) => {
   return new Date(`${value}T00:00:00`).toLocaleDateString('vi-VN');
 };
 
-export const isExperienceOpen = (experience: Pick<ExperienceTable, 'booking_open_date' | 'booking_close_date' | 'status'>) => {
-  if (experience.status && experience.status !== 'active') return false;
-  const today = todayIso();
-  const openDate = experience.booking_open_date || today;
-  const closeDate = experience.booking_close_date || '9999-12-31';
-  return openDate <= today && today <= closeDate;
+export const isExperienceOpen = (exp: ExperienceTable) => {
+  const today = new Date().toISOString().split('T')[0];
+  if (exp.status === 'pending_update') return false; // Hiện nhưng không cho đặt
+  return exp.status === 'active' && 
+         (!exp.booking_open_date || exp.booking_open_date <= today) &&
+         (!exp.booking_close_date || exp.booking_close_date >= today);
 };
-
