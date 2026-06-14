@@ -20,7 +20,8 @@ import {
   Calendar,
   TrendingUp,
   Bell,
-  X
+  X,
+  Eye
 } from 'lucide-react';
 import {
   LineChart,
@@ -1031,6 +1032,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                         {item.status === 'pending_review' && (
                           <span className="mr-2 inline-flex rounded-lg border border-yellow-200 bg-yellow-50 px-2 py-1.5 text-xs font-bold text-yellow-600">Đang chờ...</span>
                         )}
+                        <button type="button" onClick={() => setViewExperienceDetail(item)} className="mr-2 rounded-lg border border-sky-200 bg-sky-50 p-2 text-sky-600 hover:bg-sky-100" aria-label="Xem chi tiết tour"><Eye className="h-4 w-4" /></button>
                         <button type="button" onClick={() => setScheduleExperience(item)} className="mr-2 rounded-lg border border-emerald-100 bg-emerald-50 p-2 text-emerald-600 hover:bg-emerald-100" aria-label="Quản lý lịch"><Calendar className="h-4 w-4" /></button>
                         <button type="button" onClick={() => editExperience(item)} className="mr-2 rounded-lg border border-zinc-200 p-2 text-zinc-600 hover:bg-zinc-50" aria-label="Sửa tour"><Edit2 className="h-4 w-4" /></button>
                         <button type="button" onClick={() => deleteExperience(item.id)} className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50" aria-label="Xóa tour"><Trash2 className="h-4 w-4" /></button>

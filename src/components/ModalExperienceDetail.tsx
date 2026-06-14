@@ -95,6 +95,13 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
             </div>
           </div>
 
+          {experience.host_email && (
+            <div className="mt-6 border-b border-zinc-100 pb-5">
+              <h3 className="text-sm font-bold uppercase text-zinc-500 mb-3">Thông tin Host</h3>
+              <HostProfileWidget email={experience.host_email} />
+            </div>
+          )}
+
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
               <div className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500">

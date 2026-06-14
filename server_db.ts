@@ -1282,7 +1282,34 @@ class RelationalDatabase {
        VALUES (?, ?, ?, ?, ?)`,
       [schedule.experience_id, schedule.start_date, schedule.end_date, schedule.max_slots, schedule.max_slots]
     );
-    const created = await this.findScheduleById(result.insertId);
+    const scheduleId = result.insertId;
+
+    const exp = await this.findExperienceById(schedule.experience_id);
+    if (exp) {
+      const [bookings] = await pool.query<mysql.RowDataPacket[]>(
+        "SELECT id, user_email, guests FROM bookings WHERE experience_id = ? AND status != 'cancelled' AND schedule_id IS NULL",
+        [schedule.experience_id]
+      );
+      
+      let assignedCount = 0;
+      for (const b of bookings) {
+        await pool.query("UPDATE bookings SET schedule_id = ? WHERE id = ?", [scheduleId, b.id]);
+        assignedCount += b.guests;
+        
+        await this.createNotification(
+          b.user_email,
+          'Đã có lịch khởi hành tour',
+          `Tour "${exp.title}" bạn đặt đã được chốt lịch khởi hành từ ngày ${schedule.start_date} đến ${schedule.end_date}. Vui lòng chuẩn bị!`,
+          'info'
+        );
+      }
+      
+      if (assignedCount > 0) {
+        await pool.query("UPDATE tour_schedules SET remaining_slots = max_slots - ? WHERE id = ?", [assignedCount, scheduleId]);
+      }
+    }
+
+    const created = await this.findScheduleById(scheduleId);
     if (!created) throw new Error('Không thể tạo lịch khởi hành');
     return created;
   }

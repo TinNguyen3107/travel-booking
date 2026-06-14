@@ -1341,6 +1341,17 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         />
       )}
 
+      {viewExperienceDetail && (
+        <ModalExperienceDetail
+          experience={viewExperienceDetail}
+          onClose={() => setViewExperienceDetail(null)}
+          onBook={() => {
+            setViewExperienceDetail(null);
+            alert('Admin chỉ được xem trước, không thể đặt chỗ.');
+          }}
+        />
+      )}
+
       {scheduleExperience && (
         <ScheduleManager
           experienceId={scheduleExperience.id}

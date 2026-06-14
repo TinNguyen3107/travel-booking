@@ -1047,11 +1047,26 @@ app.use(async (req, res, next) => {
         return;
       }
 
-      // Phase 6: Chỉ cho phép đánh giá nếu đã có đơn đặt tour 'confirmed'
+      // Phase 6: Chỉ cho phép đánh giá nếu đã có đơn đặt tour 'confirmed' và lịch khởi hành đã kết thúc
       const bookings = await db.getBookings(userEmail);
-      const hasCompletedBooking = bookings.some(b => b.experience_id === experienceId && b.status === 'confirmed');
-      if (!hasCompletedBooking) {
+      const userBookings = bookings.filter(b => b.experience_id === experienceId && b.status === 'confirmed');
+      
+      if (userBookings.length === 0) {
         res.status(403).json({ error: 'Bạn chỉ có thể đánh giá tour sau khi đã tham gia (đơn được xác nhận)' });
+        return;
+      }
+
+      // Check if any of the bookings have a schedule that has finished
+      const schedules = await db.getSchedules(experienceId);
+      const today = new Date().toISOString().split('T')[0];
+      const hasCompletedSchedule = userBookings.some(b => {
+        if (!b.schedule_id) return false;
+        const schedule = schedules.find(s => s.id === b.schedule_id);
+        return schedule && schedule.end_date < today;
+      });
+
+      if (!hasCompletedSchedule) {
+        res.status(403).json({ error: 'Tour chưa kết thúc. Bạn chỉ có thể đánh giá, bình luận sau khi lịch khởi hành đã hoàn tất.' });
         return;
       }
 
@@ -1127,6 +1142,27 @@ app.use(async (req, res, next) => {
         res.status(400).json({ error: 'Missing required post fields' });
         return;
       }
+
+      if (role === 'user') {
+        const bookings = await db.getBookings(user_email);
+        const userBookings = bookings.filter(b => b.status === 'confirmed' && b.schedule_id);
+        const today = new Date().toISOString().split('T')[0];
+        
+        let hasCompletedTour = false;
+        for (const b of userBookings) {
+          const schedule = await db.findScheduleById(b.schedule_id!);
+          if (schedule && schedule.end_date < today) {
+            hasCompletedTour = true;
+            break;
+          }
+        }
+        
+        if (!hasCompletedTour) {
+          res.status(403).json({ error: 'Bạn chỉ có thể đăng bài trên diễn đàn sau khi đã tham gia hoàn tất ít nhất một tour.' });
+          return;
+        }
+      }
+
       const post = await db.addPost({
         user_email,
         fullname,
@@ -1167,6 +1203,28 @@ app.use(async (req, res, next) => {
         res.status(400).json({ error: 'Missing comment fields' });
         return;
       }
+
+      const role = (req as any).user.role;
+      if (role === 'user') {
+        const bookings = await db.getBookings(user_email);
+        const userBookings = bookings.filter(b => b.status === 'confirmed' && b.schedule_id);
+        const today = new Date().toISOString().split('T')[0];
+        
+        let hasCompletedTour = false;
+        for (const b of userBookings) {
+          const schedule = await db.findScheduleById(b.schedule_id!);
+          if (schedule && schedule.end_date < today) {
+            hasCompletedTour = true;
+            break;
+          }
+        }
+        
+        if (!hasCompletedTour) {
+          res.status(403).json({ error: 'Bạn chỉ có thể bình luận sau khi đã tham gia hoàn tất ít nhất một tour.' });
+          return;
+        }
+      }
+
       const newComment = await db.addPostComment({
         post_id,
         user_email,
