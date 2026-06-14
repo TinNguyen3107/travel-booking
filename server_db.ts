@@ -983,8 +983,6 @@ class RelationalDatabase {
       'SELECT name, description, avatar FROM hosts WHERE LOWER(email) = ? LIMIT 1',
       [normalizedEmail]
     );
-    if (!hostRows.length) return null;
-
     const [statsRows] = await pool.query<RowDataPacket[]>(
       `SELECT 
          COUNT(*) as total_experiences, 
@@ -995,16 +993,16 @@ class RelationalDatabase {
       [normalizedEmail]
     );
 
-    const host = hostRows[0];
+    const host = hostRows.length > 0 ? hostRows[0] : null;
     const stats = statsRows[0];
 
     return {
-      host_name: host.name,
-      description: host.description,
-      avatar: host.avatar,
-      total_experiences: toNumber(stats.total_experiences),
-      total_reviews: toNumber(stats.total_reviews),
-      average_rating: toNumber(stats.average_rating) || 0
+      host_name: host?.name || email.split('@')[0],
+      description: host?.description || '',
+      avatar: host?.avatar || '',
+      total_experiences: toNumber(stats?.total_experiences),
+      total_reviews: toNumber(stats?.total_reviews),
+      average_rating: Math.round((toNumber(stats?.average_rating) || 0) * 10) / 10
     };
   }
 
