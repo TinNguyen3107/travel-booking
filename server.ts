@@ -968,6 +968,29 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
+  // Public host profile for HostProfileWidget
+  app.get('/api/hosts/profile/:email', async (req, res) => {
+    try {
+      const email = decodeURIComponent(req.params.email).toLowerCase();
+      const hosts = await db.getHosts();
+      const host = hosts.find(h => h.email.toLowerCase() === email);
+      const experiences = (await db.getExperiences()).filter(e => e.host_email?.toLowerCase() === email && e.status === 'active');
+      const totalReviews = experiences.reduce((sum, e) => sum + (e.reviews_count || 0), 0);
+      const avgRating = experiences.length > 0
+        ? experiences.reduce((sum, e) => sum + (Number(e.rating) || 0), 0) / experiences.length
+        : 0;
+
+      res.json({
+        host_name: host?.name || email.split('@')[0],
+        description: host?.description || '',
+        avatar: (host as any)?.avatar || '',
+        total_experiences: experiences.length,
+        total_reviews: totalReviews,
+        average_rating: Math.round(avgRating * 10) / 10
+      });
+    } catch (e: any) { handleError(res, e); }
+  });
+
   app.put('/api/hosts/profile', authenticateToken, requireHostOrAdmin, async (req, res) => {
     try {
       const email = cleanText(req.body.email).toLowerCase();

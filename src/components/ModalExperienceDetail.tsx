@@ -87,11 +87,11 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
                 </span>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-xs font-bold uppercase text-zinc-400">Giá tour</div>
-              <div className="text-2xl font-black text-emerald-700">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase text-zinc-400">Giá tour</span>
+              <span className="text-2xl font-black text-emerald-700">
                 {formatVnd(experience.price)}
-              </div>
+              </span>
             </div>
           </div>
 
