@@ -948,7 +948,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   <input type="number" min="0" value={form.beds} onChange={(event) => updateForm('beds', Number(event.target.value))} placeholder="Giường" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <div className="lg:col-span-6 grid gap-3 lg:grid-cols-6 rounded-xl border border-zinc-200 p-3 bg-white">
-                  <label className="block lg:col-span-1 flex items-center gap-2 mt-4">
+                  <label className="flex lg:col-span-1 items-center gap-2 mt-4">
                     <input type="checkbox" checked={form.allow_children} onChange={(event) => updateForm('allow_children', event.target.checked)} className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600" />
                     <span className="text-xs font-bold text-zinc-700">Cho trẻ em tham gia</span>
                   </label>
@@ -1289,7 +1289,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       )}
 
       {evaluatingBooking && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <h3 className="mb-4 text-xl font-black text-zinc-900">Đánh giá khách hàng</h3>
             <div className="mb-4 rounded-lg bg-zinc-50 p-3 text-sm">
