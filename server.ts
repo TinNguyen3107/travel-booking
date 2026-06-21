@@ -603,6 +603,15 @@ app.use(async (req, res, next) => {
         payload.price = price;
       }
 
+      if (req.body.allow_children !== undefined) {
+        payload.allow_children = req.body.allow_children ? 1 : 0;
+      }
+      for (const field of ['min_age', 'child_max_age', 'child_price'] as const) {
+        if (req.body[field] !== undefined) {
+          payload[field] = Number(req.body[field]);
+        }
+      }
+
       // Tự động chuyển trạng thái sang pending_update nếu tour đã được duyệt trước đó
       const user = (req as any).user;
       if (user.role === 'host' && ['active', 'hidden', 'closed'].includes(currentExperience.status || '')) {
