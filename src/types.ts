@@ -41,6 +41,7 @@ export interface ExperienceTable {
   min_age?: number;
   child_max_age?: number;
   child_price?: number;
+  previous_state?: string;
 }
 
 export interface TourScheduleTable {

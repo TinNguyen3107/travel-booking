@@ -353,6 +353,7 @@ class RelationalDatabase {
     try { await pool.query("ALTER TABLE experiences ADD COLUMN min_age INT DEFAULT 0"); } catch (e: any) { }
     try { await pool.query("ALTER TABLE experiences ADD COLUMN child_max_age INT DEFAULT 12"); } catch (e: any) { }
     try { await pool.query("ALTER TABLE experiences ADD COLUMN child_price DECIMAL(12, 0) DEFAULT NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN previous_state TEXT DEFAULT NULL"); } catch (e: any) { }
     try { await pool.query("ALTER TABLE bookings ADD COLUMN adults INT"); } catch (e: any) { }
     try { await pool.query("ALTER TABLE bookings ADD COLUMN children INT"); } catch (e: any) { }
 
@@ -740,7 +741,8 @@ class RelationalDatabase {
       'allow_children',
       'min_age',
       'child_max_age',
-      'child_price'
+      'child_price',
+      'previous_state'
     ] as const;
 
     const entries = allowedFields

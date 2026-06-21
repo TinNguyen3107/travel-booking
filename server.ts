@@ -607,6 +607,10 @@ app.use(async (req, res, next) => {
       const user = (req as any).user;
       if (user.role === 'host' && ['active', 'hidden', 'closed'].includes(currentExperience.status || '')) {
         payload.status = 'pending_update';
+        // Chỉ lưu previous_state lần đầu tiên (nếu host update nhiều lần khi đang pending_update thì không ghi đè)
+        if (!currentExperience.previous_state) {
+          payload.previous_state = JSON.stringify(currentExperience);
+        }
       }
 
       res.json(await db.updateExperience(id, payload));
@@ -662,7 +666,12 @@ app.use(async (req, res, next) => {
         }
       }
 
-      res.json(await db.updateExperience(id, { status: status as 'active' | 'hidden' | 'suspended' | 'closed' | 'pending_review' | 'draft' | 'pending_update' }));
+      const updatePayload: any = { status: status as 'active' | 'hidden' | 'suspended' | 'closed' | 'pending_review' | 'draft' | 'pending_update' };
+      if (status !== 'pending_update') {
+        updatePayload.previous_state = null;
+      }
+
+      res.json(await db.updateExperience(id, updatePayload));
     } catch (e: any) { handleError(res, e); }
   });
 
