@@ -492,61 +492,7 @@ class RelationalDatabase {
         booking_open_date = COALESCE(booking_open_date, CURDATE()),
         booking_close_date = COALESCE(booking_close_date, DATE_ADD(CURDATE(), INTERVAL 90 DAY))
     `);
-    await pool.query(`
-      INSERT INTO experiences
-        (title, location, duration, price, image, category, description, rating, host_count, reviews_count)
-      SELECT *
-      FROM (
-        SELECT
-          'Du thuyền Vịnh Hạ Long' AS title,
-          'Quảng Ninh' AS location,
-          '1 ngày' AS duration,
-          890000 AS price,
-          '${HALONG_IMAGE}' AS image,
-          'Thiên nhiên' AS category,
-          '${HALONG_DESCRIPTION}' AS description,
-          0 AS rating,
-          3 AS host_count,
-          0 AS reviews_count
-        UNION ALL
-        SELECT
-          'Lớp nấu món Việt cùng người bản địa',
-          'Hội An',
-          '4 giờ',
-          450000,
-          'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=1200&auto=format&fit=crop',
-          'Ẩm thực',
-          '${COOKING_DESCRIPTION}',
-          0,
-          2,
-          0
-        UNION ALL
-        SELECT
-          'Trải nghiệm làm gốm thủ công',
-          'Bát Tràng',
-          '3 giờ',
-          320000,
-          'https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1200&auto=format&fit=crop',
-          'Văn hóa',
-          '${CRAFT_DESCRIPTION}',
-          0,
-          4,
-          0
-        UNION ALL
-        SELECT
-          'Trekking ruộng bậc thang',
-          'Sa Pa',
-          '2 ngày 1 đêm',
-          1250000,
-          'https://images.unsplash.com/photo-1542318047-9572565651c3?q=80&w=1200&auto=format&fit=crop',
-          'Phiêu lưu',
-          '${TREKKING_DESCRIPTION}',
-          0,
-          5,
-          0
-      ) seed
-      WHERE NOT EXISTS (SELECT 1 FROM experiences)
-    `);
+    // Đã xóa phần tự động tạo 4 tour mẫu để database hoàn toàn trống
 
     await pool.query(`
       UPDATE experiences
