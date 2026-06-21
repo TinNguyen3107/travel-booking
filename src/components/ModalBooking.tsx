@@ -154,7 +154,7 @@ export default function ModalBooking({
     try {
       const res = await fetch('/api/bookings', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
@@ -188,7 +188,7 @@ export default function ModalBooking({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl">
+      <div className="relative w-full max-w-2xl max-h-[95vh] overflow-y-auto rounded-2xl border border-zinc-200 bg-white shadow-2xl">
         <button
           type="button"
           onClick={onClose}
@@ -417,8 +417,8 @@ export default function ModalBooking({
                 <button
                   type="submit"
                   disabled={
-                    loading || 
-                    !isBookableWindow || 
+                    loading ||
+                    !isBookableWindow ||
                     (schedules.length === 0 && availability && (!availability.isAvailable || guests > availability.dailyRemaining || guests > availability.totalRemaining))
                   }
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-400 sm:w-2/3"

@@ -169,7 +169,7 @@ export const formatDateVi = (value?: string) => {
 export const isExperienceOpen = (exp: ExperienceTable) => {
   const today = new Date().toISOString().split('T')[0];
   if (exp.status === 'pending_update') return false; // Hiện nhưng không cho đặt
-  return exp.status === 'active' && 
-         (!exp.booking_open_date || exp.booking_open_date <= today) &&
-         (!exp.booking_close_date || exp.booking_close_date >= today);
+  return exp.status === 'active' &&
+    (!exp.booking_open_date || exp.booking_open_date <= today) &&
+    (!exp.booking_close_date || exp.booking_close_date >= today);
 };

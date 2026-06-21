@@ -126,7 +126,7 @@ export default function App() {
     try {
       const res = await fetch('/api/wishlists/toggle', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
@@ -138,14 +138,14 @@ export default function App() {
     } catch (e) { console.error(e); }
   };
 
-  const openExperiences = useMemo(
-    () => experiences.filter((item) => isExperienceOpen(item)),
+  const visibleExperiences = useMemo(
+    () => experiences.filter((item) => item.status !== 'hidden' && item.status !== 'suspended'),
     [experiences]
   );
 
   const categories = useMemo(
-    () => Array.from(new Set(openExperiences.map((item) => item.category).filter(Boolean))),
-    [openExperiences]
+    () => Array.from(new Set(visibleExperiences.map((item) => item.category).filter(Boolean))),
+    [visibleExperiences]
   );
 
   const filteredExperiences = useMemo(() => {
@@ -153,7 +153,7 @@ export default function App() {
     const min = minPrice ? Number(minPrice) : 0;
     const max = maxPrice ? Number(maxPrice) : Infinity;
 
-    return openExperiences.filter((item) => {
+    return visibleExperiences.filter((item) => {
       const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
       const matchesKeyword =
         !keyword ||
@@ -163,7 +163,7 @@ export default function App() {
       const matchesPrice = item.price >= min && item.price <= max;
       return matchesCategory && matchesKeyword && matchesPrice;
     });
-  }, [openExperiences, searchTerm, selectedCategory, minPrice, maxPrice]);
+  }, [visibleExperiences, searchTerm, selectedCategory, minPrice, maxPrice]);
 
   const fetchExperiences = async () => {
     try {
@@ -254,7 +254,7 @@ export default function App() {
     try {
       const res = await fetch('/api/reviews', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
@@ -314,7 +314,7 @@ export default function App() {
     try {
       const res = await fetch('/api/hosts', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
@@ -546,7 +546,7 @@ export default function App() {
                       </span>
                       {(experience.rooms || experience.beds) ? (
                         <span className="inline-flex items-center gap-1.5 text-zinc-500">
-                          {experience.rooms ? `${experience.rooms} phòng` : ''} 
+                          {experience.rooms ? `${experience.rooms} phòng` : ''}
                           {(experience.rooms && experience.beds) ? ' · ' : ''}
                           {experience.beds ? `${experience.beds} giường` : ''}
                         </span>
@@ -570,9 +570,10 @@ export default function App() {
                         <button
                           type="button"
                           onClick={() => handleBookClick(experience)}
-                          className="flex-1 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-black text-white hover:bg-emerald-700"
+                          disabled={!isExperienceOpen(experience)}
+                          className={`flex-1 rounded-xl px-4 py-2 text-sm font-black text-white ${isExperienceOpen(experience) ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-zinc-400 cursor-not-allowed'}`}
                         >
-                          Đặt ngay
+                          {isExperienceOpen(experience) ? 'Đặt ngay' : 'Chờ mở lại'}
                         </button>
                       </div>
                     </div>
@@ -674,7 +675,7 @@ export default function App() {
                     </div>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-zinc-600">{review.comment}</p>
-                  
+
                   {review.images && JSON.parse(review.images).length > 0 && (
                     <div className="mt-3 flex gap-2 overflow-x-auto pb-2">
                       {JSON.parse(review.images).map((imgUrl: string, idx: number) => (
