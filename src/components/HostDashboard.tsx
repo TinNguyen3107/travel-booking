@@ -272,7 +272,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
     setShowForm(false);
   };
 
-  const updateForm = (field: keyof typeof EMPTY_FORM, value: string | number) => {
+  const updateForm = (field: keyof typeof EMPTY_FORM, value: string | number | boolean) => {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
