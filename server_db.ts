@@ -826,10 +826,20 @@ class RelationalDatabase {
       const exp = await this.findExperienceById(booking.experience_id);
       if (!exp) throw new Error('Không tìm thấy tour cần đặt');
 
-      const [totalRows] = await connection.query<RowDataPacket[]>(
-        'SELECT SUM(guests) as total FROM bookings WHERE experience_id = ? AND status != "cancelled"',
-        [booking.experience_id]
-      );
+      let query = 'SELECT SUM(guests) as total FROM bookings WHERE experience_id = ? AND status != "cancelled"';
+      const params: any[] = [booking.experience_id];
+
+      if (exp.booking_open_date && exp.booking_close_date) {
+        query += ' AND booking_date >= ? AND booking_date <= ?';
+        params.push(exp.booking_open_date, exp.booking_close_date);
+      }
+
+      if (exp.registration_open_date) {
+        query += ' AND created_at >= ?';
+        params.push(exp.registration_open_date + ' 00:00:00');
+      }
+
+      const [totalRows] = await connection.query<RowDataPacket[]>(query, params);
       const totalBooked = Number(totalRows[0]?.total || 0);
       if (totalBooked + booking.guests > (exp.max_guests || 50)) {
         throw new Error('Đã vượt quá tổng số khách cho phép của tour này.');
@@ -889,17 +899,30 @@ class RelationalDatabase {
       await connection.commit();
 
       // ── Auto-close tour khi đủ tổng khách ──
-      const [totalAfterRows] = await pool.query<RowDataPacket[]>(
-        'SELECT SUM(guests) as total FROM bookings WHERE experience_id = ? AND status != "cancelled"',
-        [booking.experience_id]
-      );
-      const totalAfterBooked = Number(totalAfterRows[0]?.total || 0);
       const refreshed = await this.findExperienceById(booking.experience_id);
-      if (refreshed && totalAfterBooked >= (refreshed.max_guests || 50)) {
-        await pool.query(
-          "UPDATE experiences SET status = 'closed' WHERE id = ? AND status = 'active'",
-          [booking.experience_id]
-        );
+      if (refreshed) {
+        let closeQuery = 'SELECT SUM(guests) as total FROM bookings WHERE experience_id = ? AND status != "cancelled"';
+        const closeParams: any[] = [booking.experience_id];
+        
+        if (refreshed.booking_open_date && refreshed.booking_close_date) {
+          closeQuery += ' AND booking_date >= ? AND booking_date <= ?';
+          closeParams.push(refreshed.booking_open_date, refreshed.booking_close_date);
+        }
+
+        if (refreshed.registration_open_date) {
+          closeQuery += ' AND created_at >= ?';
+          closeParams.push(refreshed.registration_open_date + ' 00:00:00');
+        }
+        
+        const [totalAfterRows] = await pool.query<RowDataPacket[]>(closeQuery, closeParams);
+        const totalAfterBooked = Number(totalAfterRows[0]?.total || 0);
+        
+        if (totalAfterBooked >= (refreshed.max_guests || 50)) {
+          await pool.query(
+            "UPDATE experiences SET status = 'closed' WHERE id = ? AND status = 'active'",
+            [booking.experience_id]
+          );
+        }
       }
 
       const created = await this.findBookingById(result.insertId);
