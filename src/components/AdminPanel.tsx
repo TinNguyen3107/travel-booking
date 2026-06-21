@@ -111,7 +111,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
   const [scheduleExperience, setScheduleExperience] = useState<ExperienceTable | null>(null);
   const [promotions, setPromotions] = useState<any[]>([]);
   const [showPromoForm, setShowPromoForm] = useState(false);
-  const [promoForm, setPromoForm] = useState({ code: '', discount_percent: 0, discount_amount: 0, expiry_date: '' });
+  const [promoForm, setPromoForm] = useState({ code: '', discount_percent: 0, discount_amount: 0, expiry_date: '', experience_id: '', usage_limit: 100, description: '' });
   const [confirmConfig, setConfirmConfig] = useState<ConfirmConfig | null>(null);
   const [rejectTourId, setRejectTourId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -321,7 +321,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         body: JSON.stringify(promoForm)
       });
       setShowPromoForm(false);
-      setPromoForm({ code: '', discount_percent: 0, discount_amount: 0, expiry_date: '' });
+      setPromoForm({ code: '', discount_percent: 0, discount_amount: 0, expiry_date: '', experience_id: '', usage_limit: 100, description: '' });
       await fetchAllData();
     } catch (err: any) {
       setError(err.message);
@@ -1151,6 +1151,37 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                       className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                     />
                   </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-bold text-zinc-700">Áp dụng cho Tour (Bỏ trống: Tất cả)</span>
+                    <select
+                      value={promoForm.experience_id}
+                      onChange={(e) => setPromoForm({ ...promoForm, experience_id: e.target.value })}
+                      className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    >
+                      <option value="">-- Áp dụng cho tất cả tour --</option>
+                      {experiences.map(exp => (
+                        <option key={exp.id} value={exp.id}>{exp.title}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-bold text-zinc-700">Giới hạn số lượt dùng</span>
+                    <input
+                      type="number"
+                      value={promoForm.usage_limit}
+                      onChange={(e) => setPromoForm({ ...promoForm, usage_limit: Number(e.target.value) })}
+                      className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </label>
+                  <label className="block sm:col-span-2">
+                    <span className="mb-2 block text-sm font-bold text-zinc-700">Mô tả (hiển thị trên băng rôn)</span>
+                    <input
+                      value={promoForm.description}
+                      onChange={(e) => setPromoForm({ ...promoForm, description: e.target.value })}
+                      placeholder="VD: Nhập SUMMER2024 giảm 10% khi đặt tour!"
+                      className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </label>
                 </div>
                 <div className="mt-6 flex justify-end gap-3">
                   <button
@@ -1176,6 +1207,8 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                   <tr>
                     <th className="p-4">Mã</th>
                     <th className="p-4">Giảm giá</th>
+                    <th className="p-4">Giới hạn</th>
+                    <th className="p-4">Lượt dùng</th>
                     <th className="p-4">Hết hạn</th>
                     <th className="p-4">Trạng thái</th>
                   </tr>
@@ -1183,8 +1216,14 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                 <tbody className="divide-y divide-zinc-200 bg-white">
                   {promotions.map((p) => (
                     <tr key={p.id} className="hover:bg-zinc-50">
-                      <td className="p-4 font-bold">{p.code}</td>
+                      <td className="p-4">
+                        <div className="font-bold">{p.code}</div>
+                        <div className="text-xs text-zinc-500">{p.experience_id ? `Áp dụng tour ID: ${p.experience_id}` : 'Mọi tour'}</div>
+                        <div className="text-xs text-zinc-400 mt-1">{p.description}</div>
+                      </td>
                       <td className="p-4">{p.discount_percent ? `${p.discount_percent}%` : formatVnd(p.discount_amount)}</td>
+                      <td className="p-4">{p.usage_limit || 'Không giới hạn'}</td>
+                      <td className="p-4 font-bold text-emerald-600">{p.used_count || 0}</td>
                       <td className="p-4">{new Date(p.expiry_date).toLocaleDateString()}</td>
                       <td className="p-4">
                         <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${p.is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-zinc-100 text-zinc-600 border-zinc-200'}`}>

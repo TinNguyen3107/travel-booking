@@ -857,9 +857,9 @@ app.use(async (req, res, next) => {
       const promoCode = cleanText(req.body.promo_code);
 
       if (promoCode) {
-        const promo = await db.applyPromotion(promoCode);
+        const promo = await db.applyPromotion(promoCode, experienceId);
         if (!promo) {
-          res.status(400).json({ error: 'Mã giảm giá không hợp lệ hoặc đã hết hạn' });
+          res.status(400).json({ error: 'Mã giảm giá không hợp lệ, đã hết hạn, hoặc không áp dụng cho tour này' });
           return;
         }
         let discount = 0;
@@ -869,6 +869,8 @@ app.use(async (req, res, next) => {
           discount = Number(promo.discount_amount);
         }
         totalPrice = Math.max(0, basePrice - discount);
+        // Tăng lượt sử dụng
+        await db.incrementPromotionUsage(promo.id);
       } else {
         totalPrice = basePrice;
       }
@@ -1312,9 +1314,17 @@ app.use(async (req, res, next) => {
 
   app.post('/api/promotions', authenticateToken, requireAdmin, async (req, res) => {
     try {
-      const { code, discount_percent, discount_amount, expiry_date } = req.body;
+      const { code, discount_percent, discount_amount, expiry_date, experience_id, usage_limit, description } = req.body;
       if (!code || !expiry_date) return res.status(400).json({ error: 'Missing code or expiry' });
-      res.json(await db.addPromotion(cleanText(code), Number(discount_percent), Number(discount_amount), cleanText(expiry_date)));
+      res.json(await db.addPromotion(cleanText(code), Number(discount_percent || 0), Number(discount_amount || 0), cleanText(expiry_date), experience_id ? Number(experience_id) : null, usage_limit ? Number(usage_limit) : 100, description ? cleanText(description) : ''));
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.put('/api/promotions/:id', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const { usage_limit, description, is_active } = req.body;
+      res.json(await db.updatePromotion(id, Number(usage_limit), cleanText(description), Boolean(is_active)));
     } catch (e: any) { handleError(res, e); }
   });
 

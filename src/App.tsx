@@ -78,11 +78,23 @@ export default function App() {
   const [wishlists, setWishlists] = useState<number[]>([]);
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
+  const [promotions, setPromotions] = useState<any[]>([]);
 
   useEffect(() => {
     fetchExperiences();
     fetchReviews();
+    fetchPromotions();
   }, []);
+
+  const fetchPromotions = async () => {
+    try {
+      const res = await fetch('/api/promotions');
+      const data = await res.json();
+      setPromotions(data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     if (experiences.length > 0 && reviewExperienceId === null) {
@@ -379,6 +391,18 @@ export default function App() {
         onNavigate={scrollToSection}
         activeSection={activeSection}
       />
+
+      {promotions.filter(p => p.is_active && p.description && (!p.usage_limit || p.used_count < p.usage_limit)).length > 0 && (
+        <div className="bg-emerald-600 text-white overflow-hidden py-2 whitespace-nowrap">
+          <div className="animate-marquee inline-block">
+            {promotions.filter(p => p.is_active && p.description && (!p.usage_limit || p.used_count < p.usage_limit)).map(p => (
+              <span key={p.id} className="mx-8 font-bold text-sm">
+                🎉 {p.description}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       <section id="hero" className="bg-zinc-50 px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">

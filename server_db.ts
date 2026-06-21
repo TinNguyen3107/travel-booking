@@ -338,6 +338,11 @@ class RelationalDatabase {
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
 
+    try { await pool.query('ALTER TABLE promotions ADD COLUMN experience_id INT DEFAULT NULL'); } catch (e: any) { }
+    try { await pool.query('ALTER TABLE promotions ADD COLUMN usage_limit INT DEFAULT 100'); } catch (e: any) { }
+    try { await pool.query('ALTER TABLE promotions ADD COLUMN used_count INT DEFAULT 0'); } catch (e: any) { }
+    try { await pool.query('ALTER TABLE promotions ADD COLUMN description TEXT DEFAULT NULL'); } catch (e: any) { }
+
     try { await pool.query('ALTER TABLE experiences ADD COLUMN max_guests INT NOT NULL DEFAULT 50'); } catch (e: any) { }
     try { await pool.query('ALTER TABLE experiences ADD COLUMN booking_open_date DATE NULL'); } catch (e: any) { }
     try { await pool.query('ALTER TABLE experiences ADD COLUMN booking_close_date DATE NULL'); } catch (e: any) { }
@@ -1237,20 +1242,36 @@ class RelationalDatabase {
     return rows;
   }
 
-  public async applyPromotion(code: string): Promise<any | null> {
+  public async applyPromotion(code: string, experienceId?: number): Promise<any | null> {
     const [rows] = await pool.query<RowDataPacket[]>(
-      'SELECT * FROM promotions WHERE code = ? AND is_active = TRUE AND expiry_date >= CURDATE() LIMIT 1',
+      'SELECT * FROM promotions WHERE code = ? AND is_active = TRUE AND expiry_date >= CURDATE() AND (usage_limit IS NULL OR used_count < usage_limit) LIMIT 1',
       [code]
     );
-    return rows[0] || null;
+    const promo = rows[0] || null;
+    if (promo && promo.experience_id && experienceId && promo.experience_id !== experienceId) {
+      return null; // Mã giảm giá này không áp dụng cho tour này
+    }
+    return promo;
   }
 
-  public async addPromotion(code: string, discount_percent: number, discount_amount: number, expiry_date: string): Promise<any> {
+  public async addPromotion(code: string, discount_percent: number, discount_amount: number, expiry_date: string, experience_id: number | null, usage_limit: number, description: string): Promise<any> {
     const [result] = await pool.query<mysql.ResultSetHeader>(
-      'INSERT INTO promotions (code, discount_percent, discount_amount, expiry_date) VALUES (?, ?, ?, ?)',
-      [code, discount_percent, discount_amount, expiry_date]
+      'INSERT INTO promotions (code, discount_percent, discount_amount, expiry_date, experience_id, usage_limit, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [code, discount_percent, discount_amount, expiry_date, experience_id, usage_limit, description]
     );
-    return { id: result.insertId, code, discount_percent, discount_amount, expiry_date, is_active: true };
+    return { id: result.insertId, code, discount_percent, discount_amount, expiry_date, experience_id, usage_limit, used_count: 0, description, is_active: true };
+  }
+
+  public async updatePromotion(id: number, usage_limit: number, description: string, is_active: boolean): Promise<any> {
+    await pool.query(
+      'UPDATE promotions SET usage_limit = ?, description = ?, is_active = ? WHERE id = ?',
+      [usage_limit, description, is_active, id]
+    );
+    return { success: true };
+  }
+
+  public async incrementPromotionUsage(id: number): Promise<void> {
+    await pool.query('UPDATE promotions SET used_count = used_count + 1 WHERE id = ?', [id]);
   }
 
   public async getExperienceAvailability(experienceId: number, date: string): Promise<{ totalRemaining: number, dailyRemaining: number, isAvailable: boolean }> {

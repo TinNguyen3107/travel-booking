@@ -90,6 +90,10 @@ export interface PromotionTable {
   discount_amount: number;
   expiry_date: string;
   is_active: boolean;
+  experience_id?: number | null;
+  usage_limit?: number;
+  used_count?: number;
+  description?: string;
 }
 
 export interface HostApplicationTable {
