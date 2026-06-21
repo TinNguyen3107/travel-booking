@@ -150,7 +150,7 @@ export default function ScheduleManager({ experienceId, experienceTitle, onClose
                         {formatDateVi(schedule.start_date)} - {formatDateVi(schedule.end_date)}
                       </div>
                       <div className="text-xs font-semibold text-zinc-500">
-                        Còn <span className="text-emerald-600">{schedule.remaining_slots}</span> / {schedule.max_slots} chỗ trống
+                        Còn <span className="text-emerald-600">{Math.max(0, schedule.remaining_slots)}</span> / {schedule.max_slots} chỗ trống
                       </div>
                     </div>
                   </div>

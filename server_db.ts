@@ -948,7 +948,8 @@ class RelationalDatabase {
         if (status === 'cancelled' && current.status !== 'cancelled') {
           await pool.query('UPDATE tour_schedules SET remaining_slots = remaining_slots + ? WHERE id = ?', [current.guests, current.schedule_id]);
         } else if (current.status === 'cancelled' && status !== 'cancelled') {
-          await pool.query('UPDATE tour_schedules SET remaining_slots = remaining_slots - ? WHERE id = ?', [current.guests, current.schedule_id]);
+          const [res] = await pool.query<mysql.ResultSetHeader>('UPDATE tour_schedules SET remaining_slots = remaining_slots - ? WHERE id = ? AND remaining_slots >= ?', [current.guests, current.schedule_id, current.guests]);
+          if (res.affectedRows === 0) throw new Error('Không thể khôi phục đơn này do lịch khởi hành không còn đủ chỗ.');
         }
       } else {
         if (status === 'cancelled' && current.status !== 'cancelled') {
