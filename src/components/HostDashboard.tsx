@@ -650,6 +650,16 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
           )}
         </div>
 
+        {viewExperienceDetail && (
+          <ModalExperienceDetail
+            experience={viewExperienceDetail}
+            onClose={() => setViewExperienceDetail(null)}
+            onBook={() => {
+              setViewExperienceDetail(null);
+              alert('Host không cần đặt tour trong chế độ xem trước!');
+            }}
+          />
+        )}
       </div>
     );
   }

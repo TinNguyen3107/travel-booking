@@ -196,8 +196,36 @@ export default function UserProfile({ user }: { user: { email: string, fullname:
                 <input type="text" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 focus:border-emerald-500 outline-none" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Avatar URL</label>
-                <input type="text" value={form.avatar} onChange={e => setForm({...form, avatar: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 focus:border-emerald-500 outline-none" />
+                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Tải ảnh đại diện</label>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    try {
+                      setSaving(true);
+                      const res = await fetch('/api/upload', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                        body: formData
+                      });
+                      const data = await res.json();
+                      if (res.ok) {
+                        setForm(f => ({ ...f, avatar: data.url }));
+                      } else {
+                        alert(data.error || 'Lỗi upload ảnh');
+                      }
+                    } catch {
+                      alert('Lỗi kết nối khi upload');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }} 
+                  className="w-full px-4 py-2 rounded-xl border border-zinc-200 focus:border-emerald-500 outline-none file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer" 
+                />
               </div>
             </div>
 
