@@ -102,7 +102,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
             </div>
           )}
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
               <div className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500">
                 <Users className="h-4 w-4 text-emerald-600" />
@@ -123,6 +123,19 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
               <div className="mt-2 text-sm font-black text-zinc-950">
                 {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
               </div>
+            </div>
+            <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+              <div className="text-xs font-bold uppercase text-zinc-500">Chính sách trẻ em</div>
+              {experience.allow_children ? (
+                <div className="mt-2 text-xs font-bold text-zinc-700">
+                  <span className="block">• Tuổi tham gia: từ {experience.min_age || 0} tuổi</span>
+                  <span className="block">• Trẻ em ({experience.min_age || 0}-{experience.child_max_age || 12} tuổi): {formatVnd(experience.child_price || 0)}</span>
+                </div>
+              ) : (
+                <div className="mt-2 text-xs font-bold text-rose-600">
+                  Không áp dụng cho trẻ em.
+                </div>
+              )}
             </div>
             <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
               <div className="text-xs font-bold uppercase text-zinc-500">Trạng thái</div>

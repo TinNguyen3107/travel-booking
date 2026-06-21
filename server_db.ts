@@ -349,6 +349,12 @@ class RelationalDatabase {
     try { await pool.query("ALTER TABLE experiences ADD COLUMN images TEXT"); } catch (e: any) { }
     await pool.query("UPDATE experiences SET amenities = '[]' WHERE amenities IS NULL");
     await pool.query("UPDATE experiences SET images = '[]' WHERE images IS NULL");
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN allow_children BOOLEAN DEFAULT TRUE"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN min_age INT DEFAULT 0"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN child_max_age INT DEFAULT 12"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN child_price DECIMAL(12, 0) DEFAULT NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE bookings ADD COLUMN adults INT"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE bookings ADD COLUMN children INT"); } catch (e: any) { }
 
     // Phase 1: Migration cho Daily Quota và Refund
     try { await pool.query('ALTER TABLE experiences ADD COLUMN daily_capacity INT NOT NULL DEFAULT 0 AFTER max_guests'); } catch (e: any) { }
@@ -666,8 +672,8 @@ class RelationalDatabase {
     const dailyCapMax = exp.daily_capacity_max ?? exp.daily_capacity ?? exp.max_guests ?? 50;
     const [result] = await pool.query<mysql.ResultSetHeader>(
       `INSERT INTO experiences
-        (title, location, duration, price, image, category, description, rating, host_count, reviews_count, max_guests, daily_capacity, daily_capacity_max, booking_open_date, booking_close_date, host_email, rooms, beds, amenities, images, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (title, location, duration, price, image, category, description, rating, host_count, reviews_count, max_guests, daily_capacity, daily_capacity_max, booking_open_date, booking_close_date, host_email, rooms, beds, amenities, images, status, allow_children, min_age, child_max_age, child_price)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         exp.title,
         exp.location,
@@ -689,7 +695,11 @@ class RelationalDatabase {
         exp.beds ?? 0,
         exp.amenities ?? '[]',
         exp.images ?? '[]',
-        exp.status ?? 'draft'
+        exp.status ?? 'draft',
+        exp.allow_children ?? true,
+        exp.min_age ?? 0,
+        exp.child_max_age ?? 12,
+        exp.child_price ?? null
       ]
     );
 
@@ -726,7 +736,11 @@ class RelationalDatabase {
       'daily_capacity_max',
       'registration_open_date',
       'registration_close_date',
-      'status'
+      'status',
+      'allow_children',
+      'min_age',
+      'child_max_age',
+      'child_price'
     ] as const;
 
     const entries = allowedFields
@@ -836,14 +850,16 @@ class RelationalDatabase {
 
       const [result] = await connection.query<mysql.ResultSetHeader>(
         `INSERT INTO bookings
-          (user_email, experience_id, schedule_id, booking_date, guests, contact_name, contact_phone, note, total_price, commission_amount, host_earnings, status, payment_status, refund_status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'unpaid', 'none')`,
+          (user_email, experience_id, schedule_id, booking_date, guests, adults, children, contact_name, contact_phone, note, total_price, commission_amount, host_earnings, status, payment_status, refund_status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'unpaid', 'none')`,
         [
           booking.user_email,
           booking.experience_id,
           booking.schedule_id ?? null,
           booking.booking_date,
           booking.guests,
+          booking.adults ?? booking.guests,
+          booking.children ?? 0,
           booking.contact_name,
           booking.contact_phone,
           booking.note,

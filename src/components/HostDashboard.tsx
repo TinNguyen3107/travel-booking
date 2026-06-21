@@ -78,7 +78,11 @@ const EMPTY_FORM = {
   rooms: 0,
   beds: 0,
   amenities: '',
-  images: ''
+  images: '',
+  allow_children: true,
+  min_age: 0,
+  child_max_age: 12,
+  child_price: 0
 };
 
 const statusLabels: Record<string, string> = {
@@ -328,7 +332,11 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
         : '',
       images: typeof experience.images === 'string' && experience.images !== '[]' && experience.images !== '' 
         ? JSON.parse(experience.images).join(', ') 
-        : ''
+        : '',
+      allow_children: experience.allow_children ?? true,
+      min_age: experience.min_age ?? 0,
+      child_max_age: experience.child_max_age ?? 12,
+      child_price: experience.child_price ?? 0
     });
     setShowForm(true);
     setActiveTab('experiences');
@@ -375,7 +383,11 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       rooms: form.rooms,
       beds: form.beds,
       amenities: form.amenities ? form.amenities.split(',').map(s => s.trim()).filter(Boolean) : [],
-      images: form.images ? form.images.split(/[\s,]+/).map(s => s.trim()).filter(Boolean) : []
+      images: form.images ? form.images.split(/[\s,]+/).map(s => s.trim()).filter(Boolean) : [],
+      allow_children: form.allow_children,
+      min_age: Number(form.min_age),
+      child_max_age: Number(form.child_max_age),
+      child_price: Number(form.child_price)
     };
     const endpoint = editingId ? `/api/experiences/${editingId}` : '/api/experiences';
     const method = editingId ? 'PUT' : 'POST';
@@ -925,6 +937,24 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   <span className="mb-1 block text-xs font-bold text-zinc-500">Số giường</span>
                   <input type="number" min="0" value={form.beds} onChange={(event) => updateForm('beds', Number(event.target.value))} placeholder="Giường" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
+                <div className="lg:col-span-6 grid gap-3 lg:grid-cols-6 rounded-xl border border-zinc-200 p-3 bg-white">
+                  <label className="block lg:col-span-1 flex items-center gap-2 mt-4">
+                    <input type="checkbox" checked={form.allow_children} onChange={(event) => updateForm('allow_children', event.target.checked)} className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-600" />
+                    <span className="text-xs font-bold text-zinc-700">Cho trẻ em tham gia</span>
+                  </label>
+                  <label className="block lg:col-span-1">
+                    <span className="mb-1 block text-xs font-bold text-zinc-500">Tuổi tối thiểu</span>
+                    <input type="number" min="0" value={form.min_age} onChange={(event) => updateForm('min_age', Number(event.target.value))} placeholder="Tuổi" className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white" />
+                  </label>
+                  <label className="block lg:col-span-2">
+                    <span className="mb-1 block text-xs font-bold text-zinc-500">Trẻ em tối đa (tuổi)</span>
+                    <input type="number" min={form.min_age} max="17" value={form.child_max_age} onChange={(event) => updateForm('child_max_age', Number(event.target.value))} placeholder="Độ tuổi tối đa tính là trẻ em" className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white" disabled={!form.allow_children} />
+                  </label>
+                  <label className="block lg:col-span-2">
+                    <span className="mb-1 block text-xs font-bold text-zinc-500">Giá trẻ em (VND)</span>
+                    <input type="number" min="0" step="1000" value={form.child_price} onChange={(event) => updateForm('child_price', Number(event.target.value))} placeholder="Nhập giá trẻ em" className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white" disabled={!form.allow_children} />
+                  </label>
+                </div>
                 <label className="block lg:col-span-2">
                   <span className="mb-1 block text-xs font-bold text-zinc-500">Tiện ích</span>
                   <input value={form.amenities} onChange={(event) => updateForm('amenities', event.target.value)} placeholder="Nhập các tiện ích (cách nhau bằng dấu phẩy)" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />

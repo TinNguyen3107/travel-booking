@@ -29,7 +29,9 @@ export default function ModalBooking({
   const maxBookingDate = experience.booking_close_date || '';
   const isBookableWindow = !maxBookingDate || maxBookingDate >= minBookingDate;
   const [bookingDate, setBookingDate] = useState(minBookingDate);
-  const [guests, setGuests] = useState(Math.min(2, maxGuests));
+  const [adults, setAdults] = useState(Math.min(2, maxGuests));
+  const [children, setChildren] = useState(0);
+  const guests = adults + children;
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [note, setNote] = useState('');
@@ -66,7 +68,9 @@ export default function ModalBooking({
   const [promoMessage, setPromoMessage] = useState<string | null>(null);
   const [activePromo, setActivePromo] = useState<any>(null);
 
-  const basePrice = guests * Number(experience.price || 0);
+  const adultPrice = Number(experience.price || 0);
+  const childPrice = experience.child_price !== undefined && experience.child_price !== null ? Number(experience.child_price) : adultPrice;
+  const basePrice = adults * adultPrice + children * childPrice;
   let discount = 0;
   if (activePromo) {
     if (activePromo.discount_percent) {
@@ -77,9 +81,14 @@ export default function ModalBooking({
   }
   const finalPrice = Math.max(0, basePrice - discount);
 
-  const setGuestCount = (value: number) => {
+  const setAdultCount = (value: number) => {
     if (Number.isNaN(value)) return;
-    setGuests(Math.min(maxGuests, Math.max(1, value)));
+    setAdults(Math.min(maxGuests - children, Math.max(1, value)));
+  };
+
+  const setChildCount = (value: number) => {
+    if (Number.isNaN(value)) return;
+    setChildren(Math.min(maxGuests - adults, Math.max(0, value)));
   };
 
   const validate = () => {
@@ -164,6 +173,8 @@ export default function ModalBooking({
           schedule_id: schedules.length > 0 ? selectedScheduleId : undefined,
           booking_date: schedules.length > 0 ? schedules.find(s => s.id === selectedScheduleId)?.start_date : bookingDate,
           guests,
+          adults,
+          children,
           contact_name: contactName.trim(),
           contact_phone: contactPhone.trim(),
           note: note.trim(),
@@ -276,33 +287,35 @@ export default function ModalBooking({
                   )}
                 </label>
 
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Số khách</span>
-                  <span className="flex h-10.5 rounded-xl border border-zinc-200 bg-zinc-50 p-1">
-                    <button
-                      type="button"
-                      onClick={() => setGuestCount(guests - 1)}
-                      className="h-8 w-9 rounded-lg bg-white text-sm font-black text-zinc-700 shadow-sm"
-                    >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      min={1}
-                      max={maxGuests}
-                      value={guests}
-                      onChange={(event) => setGuestCount(Number(event.target.value))}
-                      className="min-w-0 flex-1 bg-transparent text-center text-sm font-black outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setGuestCount(guests + 1)}
-                      className="h-8 w-9 rounded-lg bg-white text-sm font-black text-zinc-700 shadow-sm"
-                    >
-                      +
-                    </button>
-                  </span>
-                </label>
+                {experience.allow_children ? (
+                  <div className="grid gap-2">
+                    <label className="block">
+                      <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Người lớn</span>
+                      <span className="flex h-10.5 rounded-xl border border-zinc-200 bg-zinc-50 p-1">
+                        <button type="button" onClick={() => setAdultCount(adults - 1)} className="h-8 w-9 rounded-lg bg-white text-sm font-black text-zinc-700 shadow-sm">-</button>
+                        <input type="number" min={1} max={maxGuests - children} value={adults} onChange={(event) => setAdultCount(Number(event.target.value))} className="min-w-0 flex-1 bg-transparent text-center text-sm font-black outline-none" />
+                        <button type="button" onClick={() => setAdultCount(adults + 1)} className="h-8 w-9 rounded-lg bg-white text-sm font-black text-zinc-700 shadow-sm">+</button>
+                      </span>
+                    </label>
+                    <label className="block">
+                      <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Trẻ em ({experience.min_age} - {experience.child_max_age} tuổi)</span>
+                      <span className="flex h-10.5 rounded-xl border border-zinc-200 bg-zinc-50 p-1">
+                        <button type="button" onClick={() => setChildCount(children - 1)} className="h-8 w-9 rounded-lg bg-white text-sm font-black text-zinc-700 shadow-sm">-</button>
+                        <input type="number" min={0} max={maxGuests - adults} value={children} onChange={(event) => setChildCount(Number(event.target.value))} className="min-w-0 flex-1 bg-transparent text-center text-sm font-black outline-none" />
+                        <button type="button" onClick={() => setChildCount(children + 1)} className="h-8 w-9 rounded-lg bg-white text-sm font-black text-zinc-700 shadow-sm">+</button>
+                      </span>
+                    </label>
+                  </div>
+                ) : (
+                  <label className="block">
+                    <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Số khách</span>
+                    <span className="flex h-10.5 rounded-xl border border-zinc-200 bg-zinc-50 p-1">
+                      <button type="button" onClick={() => setAdultCount(adults - 1)} className="h-8 w-9 rounded-lg bg-white text-sm font-black text-zinc-700 shadow-sm">-</button>
+                      <input type="number" min={1} max={maxGuests} value={adults} onChange={(event) => setAdultCount(Number(event.target.value))} className="min-w-0 flex-1 bg-transparent text-center text-sm font-black outline-none" />
+                      <button type="button" onClick={() => setAdultCount(adults + 1)} className="h-8 w-9 rounded-lg bg-white text-sm font-black text-zinc-700 shadow-sm">+</button>
+                    </span>
+                  </label>
+                )}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">

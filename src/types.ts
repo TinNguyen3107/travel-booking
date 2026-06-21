@@ -37,6 +37,10 @@ export interface ExperienceTable {
   registration_open_date?: string;
   registration_close_date?: string;
   status?: 'active' | 'hidden' | 'suspended' | 'closed' | 'pending_review' | 'draft' | 'pending_update';
+  allow_children?: boolean;
+  min_age?: number;
+  child_max_age?: number;
+  child_price?: number;
 }
 
 export interface TourScheduleTable {
@@ -55,6 +59,8 @@ export interface BookingTable {
   experience_id: number;
   booking_date: string;
   guests: number;
+  adults?: number;
+  children?: number;
   contact_name: string;
   contact_phone: string;
   note: string;
