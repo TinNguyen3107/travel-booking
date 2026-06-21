@@ -26,21 +26,21 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
 
   let parsedAmenities: string[] = [];
   try {
-    parsedAmenities = typeof experience.amenities === 'string' && experience.amenities !== '[]' && experience.amenities !== '' 
+    parsedAmenities = typeof experience.amenities === 'string' && experience.amenities !== '[]' && experience.amenities !== ''
       ? JSON.parse(experience.amenities) : [];
-  } catch(e) {}
+  } catch (e) { }
 
   let parsedImages: string[] = [];
   try {
     parsedImages = typeof experience.images === 'string' && experience.images !== '[]' && experience.images !== ''
       ? JSON.parse(experience.images) : [];
-  } catch(e) {}
+  } catch (e) { }
 
   let oldState: any = null;
   if (experience.status === 'pending_update' && experience.previous_state) {
     try {
       oldState = JSON.parse(experience.previous_state);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   const isChanged = (field: keyof ExperienceTable) => {
@@ -162,7 +162,6 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
               <div className={`mt-2 inline-flex rounded-full border px-2.5 py-1 text-xs font-black ${isOpen ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
                 {isOpen ? 'Đang mở bán' : 'Đã đóng nhận đặt'}
               </div>
-            </div>
             </div>
           </div>
 
