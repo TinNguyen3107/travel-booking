@@ -408,7 +408,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                     <div className="mb-4 space-y-3">
                       {commentsData[post.id].map(comment => (
                         <div key={comment.id} className="flex gap-2">
-                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600">
                             {comment.fullname.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 rounded-2xl bg-white px-3 py-2 shadow-sm">
@@ -423,7 +423,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                   )}
 
                   <form onSubmit={(e) => submitComment(e, post.id)} className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
                       {currentUser?.fullname?.charAt(0).toUpperCase() || '?'}
                     </div>
                     <input
