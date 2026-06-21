@@ -578,6 +578,8 @@ app.use(async (req, res, next) => {
             return;
           }
           payload[field] = value;
+          if (field === 'booking_open_date') payload.registration_open_date = value;
+          if (field === 'booking_close_date') payload.registration_close_date = value;
         }
       }
 
@@ -1331,8 +1333,9 @@ app.use(async (req, res, next) => {
   app.post('/api/promotions/apply', authenticateToken, async (req, res) => {
     try {
       const code = cleanText(req.body.code);
-      const promo = await db.applyPromotion(code);
-      if (!promo) return res.status(404).json({ error: 'Mã giảm giá không tồn tại, đã hết hạn hoặc bị khóa' });
+      const experienceId = Number(req.body.experience_id);
+      const promo = await db.applyPromotion(code, experienceId);
+      if (!promo) return res.status(404).json({ error: 'Mã giảm giá không hợp lệ, đã hết hạn, hoặc không áp dụng cho tour này' });
       res.json(promo);
     } catch (e: any) { handleError(res, e); }
   });

@@ -133,8 +133,11 @@ export default function ModalBooking({
     try {
       const res = await fetch('/api/promotions/apply', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: promoCode.trim() })
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ code: promoCode.trim(), experience_id: experience.id })
       });
       const data = await res.json();
       if (!res.ok) {
