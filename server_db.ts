@@ -1278,10 +1278,20 @@ class RelationalDatabase {
     const exp = await this.findExperienceById(experienceId);
     if (!exp) return { totalRemaining: 0, dailyRemaining: 0, isAvailable: false };
 
-    const [totalRows] = await pool.query<RowDataPacket[]>(
-      'SELECT SUM(guests) as total FROM bookings WHERE experience_id = ? AND status != "cancelled"',
-      [experienceId]
-    );
+    let query = 'SELECT SUM(guests) as total FROM bookings WHERE experience_id = ? AND status != "cancelled"';
+    const params: any[] = [experienceId];
+
+    if (exp.booking_open_date && exp.booking_close_date) {
+      query += ' AND booking_date >= ? AND booking_date <= ?';
+      params.push(exp.booking_open_date, exp.booking_close_date);
+    }
+
+    if (exp.registration_open_date) {
+      query += ' AND created_at >= ?';
+      params.push(exp.registration_open_date + ' 00:00:00');
+    }
+
+    const [totalRows] = await pool.query<RowDataPacket[]>(query, params);
     const totalBooked = Number(totalRows[0]?.total || 0);
     const totalRemaining = Math.max(0, (exp.max_guests || 50) - totalBooked);
 
