@@ -235,7 +235,7 @@ export default function UserProfile({ user }: { user: { email: string, fullname:
             </div>
 
             <div className="pt-4 border-t border-zinc-100">
-              <label className="block text-xs font-bold text-zinc-700 uppercase mb-1 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-xs font-bold text-zinc-700 uppercase mb-1">
                 <Shield className="h-4 w-4" /> Đổi mật khẩu (Bỏ trống nếu không đổi)
               </label>
               <input type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 focus:border-emerald-500 outline-none placeholder:text-sm" placeholder="Nhập mật khẩu mới..." />

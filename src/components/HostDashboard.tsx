@@ -716,7 +716,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                         }}
                       >
                         <div className="flex items-start gap-2">
-                          <div className={`mt-0.5 h-2 w-2 flex-shrink-0 rounded-full ${
+                          <div className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
                             noti.type === 'success' ? 'bg-emerald-500'
                             : noti.type === 'error' ? 'bg-red-500'
                             : noti.type === 'warning' ? 'bg-yellow-500'
