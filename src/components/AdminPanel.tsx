@@ -153,7 +153,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
     const pendingBookings = bookings.filter((booking) => booking.status === 'pending').length;
     const confirmedRevenue = bookings
       .filter((booking) => booking.status === 'confirmed')
-      .reduce((sum, booking) => sum + Number(booking.total_price || 0), 0);
+      .reduce((sum, booking) => sum + Number(booking.commission_amount || 0), 0);
     const pendingHosts = hosts.filter((host) => host.status === 'pending').length;
 
     return {
@@ -700,7 +700,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
               <StatCard icon={Users} label="Người dùng" value={stats.users} tone="zinc" />
               <StatCard icon={Clock3} label="Đơn chờ duyệt" value={stats.pendingBookings} tone="amber" />
               <StatCard icon={ShieldCheck} label="Host chờ duyệt" value={stats.pendingHosts} tone="sky" />
-              <StatCard icon={CheckCircle2} label="Doanh thu đã xác nhận" value={formatVnd(stats.confirmedRevenue)} tone="emerald" />
+              <StatCard icon={CheckCircle2} label="Doanh thu Admin (Hoa hồng)" value={formatVnd(stats.confirmedRevenue)} tone="emerald" />
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
@@ -1050,24 +1050,16 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-col gap-2">
-                        <select
-                          value={booking.status}
-                          onChange={(event) => updateBookingStatus(booking.id, event.target.value as BookingTable['status'])}
-                          className={`w-full rounded-lg border px-2 py-1.5 text-xs font-bold outline-none ${statusClass(booking.status)}`}
+                        <div
+                          className={`w-full rounded-lg border px-2 py-1.5 text-xs font-bold text-center ${statusClass(booking.status)}`}
                         >
-                          <option value="pending">Chờ xử lý</option>
-                          <option value="confirmed">Đã xác nhận</option>
-                          <option value="cancelled">Đã hủy</option>
-                        </select>
-                        <select
-                          value={booking.payment_status || 'unpaid'}
-                          onChange={(event) => updateBookingPaymentStatus(booking.id, event.target.value as BookingTable['payment_status'])}
-                          className={`w-full rounded-lg border px-2 py-1.5 text-xs font-bold outline-none ${booking.payment_status === 'paid' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : booking.payment_status === 'refunded' ? 'border-zinc-200 bg-zinc-50 text-zinc-600' : 'border-rose-200 bg-rose-50 text-rose-700'}`}
+                          {booking.status === 'pending' ? 'Chờ xử lý' : booking.status === 'confirmed' ? 'Đã xác nhận' : 'Đã hủy'}
+                        </div>
+                        <div
+                          className={`w-full rounded-lg border px-2 py-1.5 text-xs font-bold text-center ${booking.payment_status === 'paid' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : booking.payment_status === 'refunded' ? 'border-zinc-200 bg-zinc-50 text-zinc-600' : 'border-rose-200 bg-rose-50 text-rose-700'}`}
                         >
-                          <option value="unpaid">Chưa thanh toán</option>
-                          <option value="paid">Đã thanh toán</option>
-                          <option value="refunded">Đã hoàn tiền</option>
-                        </select>
+                          {booking.payment_status === 'paid' ? 'Đã thanh toán' : booking.payment_status === 'refunded' ? 'Đã hoàn tiền' : 'Chưa thanh toán'}
+                        </div>
 
                         {booking.refund_status === 'pending' && (
                           <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-center">
