@@ -69,7 +69,8 @@ export default function ModalBooking({
   const [activePromo, setActivePromo] = useState<any>(null);
 
   const adultPrice = Number(experience.price || 0);
-  const childPrice = experience.child_price !== undefined && experience.child_price !== null ? Number(experience.child_price) : adultPrice;
+  const childDiscountPercent = experience.child_price !== undefined && experience.child_price !== null ? Number(experience.child_price) : 0;
+  const childPrice = adultPrice * (1 - childDiscountPercent / 100);
   const basePrice = adults * adultPrice + children * childPrice;
   let discount = 0;
   if (activePromo) {

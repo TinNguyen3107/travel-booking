@@ -951,8 +951,8 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                     <input type="number" min={form.min_age} max="17" value={form.child_max_age} onChange={(event) => updateForm('child_max_age', Number(event.target.value))} placeholder="Độ tuổi tối đa tính là trẻ em" className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white" disabled={!form.allow_children} />
                   </label>
                   <label className="block lg:col-span-2">
-                    <span className="mb-1 block text-xs font-bold text-zinc-500">Giá trẻ em (VND)</span>
-                    <input type="number" min="0" step="1000" value={form.child_price} onChange={(event) => updateForm('child_price', Number(event.target.value))} placeholder="Nhập giá trẻ em" className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white" disabled={!form.allow_children} />
+                    <span className="mb-1 block text-xs font-bold text-zinc-500">Giảm giá cho trẻ em (%)</span>
+                    <input type="number" min="0" max="100" step="1" value={form.child_price} onChange={(event) => updateForm('child_price', Number(event.target.value))} placeholder="% giảm so với người lớn" className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white" disabled={!form.allow_children} />
                   </label>
                 </div>
                 <label className="block lg:col-span-2">

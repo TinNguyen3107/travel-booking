@@ -129,7 +129,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
               {experience.allow_children ? (
                 <div className="mt-2 text-xs font-bold text-zinc-700">
                   <span className="block">• Tuổi tham gia: từ {experience.min_age || 0} tuổi</span>
-                  <span className="block">• Trẻ em ({experience.min_age || 0}-{experience.child_max_age || 12} tuổi): {formatVnd(experience.child_price || 0)}</span>
+                  <span className="block">• Trẻ em ({experience.min_age || 0}-{experience.child_max_age || 12} tuổi): Giảm {experience.child_price || 0}%</span>
                 </div>
               ) : (
                 <div className="mt-2 text-xs font-bold text-rose-600">
