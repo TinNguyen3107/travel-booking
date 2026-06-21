@@ -240,7 +240,11 @@ export default function ModalBooking({
               <div className="mt-3 grid gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-xs font-bold text-zinc-600">
                 <span className="inline-flex items-center gap-1.5">
                   <Users className="h-3.5 w-3.5 text-emerald-600" />
-                  Tối đa {maxGuests} khách/ngày (Tổng tour: {totalMaxGuests})
+                  Tối đa {maxGuests} khách/ngày
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Users className="h-3.5 w-3.5 text-blue-600" />
+                  Tối đa {totalMaxGuests} khách toàn tour
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <Calendar className="h-3.5 w-3.5 text-emerald-600" />
