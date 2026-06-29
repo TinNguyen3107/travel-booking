@@ -8,12 +8,12 @@ interface CommunityFeedProps {
 }
 
 const reactionIcons: Record<string, React.ReactNode> = {
-  like: <ThumbsUp className="h-4 w-4 text-blue-500" />,
-  love: <Heart className="h-4 w-4 fill-rose-500 text-rose-500" />,
-  wow: <span className="text-sm">😲</span>,
-  haha: <span className="text-sm">😂</span>,
-  sad: <span className="text-sm">😢</span>,
-  angry: <span className="text-sm">😡</span>
+  like: <ThumbsUp className="h-8 w-8 text-blue-500 fill-blue-500" />,
+  love: <Heart className="h-8 w-8 fill-rose-500 text-rose-500" />,
+  wow: <span className="text-3xl">😲</span>,
+  haha: <span className="text-3xl">😂</span>,
+  sad: <span className="text-3xl">😢</span>,
+  angry: <span className="text-3xl">😡</span>
 };
 
 const reactionLabels: Record<string, string> = {
@@ -319,127 +319,116 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
           const myReaction = currentUser ? postReactions.find(r => r.user_email === currentUser.email)?.reaction_type : null;
 
           return (
-            <div key={post.id} className="rounded-2xl border border-zinc-200 bg-white shadow-sm">
-              <div className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-700">
+            <div key={post.id} className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+              <div className="flex items-start justify-between">
+                <div className="flex gap-3 w-full">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-700">
                     {post.fullname.charAt(0).toUpperCase()}
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-zinc-900">{post.fullname}</span>
-                      {post.role === 'host' && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black uppercase text-emerald-700">Host</span>}
-                      {post.role === 'admin' && <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-black uppercase text-rose-700">Admin</span>}
+                      {post.role === 'host' && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">Host</span>}
+                      {post.role === 'admin' && <span className="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] font-medium text-white">Quản trị viên</span>}
                     </div>
-                    <div className="text-xs text-zinc-500">{new Date(post.created_at).toLocaleString('vi-VN')}</div>
+                    
+                    <div className="mt-1 text-[15px] leading-relaxed text-zinc-800 whitespace-pre-wrap">{post.content}</div>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-zinc-500">
+                      <button onClick={() => toggleComments(post.id)} className="hover:text-zinc-800 hover:underline">
+                        Gửi trả lời {post.comments_count > 0 && `(${post.comments_count})`}
+                      </button>
+                      <span>•</span>
+                      
+                      <div className="group relative flex items-center">
+                        <div className="absolute bottom-full left-0 mb-2 hidden items-center gap-4 rounded-full border border-zinc-200 bg-white px-5 py-3 shadow-xl group-hover:flex z-50 transition-all">
+                          {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
+                            <button
+                              key={reaction}
+                              onClick={() => toggleReaction(post.id, reaction)}
+                              className="transform transition-transform hover:scale-125 hover:-translate-y-2 origin-bottom"
+                              title={reactionLabels[reaction]}
+                            >
+                              {reactionIcons[reaction]}
+                            </button>
+                          ))}
+                        </div>
+                        <button onClick={() => toggleReaction(post.id, 'like')} className={`flex items-center gap-1 hover:text-blue-600 ${myReaction ? 'text-blue-600' : ''}`}>
+                          <ThumbsUp className="h-3.5 w-3.5" />
+                          {myReaction ? reactionLabels[myReaction] : 'Hữu ích'}
+                          {post.likes_count > 0 && ` (${post.likes_count})`}
+                        </button>
+                      </div>
+
+                      <span>•</span>
+                      <button className="flex items-center gap-1 hover:text-rose-600">
+                        <ShieldAlert className="h-3.5 w-3.5" /> Báo cáo sai phạm
+                      </button>
+                      <span>•</span>
+                      <span className="text-zinc-400">{new Date(post.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                    </div>
+
+                    {post.media_url && (
+                      <div className="mt-4 bg-zinc-50 rounded-xl overflow-hidden border border-zinc-200 inline-block">
+                        {post.media_type === 'image' ? (
+                          <img src={post.media_url} alt="Post media" className="max-h-64 object-cover" />
+                        ) : (
+                          <video src={post.media_url} controls className="max-h-64 object-cover" />
+                        )}
+                      </div>
+                    )}
+
+                    {activeComments === post.id && (
+                      <div className="mt-5 space-y-5">
+                        {commentsData[post.id]?.length > 0 && (
+                          <div className="space-y-4">
+                            {commentsData[post.id].map(comment => (
+                              <div key={comment.id} className="flex gap-3 pl-4 border-l-2 border-zinc-200">
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600">
+                                  {comment.fullname.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-zinc-900 text-sm">{comment.fullname}</span>
+                                  </div>
+                                  <div className="mt-0.5 text-sm leading-relaxed text-zinc-800">{comment.comment}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <form onSubmit={(e) => submitComment(e, post.id)} className="flex items-start gap-3 pl-4 border-l-2 border-zinc-200 pt-2">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
+                            {currentUser?.fullname?.charAt(0).toUpperCase() || '?'}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 rounded-2xl border border-zinc-300 bg-white px-4 py-2 focus-within:border-indigo-500">
+                              <input
+                                type="text"
+                                placeholder="Viết phản hồi..."
+                                value={commentInput}
+                                onChange={(e) => setCommentInput(e.target.value)}
+                                onClick={() => !currentUser && onLogin()}
+                                className="w-full bg-transparent text-sm outline-none"
+                              />
+                              <button type="submit" disabled={!commentInput.trim()} className="text-indigo-600 hover:text-indigo-700 disabled:text-zinc-300">
+                                <Send className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                    )}
                   </div>
                 </div>
+
                 {currentUser?.role === 'admin' && (
-                  <button onClick={() => deletePost(post.id)} className="text-zinc-400 hover:text-rose-500">
+                  <button onClick={() => deletePost(post.id)} className="ml-4 shrink-0 text-zinc-400 hover:text-rose-500">
                     <Trash2 className="h-5 w-5" />
                   </button>
                 )}
               </div>
-
-              <div className="px-4 pb-3">
-                <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-800">{post.content}</p>
-              </div>
-
-              {post.media_url && (
-                <div className="bg-zinc-50">
-                  {post.media_type === 'image' ? (
-                    <img src={post.media_url} alt="Post media" className="max-h-[500px] w-full object-cover" />
-                  ) : (
-                    <video src={post.media_url} controls className="max-h-[500px] w-full object-cover" />
-                  )}
-                </div>
-              )}
-
-              <div className="flex items-center justify-between px-4 py-3 text-sm text-zinc-500">
-                <div className="flex items-center gap-1.5">
-                  <div className="flex -space-x-1">
-                    {post.likes_count ? <Heart className="h-5 w-5 rounded-full border-2 border-white bg-rose-500 p-1 text-white" /> : null}
-                  </div>
-                  <span>{post.likes_count || 0}</span>
-                </div>
-                <div className="flex gap-3">
-                  <span>{post.comments_count || 0} bình luận</span>
-                </div>
-              </div>
-
-              <hr className="border-zinc-100" />
-
-              <div className="flex items-center gap-1 p-1">
-              <div className="group relative flex-1">
-                  {/* invisible bridge: fills the gap so mouse stays inside .group when moving from button to popup */}
-                  <div className="absolute bottom-full left-0 h-4 w-full" />
-                  <div className="absolute bottom-full left-0 hidden items-center gap-2 rounded-full border border-zinc-200 bg-white p-2 pb-6 shadow-xl group-hover:flex">
-                    {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
-                      <button
-                        key={reaction}
-                        onClick={() => toggleReaction(post.id, reaction)}
-                        className="transform transition hover:scale-125"
-                        title={reactionLabels[reaction]}
-                      >
-                        {reactionIcons[reaction]}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => toggleReaction(post.id, 'like')}
-                    className={`flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-bold ${myReaction ? 'text-indigo-600' : 'text-zinc-600 hover:bg-zinc-100'}`}
-                  >
-                    {myReaction ? reactionIcons[myReaction] : <ThumbsUp className="h-5 w-5" />}
-                    {myReaction ? reactionLabels[myReaction] : 'Thích'}
-                  </button>
-                </div>
-                
-                <button
-                  onClick={() => toggleComments(post.id)}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-sm font-bold text-zinc-600 hover:bg-zinc-100"
-                >
-                  <MessageCircle className="h-5 w-5" /> Bình luận
-                </button>
-              </div>
-
-              {activeComments === post.id && (
-                <div className="border-t border-zinc-100 bg-zinc-50 p-4">
-                  {commentsData[post.id]?.length > 0 ? (
-                    <div className="mb-4 space-y-3">
-                      {commentsData[post.id].map(comment => (
-                        <div key={comment.id} className="flex gap-2">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600">
-                            {comment.fullname.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="flex-1 rounded-2xl bg-white px-3 py-2 shadow-sm">
-                            <div className="text-sm font-bold text-zinc-900">{comment.fullname}</div>
-                            <div className="text-sm text-zinc-800">{comment.comment}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="mb-4 text-center text-sm text-zinc-500">Chưa có bình luận nào.</div>
-                  )}
-
-                  <form onSubmit={(e) => submitComment(e, post.id)} className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
-                      {currentUser?.fullname?.charAt(0).toUpperCase() || '?'}
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Viết bình luận..."
-                      value={commentInput}
-                      onChange={(e) => setCommentInput(e.target.value)}
-                      onClick={() => !currentUser && onLogin()}
-                      className="flex-1 rounded-full border border-zinc-300 bg-white px-4 py-1.5 text-sm outline-none focus:border-indigo-500"
-                    />
-                    <button type="submit" disabled={!commentInput.trim()} className="rounded-full p-2 text-indigo-600 hover:bg-indigo-50 disabled:text-zinc-300">
-                      <Send className="h-4 w-4" />
-                    </button>
-                  </form>
-                </div>
-              )}
             </div>
           );
         })}
