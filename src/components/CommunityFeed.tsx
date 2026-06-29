@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Send, ThumbsUp, MoreHorizontal, ShieldAlert, Image as ImageIcon, Video, Trash2, MapPin } from 'lucide-react';
+import { Heart, Send, ThumbsUp, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { PostTable, PostCommentTable, PostReactionTable } from '../types';
 
 interface CommunityFeedProps {
@@ -25,6 +25,16 @@ const smallReactionIcons: Record<string, React.ReactNode> = {
   angry: <span className="text-sm">😡</span>
 };
 
+// tiny emoji for summary row (like Facebook's reaction cluster)
+const tinyReactionEmoji: Record<string, string> = {
+  like: '👍',
+  love: '❤️',
+  wow: '😲',
+  haha: '😂',
+  sad: '😢',
+  angry: '😡'
+};
+
 const reactionLabels: Record<string, string> = {
   like: 'Thích',
   love: 'Yêu thích',
@@ -44,18 +54,16 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
   const [activeComments, setActiveComments] = useState<number | null>(null);
   const [commentsData, setCommentsData] = useState<Record<number, PostCommentTable[]>>({});
   const [reactionsData, setReactionsData] = useState<Record<number, PostReactionTable[]>>({});
-  const [commentInput, setCommentInput] = useState('');
-  
+  // comment input per post
+  const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
+
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!currentUser) {
-      onLogin();
-      return;
-    }
+    if (!currentUser) { onLogin(); return; }
 
     const isVideo = file.type.startsWith('video/');
     if (!file.type.startsWith('image/') && !isVideo) {
@@ -70,9 +78,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
     try {
       const res = await fetch('/api/upload', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         body: formData
       });
       if (res.ok) {
@@ -104,9 +110,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
     }
   };
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
+  useEffect(() => { fetchPosts(); }, []);
 
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,9 +154,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
       const res = await fetch(`/api/posts/${postId}/comments`);
       const data = await res.json();
       setCommentsData(prev => ({ ...prev, [postId]: data }));
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const fetchReactions = async (postId: number) => {
@@ -160,9 +162,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
       const res = await fetch(`/api/posts/${postId}/reactions`);
       const data = await res.json();
       setReactionsData(prev => ({ ...prev, [postId]: data }));
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const toggleComments = (postId: number) => {
@@ -177,7 +177,8 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
   const submitComment = async (e: React.FormEvent, postId: number) => {
     e.preventDefault();
     if (!currentUser) return onLogin();
-    if (!commentInput.trim()) return;
+    const input = commentInputs[postId]?.trim();
+    if (!input) return;
 
     try {
       const res = await fetch(`/api/posts/${postId}/comments`, {
@@ -189,17 +190,15 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
         body: JSON.stringify({
           user_email: currentUser.email,
           fullname: currentUser.fullname,
-          comment: commentInput
+          comment: input
         })
       });
       if (res.ok) {
-        setCommentInput('');
+        setCommentInputs(prev => ({ ...prev, [postId]: '' }));
         fetchComments(postId);
-        fetchPosts(); // Refresh comment count
+        fetchPosts();
       }
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const toggleReaction = async (postId: number, reactionType: string) => {
@@ -211,18 +210,13 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({
-          user_email: currentUser.email,
-          reaction_type: reactionType
-        })
+        body: JSON.stringify({ user_email: currentUser.email, reaction_type: reactionType })
       });
       if (res.ok) {
         fetchReactions(postId);
-        fetchPosts(); // Refresh likes count
+        fetchPosts();
       }
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const deletePost = async (postId: number) => {
@@ -236,14 +230,17 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
         },
         body: JSON.stringify({ status: 'deleted' })
       });
-      if (res.ok) {
-        fetchPosts();
-      } else {
-        alert('Có lỗi xảy ra');
-      }
-    } catch (e) {
-      console.error(e);
-    }
+      if (res.ok) { fetchPosts(); } else { alert('Có lỗi xảy ra'); }
+    } catch (e) { console.error(e); }
+  };
+
+  // Compute reaction summary: unique types and total count
+  const getReactionSummary = (reactions: PostReactionTable[]) => {
+    const counts: Record<string, number> = {};
+    reactions.forEach(r => { counts[r.reaction_type] = (counts[r.reaction_type] || 0) + 1; });
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const total = reactions.length;
+    return { sorted, total };
   };
 
   if (loading) {
@@ -257,6 +254,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
         <p className="mt-2 text-sm text-zinc-500">Chia sẻ khoảnh khắc và trải nghiệm của bạn cùng những người đam mê du lịch.</p>
       </div>
 
+      {/* Create post */}
       <div className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
         <div className="p-4">
           <form onSubmit={handleCreatePost}>
@@ -268,7 +266,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
               onChange={(e) => setPostContent(e.target.value)}
               onClick={() => !currentUser && onLogin()}
             />
-            
+
             {mediaUrl && (
               <div className="relative mt-2 rounded-xl bg-zinc-100 p-2">
                 {mediaType === 'image' ? (
@@ -287,29 +285,20 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
             )}
 
             <hr className="my-4 border-zinc-100" />
-            
+
             <div className="flex items-center justify-between">
               <div className="flex gap-2">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept="image/*,video/*"
-                  onChange={handleFileUpload}
-                />
+                <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={handleFileUpload} />
                 <button
                   type="button"
                   disabled={submitting}
-                  onClick={() => {
-                    if (!currentUser) return onLogin();
-                    fileInputRef.current?.click();
-                  }}
+                  onClick={() => { if (!currentUser) return onLogin(); fileInputRef.current?.click(); }}
                   className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
                 >
                   <ImageIcon className="h-4 w-4 text-emerald-500" /> Ảnh / Video
                 </button>
               </div>
-              
+
               <button
                 type="submit"
                 disabled={submitting || !postContent.trim()}
@@ -322,10 +311,12 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
         </div>
       </div>
 
+      {/* Posts */}
       <div className="space-y-6">
         {posts.map(post => {
           const postReactions = reactionsData[post.id] || [];
           const myReaction = currentUser ? postReactions.find(r => r.user_email === currentUser.email)?.reaction_type : null;
+          const { sorted: reactionSummary, total: reactionTotal } = getReactionSummary(postReactions);
 
           return (
             <div key={post.id} className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
@@ -340,19 +331,21 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                       {post.role === 'host' && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">Host</span>}
                       {post.role === 'admin' && <span className="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] font-medium text-white">Quản trị viên</span>}
                     </div>
-                    
+
                     <div className="mt-1 text-[15px] leading-relaxed text-zinc-800 whitespace-pre-wrap">{post.content}</div>
 
+                    {/* Action row */}
                     <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-zinc-500">
                       <button onClick={() => toggleComments(post.id)} className="hover:text-zinc-800 hover:underline">
                         Gửi trả lời {post.comments_count > 0 && `(${post.comments_count})`}
                       </button>
                       <span>•</span>
-                      
+
+                      {/* Reaction trigger */}
                       <div className="group relative flex items-center">
-                        {/* Cầu nối vô hình giúp giữ chuột không bị rời khỏi group */}
+                        {/* Invisible bridge */}
                         <div className="absolute bottom-full left-0 h-4 w-full" />
-                        <div className="absolute bottom-full left-0 mb-2 hidden items-center gap-4 rounded-full border border-zinc-200 bg-white px-5 py-3 shadow-xl group-hover:flex z-50 transition-all">
+                        <div className="absolute bottom-full left-0 mb-2 hidden items-center gap-4 rounded-full border border-zinc-200 bg-white px-5 py-3 shadow-xl group-hover:flex z-50">
                           {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
                             <button
                               key={reaction}
@@ -364,21 +357,39 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                             </button>
                           ))}
                         </div>
-                        <button onClick={() => toggleReaction(post.id, 'like')} className={`flex items-center gap-1 hover:text-blue-600 ${myReaction ? 'text-blue-600' : ''}`}>
+                        <button
+                          onClick={() => toggleReaction(post.id, 'like')}
+                          className={`flex items-center gap-1 hover:text-blue-600 ${myReaction ? 'text-blue-600' : ''}`}
+                        >
                           {myReaction ? smallReactionIcons[myReaction] : <ThumbsUp className="h-3.5 w-3.5" />}
                           {myReaction ? reactionLabels[myReaction] : 'Hữu ích'}
-                          {post.likes_count > 0 && ` (${post.likes_count})`}
                         </button>
                       </div>
 
                       <span>•</span>
-                      <button className="flex items-center gap-1 hover:text-rose-600">
-                        <ShieldAlert className="h-3.5 w-3.5" /> Báo cáo sai phạm
-                      </button>
-                      <span>•</span>
                       <span className="text-zinc-400">{new Date(post.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                     </div>
 
+                    {/* Reaction summary bar (Facebook-style) */}
+                    {reactionTotal > 0 && (
+                      <div className="mt-2 flex items-center gap-1.5">
+                        <div className="flex -space-x-1">
+                          {reactionSummary.slice(0, 3).map(([type]) => (
+                            <span key={type} className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-white text-sm shadow-sm" title={reactionLabels[type]}>
+                              {tinyReactionEmoji[type]}
+                            </span>
+                          ))}
+                        </div>
+                        <span className="text-xs text-zinc-500 hover:underline cursor-default">
+                          {reactionTotal} người
+                          {reactionSummary.length <= 2
+                            ? ' · ' + reactionSummary.map(([t, c]) => `${reactionLabels[t]} (${c})`).join(', ')
+                            : ''}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Media */}
                     {post.media_url && (
                       <div className="mt-4 bg-zinc-50 rounded-xl overflow-hidden border border-zinc-200 inline-block">
                         {post.media_type === 'image' ? (
@@ -389,6 +400,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                       </div>
                     )}
 
+                    {/* Comments section */}
                     {activeComments === post.id && (
                       <div className="mt-5 space-y-5">
                         {commentsData[post.id]?.length > 0 && (
@@ -399,9 +411,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                                   {comment.fullname.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-bold text-zinc-900 text-sm">{comment.fullname}</span>
-                                  </div>
+                                  <span className="font-bold text-zinc-900 text-sm">{comment.fullname}</span>
                                   <div className="mt-0.5 text-sm leading-relaxed text-zinc-800">{comment.comment}</div>
                                 </div>
                               </div>
@@ -418,12 +428,12 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                               <input
                                 type="text"
                                 placeholder="Viết phản hồi..."
-                                value={commentInput}
-                                onChange={(e) => setCommentInput(e.target.value)}
+                                value={commentInputs[post.id] || ''}
+                                onChange={(e) => setCommentInputs(prev => ({ ...prev, [post.id]: e.target.value }))}
                                 onClick={() => !currentUser && onLogin()}
                                 className="w-full bg-transparent text-sm outline-none"
                               />
-                              <button type="submit" disabled={!commentInput.trim()} className="text-indigo-600 hover:text-indigo-700 disabled:text-zinc-300">
+                              <button type="submit" disabled={!commentInputs[post.id]?.trim()} className="text-indigo-600 hover:text-indigo-700 disabled:text-zinc-300">
                                 <Send className="h-4 w-4" />
                               </button>
                             </div>
