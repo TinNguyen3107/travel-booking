@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { User, Calendar, History, Shield, Save, XCircle, Heart, MapPin, Clock, Star } from 'lucide-react';
+import { User, Calendar, History, Shield, Save, XCircle, Heart, MapPin, Clock, Star, X } from 'lucide-react';
 import { BookingTable, formatVnd, ExperienceTable } from '../types';
 
-export default function UserProfile({ user }: { user: { email: string, fullname: string } }) {
+export default function UserProfile({ user, onClose }: { user: { email: string, fullname: string }, onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<'info' | 'history' | 'cancelled' | 'wishlists'>('info');
   const [bookings, setBookings] = useState<BookingTable[]>([]);
   const [wishlistDetails, setWishlistDetails] = useState<ExperienceTable[]>([]);
@@ -11,8 +11,7 @@ export default function UserProfile({ user }: { user: { email: string, fullname:
     fullname: '',
     phone: '',
     address: '',
-    avatar: '',
-    password: ''
+    avatar: ''
   });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -29,8 +28,7 @@ export default function UserProfile({ user }: { user: { email: string, fullname:
             fullname: data.fullname || '',
             phone: data.phone || '',
             address: data.address || '',
-            avatar: data.avatar || '',
-            password: ''
+            avatar: data.avatar || ''
           });
         }
       })
@@ -67,13 +65,11 @@ export default function UserProfile({ user }: { user: { email: string, fullname:
           fullname: form.fullname,
           phone: form.phone,
           address: form.address,
-          avatar: form.avatar,
-          ...(form.password ? { password: form.password } : {})
+          avatar: form.avatar
         })
       });
       if (res.ok) {
         alert('Cập nhật hồ sơ thành công!');
-        setForm(f => ({ ...f, password: '' }));
       } else {
         alert('Có lỗi xảy ra khi cập nhật.');
       }
@@ -137,8 +133,17 @@ export default function UserProfile({ user }: { user: { email: string, fullname:
   const cancelledBookings = bookings.filter(b => b.status === 'cancelled');
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-sm">
-      <div className="flex border-b border-zinc-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm overflow-y-auto py-10">
+      <div className="relative w-full max-w-4xl rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-2xl my-auto">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 z-10 rounded-full bg-white/80 p-2 text-zinc-600 shadow-sm backdrop-blur-md hover:bg-white hover:text-zinc-950"
+          aria-label="Đóng"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      <div className="flex border-b border-zinc-200 mt-12 sm:mt-0">
         <button
           onClick={() => setActiveTab('info')}
           className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'info' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 hover:bg-zinc-50'}`}
@@ -234,12 +239,7 @@ export default function UserProfile({ user }: { user: { email: string, fullname:
               <input type="text" value={form.address} onChange={e => setForm({...form, address: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 focus:border-emerald-500 outline-none" />
             </div>
 
-            <div className="pt-4 border-t border-zinc-100">
-              <label className="flex items-center gap-2 text-xs font-bold text-zinc-700 uppercase mb-1">
-                <Shield className="h-4 w-4" /> Đổi mật khẩu (Bỏ trống nếu không đổi)
-              </label>
-              <input type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 focus:border-emerald-500 outline-none placeholder:text-sm" placeholder="Nhập mật khẩu mới..." />
-            </div>
+
 
             <button type="submit" disabled={saving} className="w-full mt-4 flex justify-center items-center gap-2 bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 disabled:opacity-50">
               <Save className="h-5 w-5" />
@@ -333,6 +333,7 @@ export default function UserProfile({ user }: { user: { email: string, fullname:
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

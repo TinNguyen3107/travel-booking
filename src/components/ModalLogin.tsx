@@ -17,12 +17,11 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullname, setFullname] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-
-
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const validateForm = () => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = fullname.trim();
@@ -31,12 +30,17 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
       return 'Email không hợp lệ';
     }
 
-    if (password.length < 6) {
-      return 'Mật khẩu cần tối thiểu 6 ký tự';
-    }
+    if (isForgotPassword) {
+      if (password.length < 6) return 'Mật khẩu mới cần tối thiểu 6 ký tự';
+      if (password !== confirmPassword) return 'Mật khẩu xác nhận không khớp';
+    } else {
+      if (password.length < 6) {
+        return 'Mật khẩu cần tối thiểu 6 ký tự';
+      }
 
-    if (isRegisterMode && cleanName.length < 2) {
-      return 'Họ tên cần tối thiểu 2 ký tự';
+      if (isRegisterMode && cleanName.length < 2) {
+        return 'Họ tên cần tối thiểu 2 ký tự';
+      }
     }
 
     return null;
@@ -53,6 +57,29 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
 
     setError(null);
     setLoading(true);
+
+    if (isForgotPassword) {
+      const endpoint = '/api/auth/reset-password';
+      const payload = { email: email.trim().toLowerCase(), newPassword: password };
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Không thể xử lý yêu cầu');
+        alert('Đổi mật khẩu thành công, vui lòng đăng nhập bằng mật khẩu mới.');
+        setIsForgotPassword(false);
+        setPassword('');
+        setConfirmPassword('');
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     const endpoint = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
     const payload = isRegisterMode
@@ -94,10 +121,12 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
 
         <div className="border-b border-zinc-100 px-6 py-5">
           <h2 className="text-xl font-black text-zinc-950">
-            {isRegisterMode ? 'Đăng ký tài khoản' : 'Đăng nhập'}
+            {isForgotPassword ? 'Quên mật khẩu' : isRegisterMode ? 'Đăng ký tài khoản' : 'Đăng nhập'}
           </h2>
           <p className="mt-1 text-sm text-zinc-500">
-            {isRegisterMode
+            {isForgotPassword 
+              ? 'Nhập email và mật khẩu mới của bạn để đổi mật khẩu.'
+              : isRegisterMode
               ? 'Tạo tài khoản để đặt tour và bình luận.'
               : 'Đăng nhập để đặt tour, bình luận và trải nghiệm các dịch vụ.'}
           </p>
@@ -107,7 +136,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
 
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {isRegisterMode && (
+            {!isForgotPassword && isRegisterMode && (
               <label className="block">
                 <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Họ và tên</span>
                 <span className="relative block">
@@ -139,7 +168,16 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
             </label>
 
             <label className="block">
-              <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Mật khẩu</span>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="block text-xs font-bold uppercase text-zinc-600">
+                  {isForgotPassword ? 'Mật khẩu mới' : 'Mật khẩu'}
+                </span>
+                {!isRegisterMode && !isForgotPassword && (
+                  <button type="button" onClick={() => setIsForgotPassword(true)} className="text-xs font-bold text-emerald-600 hover:underline">
+                    Quên mật khẩu?
+                  </button>
+                )}
+              </div>
               <span className="relative block">
                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                 <input
@@ -147,11 +185,28 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
-                  placeholder="Tối thiểu 6 ký tự"
-                  autoComplete={isRegisterMode ? 'new-password' : 'current-password'}
+                  placeholder={isForgotPassword ? 'Mật khẩu mới (tối thiểu 6 ký tự)' : 'Tối thiểu 6 ký tự'}
+                  autoComplete={isRegisterMode || isForgotPassword ? 'new-password' : 'current-password'}
                 />
               </span>
             </label>
+
+            {isForgotPassword && (
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Xác nhận mật khẩu mới</span>
+                <span className="relative block">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                    placeholder="Nhập lại mật khẩu mới"
+                    autoComplete="new-password"
+                  />
+                </span>
+              </label>
+            )}
 
             {error && (
               <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-semibold text-red-700">
@@ -170,24 +225,39 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
               ) : (
                 <>
                   <LogIn className="h-4 w-4" />
-                  {isRegisterMode ? 'Đăng ký' : 'Đăng nhập'}
+                  {isForgotPassword ? 'Đổi mật khẩu' : isRegisterMode ? 'Đăng ký' : 'Đăng nhập'}
                 </>
               )}
             </button>
           </form>
 
           <div className="mt-5 text-center text-sm text-zinc-500">
-            {isRegisterMode ? 'Đã có tài khoản?' : 'Chưa có tài khoản?'}{' '}
-            <button
-              type="button"
-              onClick={() => {
-                setIsRegisterMode((value) => !value);
-                setError(null);
-              }}
-              className="font-bold text-emerald-700 hover:underline"
-            >
-              {isRegisterMode ? 'Đăng nhập ngay' : 'Đăng ký miễn phí'}
-            </button>
+            {isForgotPassword ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsForgotPassword(false);
+                  setError(null);
+                }}
+                className="font-bold text-emerald-700 hover:underline"
+              >
+                Quay lại đăng nhập
+              </button>
+            ) : (
+              <>
+                {isRegisterMode ? 'Đã có tài khoản?' : 'Chưa có tài khoản?'}{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsRegisterMode((value) => !value);
+                    setError(null);
+                  }}
+                  className="font-bold text-emerald-700 hover:underline"
+                >
+                  {isRegisterMode ? 'Đăng nhập ngay' : 'Đăng ký miễn phí'}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

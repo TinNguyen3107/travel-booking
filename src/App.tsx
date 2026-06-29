@@ -49,6 +49,7 @@ export default function App() {
     const saved = localStorage.getItem('currentUser');
     try { return saved ? JSON.parse(saved) : null; } catch { return null; }
   });
+  const [showUserProfile, setShowUserProfile] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [selectedExperience, setSelectedExperience] = useState<ExperienceTable | null>(null);
   const [viewExperienceDetail, setViewExperienceDetail] = useState<ExperienceTable | null>(null);
@@ -363,6 +364,7 @@ export default function App() {
           onOpenLogin={() => setShowLoginModal(true)}
           onLogout={handleLogout}
           onNavigate={scrollToSection}
+          onOpenProfile={() => setShowUserProfile(true)}
           activeSection={activeSection === 'hero' ? 'dashboard' : activeSection}
           adminMode
         />
@@ -389,6 +391,7 @@ export default function App() {
         onOpenLogin={() => setShowLoginModal(true)}
         onLogout={handleLogout}
         onNavigate={scrollToSection}
+        onOpenProfile={() => setShowUserProfile(true)}
         activeSection={activeSection}
       />
 
@@ -776,22 +779,18 @@ export default function App() {
           </div>
 
           <div className="rounded-2xl">
-            {user ? (
-              <UserProfile user={{ email: user.email, fullname: user.fullname }} />
-            ) : (
-              <div className="rounded-2xl border border-zinc-200 p-5 bg-white">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Chuyến đi của tôi</p>
-                    <h3 className="mt-1 text-xl font-black text-zinc-950">Đơn đã đặt</h3>
-                  </div>
-                  <Calendar className="h-6 w-6 text-emerald-600" />
+            <div className="rounded-2xl border border-zinc-200 p-5 bg-white">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Chuyến đi của tôi</p>
+                  <h3 className="mt-1 text-xl font-black text-zinc-950">Đơn đã đặt</h3>
                 </div>
-                <div className="mt-5 rounded-xl border border-dashed border-zinc-300 p-6 text-sm font-semibold text-zinc-500">
-                  Đăng nhập để xem hồ sơ và các đơn tour đã đặt.
-                </div>
+                <Calendar className="h-6 w-6 text-emerald-600" />
               </div>
-            )}
+              <div className="mt-5 rounded-xl border border-dashed border-zinc-300 p-6 text-sm font-semibold text-zinc-500">
+                {user ? 'Truy cập trang cá nhân của bạn ở góc trên bên phải để xem đơn đã đặt.' : 'Đăng nhập để xem hồ sơ và các đơn tour đã đặt.'}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -814,6 +813,13 @@ export default function App() {
         <ModalLogin
           onClose={() => setShowLoginModal(false)}
           onLoginSuccess={handleLoginSuccess}
+        />
+      )}
+
+      {showUserProfile && user && (
+        <UserProfile
+          user={{ email: user.email, fullname: user.fullname }}
+          onClose={() => setShowUserProfile(false)}
         />
       )}
 

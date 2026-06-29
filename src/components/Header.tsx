@@ -22,6 +22,7 @@ interface HeaderProps {
   onOpenLogin: () => void;
   onLogout: () => void;
   onNavigate: (sectionId: string) => void;
+  onOpenProfile?: () => void;
   activeSection: string;
   adminMode?: boolean;
 }
@@ -31,6 +32,7 @@ export default function Header({
   onOpenLogin,
   onLogout,
   onNavigate,
+  onOpenProfile,
   activeSection,
   adminMode = false
 }: HeaderProps) {
@@ -95,10 +97,10 @@ export default function Header({
         <div className="hidden items-center gap-3 sm:flex">
           {user ? (
             <>
-              <div className="flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-700">
+              <button type="button" onClick={onOpenProfile} className="flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100">
                 {user.role === 'admin' && <ShieldCheck className="h-4 w-4 text-emerald-600" />}
                 <span className="max-w-40 truncate">{user.fullname || user.email}</span>
-              </div>
+              </button>
               <button
                 type="button"
                 onClick={onLogout}

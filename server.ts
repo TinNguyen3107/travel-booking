@@ -213,6 +213,30 @@ app.use(async (req, res, next) => {
       });
     } catch (e: any) { handleError(res, e); }
   });
+
+  app.post('/api/auth/reset-password', async (req, res) => {
+    try {
+      const email = cleanText(req.body.email).toLowerCase();
+      const newPassword = cleanText(req.body.newPassword);
+
+      if (!email || !newPassword) {
+        res.status(400).json({ error: 'Vui lòng nhập đầy đủ email và mật khẩu mới' });
+        return;
+      }
+      if (newPassword.length < 6) {
+        res.status(400).json({ error: 'Mật khẩu mới cần tối thiểu 6 ký tự' });
+        return;
+      }
+      const user = await db.findUser(email);
+      if (!user) {
+        res.status(404).json({ error: 'Email không tồn tại trên hệ thống' });
+        return;
+      }
+
+      await db.updateUserProfile(email, { password: newPassword });
+      res.json({ success: true, message: 'Đổi mật khẩu thành công' });
+    } catch (e: any) { handleError(res, e); }
+  });
   // Auth Middleware
   const authenticateToken = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const authHeader = req.headers['authorization'];
