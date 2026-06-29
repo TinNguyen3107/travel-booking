@@ -595,7 +595,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                   <div className="mt-3 grid gap-1 rounded-xl border border-zinc-100 bg-zinc-50 p-3 text-xs font-bold text-zinc-600">
                     <span className="inline-flex items-center gap-1.5">
                       <Users className="h-3.5 w-3.5 text-emerald-600" />
-                      Tối đa {Number(experience.max_guests || 50)} khách/ngày
+                      Tối đa {Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests ?? 50)} khách/ngày
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <Clock3 className="h-3.5 w-3.5 text-emerald-600" />
@@ -937,7 +937,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                       </td>
                       <td className="px-4 py-3 text-zinc-600">{item.category}</td>
                       <td className="px-4 py-3 font-bold text-emerald-700">{formatVnd(item.price)}</td>
-                      <td className="px-4 py-3 text-zinc-600">{Number(item.max_guests || 50)} khách/ngày</td>
+                      <td className="px-4 py-3 text-zinc-600">{Number(item.daily_capacity_max ?? item.daily_capacity ?? item.max_guests ?? 50)} khách/ngày</td>
                       <td className="px-4 py-3 text-zinc-600">
                         <div className="text-xs font-semibold">{formatDateVi(item.booking_open_date)} - {formatDateVi(item.booking_close_date)}</div>
                         <span className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs font-bold ${isExperienceOpen(item) ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : item.booking_open_date && item.booking_open_date > todayIso() ? 'border-sky-100 bg-sky-50 text-sky-700' : 'border-red-100 bg-red-50 text-red-700'}`}>

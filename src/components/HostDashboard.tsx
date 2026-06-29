@@ -615,7 +615,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   <div className="mt-3 grid gap-1 rounded-xl border border-zinc-100 bg-zinc-50 p-3 text-xs font-bold text-zinc-600">
                     <span className="inline-flex items-center gap-1.5">
                       <Users className="h-3.5 w-3.5 text-emerald-600" />
-                      Tối đa {Number(experience.max_guests || 50)} khách/ngày
+                      Tối đa {Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests ?? 50)} khách/ngày
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <Clock3 className="h-3.5 w-3.5 text-emerald-600" />

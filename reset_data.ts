@@ -25,7 +25,7 @@ async function resetData() {
     
     // Xóa toàn bộ dữ liệu trong các bảng (Trừ danh mục)
     await connection.query('TRUNCATE TABLE host_reviews');
-    await connection.query('TRUNCATE TABLE host_applications');
+    await connection.query('TRUNCATE TABLE hosts');
     await connection.query('TRUNCATE TABLE post_reactions');
     await connection.query('TRUNCATE TABLE post_comments');
     await connection.query('TRUNCATE TABLE posts');
