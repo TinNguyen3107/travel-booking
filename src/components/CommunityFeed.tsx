@@ -16,6 +16,15 @@ const reactionIcons: Record<string, React.ReactNode> = {
   angry: <span className="text-3xl">😡</span>
 };
 
+const smallReactionIcons: Record<string, React.ReactNode> = {
+  like: <ThumbsUp className="h-3.5 w-3.5 text-blue-500 fill-blue-500" />,
+  love: <Heart className="h-3.5 w-3.5 fill-rose-500 text-rose-500" />,
+  wow: <span className="text-sm">😲</span>,
+  haha: <span className="text-sm">😂</span>,
+  sad: <span className="text-sm">😢</span>,
+  angry: <span className="text-sm">😡</span>
+};
+
 const reactionLabels: Record<string, string> = {
   like: 'Thích',
   love: 'Yêu thích',
@@ -356,7 +365,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                           ))}
                         </div>
                         <button onClick={() => toggleReaction(post.id, 'like')} className={`flex items-center gap-1 hover:text-blue-600 ${myReaction ? 'text-blue-600' : ''}`}>
-                          <ThumbsUp className="h-3.5 w-3.5" />
+                          {myReaction ? smallReactionIcons[myReaction] : <ThumbsUp className="h-3.5 w-3.5" />}
                           {myReaction ? reactionLabels[myReaction] : 'Hữu ích'}
                           {post.likes_count > 0 && ` (${post.likes_count})`}
                         </button>
