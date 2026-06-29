@@ -341,6 +341,8 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                       <span>•</span>
                       
                       <div className="group relative flex items-center">
+                        {/* Cầu nối vô hình giúp giữ chuột không bị rời khỏi group */}
+                        <div className="absolute bottom-full left-0 h-4 w-full" />
                         <div className="absolute bottom-full left-0 mb-2 hidden items-center gap-4 rounded-full border border-zinc-200 bg-white px-5 py-3 shadow-xl group-hover:flex z-50 transition-all">
                           {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
                             <button
