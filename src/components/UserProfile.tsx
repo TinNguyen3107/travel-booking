@@ -135,15 +135,7 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm overflow-y-auto py-10">
       <div className="relative w-full max-w-4xl rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-2xl my-auto">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 z-10 rounded-full bg-white/80 p-2 text-zinc-600 shadow-sm backdrop-blur-md hover:bg-white hover:text-zinc-950"
-          aria-label="Đóng"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      <div className="flex border-b border-zinc-200 mt-12 sm:mt-0">
+      <div className="flex border-b border-zinc-200 bg-white">
         <button
           onClick={() => setActiveTab('info')}
           className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'info' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 hover:bg-zinc-50'}`}
@@ -171,6 +163,15 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
         >
           <Heart className="h-4 w-4" />
           Yêu thích ({wishlistDetails.length})
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex items-center justify-center px-6 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600"
+          aria-label="Đóng"
+          title="Đóng"
+        >
+          <X className="h-5 w-5" />
         </button>
       </div>
 
