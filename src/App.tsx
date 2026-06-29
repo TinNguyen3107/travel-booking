@@ -703,7 +703,7 @@ export default function App() {
                   {review.images && JSON.parse(review.images).length > 0 && (
                     <div className="mt-3 flex gap-2 overflow-x-auto pb-2">
                       {JSON.parse(review.images).map((imgUrl: string, idx: number) => (
-                        <img key={idx} src={imgUrl} alt="Review" className="h-20 w-20 rounded-lg object-cover border border-zinc-200 flex-shrink-0" />
+                        <img key={idx} src={imgUrl} alt="Review" className="h-20 w-20 rounded-lg object-cover border border-zinc-200 shrink-0" />
                       ))}
                     </div>
                   )}

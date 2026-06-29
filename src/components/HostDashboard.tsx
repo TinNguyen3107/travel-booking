@@ -227,6 +227,12 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
     const data = await res.json();
 
     if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('currentUser');
+        window.location.reload();
+        throw new Error('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.');
+      }
       throw new Error(data.error || 'Không thể đọc dữ liệu');
     }
 

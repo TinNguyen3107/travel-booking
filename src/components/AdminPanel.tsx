@@ -178,6 +178,12 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
     const data = await res.json();
 
     if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('currentUser');
+        window.location.reload();
+        throw new Error('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.');
+      }
       throw new Error(data.error || 'Không thể đọc dữ liệu');
     }
 
@@ -1393,7 +1399,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
       )}
 
       {rejectTourId !== null && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white shadow-2xl">
             <div className="p-6 text-center">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
