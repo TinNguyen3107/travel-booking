@@ -127,39 +127,39 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
     return map[status] || status;
   };
 
-  if (loading) return <div className="p-8 text-center text-zinc-500">Đang tải...</div>;
+  if (loading) return <div className="p-8 text-center text-zinc-500 dark:text-slate-400">Đang tải...</div>;
 
   const activeBookings = bookings.filter(b => b.status !== 'cancelled');
   const cancelledBookings = bookings.filter(b => b.status === 'cancelled');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm overflow-y-auto py-10">
-      <div className="relative w-full max-w-4xl rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-2xl my-auto">
-      <div className="flex border-b border-zinc-200 bg-white">
+      <div className="relative w-full max-w-4xl rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shadow-2xl my-auto">
+      <div className="flex border-b border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800">
         <button
           onClick={() => setActiveTab('info')}
-          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'info' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 hover:bg-zinc-50'}`}
+          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'info' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:bg-slate-900/50'}`}
         >
           <User className="h-4 w-4" />
           Thông tin cá nhân
         </button>
         <button
           onClick={() => setActiveTab('history')}
-          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'history' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 hover:bg-zinc-50'}`}
+          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'history' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:bg-slate-900/50'}`}
         >
           <History className="h-4 w-4" />
           Đơn đã đặt ({activeBookings.length})
         </button>
         <button
           onClick={() => setActiveTab('cancelled')}
-          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'cancelled' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 hover:bg-zinc-50'}`}
+          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'cancelled' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:bg-slate-900/50'}`}
         >
           <XCircle className="h-4 w-4" />
           Đơn đã hủy ({cancelledBookings.length})
         </button>
         <button
           onClick={() => setActiveTab('wishlists')}
-          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'wishlists' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 hover:bg-zinc-50'}`}
+          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'wishlists' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:bg-slate-900/50'}`}
         >
           <Heart className="h-4 w-4" />
           Yêu thích ({wishlistDetails.length})
@@ -167,7 +167,7 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
         <button
           type="button"
           onClick={onClose}
-          className="flex items-center justify-center px-6 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600"
+          className="flex items-center justify-center px-6 text-zinc-400 dark:text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
           aria-label="Đóng"
           title="Đóng"
         >
@@ -187,22 +187,22 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
             </div>
             
             <div>
-              <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Email (Không đổi)</label>
-              <input type="text" value={user.email} disabled className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-500" />
+              <label className="block text-xs font-bold text-zinc-700 dark:text-slate-200 uppercase mb-1">Email (Không đổi)</label>
+              <input type="text" value={user.email} disabled className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 text-zinc-500 dark:text-slate-400" />
             </div>
             
             <div>
-              <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Họ tên</label>
-              <input type="text" value={form.fullname} onChange={e => setForm({...form, fullname: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 focus:border-emerald-500 outline-none" required />
+              <label className="block text-xs font-bold text-zinc-700 dark:text-slate-200 uppercase mb-1">Họ tên</label>
+              <input type="text" value={form.fullname} onChange={e => setForm({...form, fullname: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-slate-700 focus:border-emerald-500 outline-none" required />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Số điện thoại</label>
-                <input type="text" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 focus:border-emerald-500 outline-none" />
+                <label className="block text-xs font-bold text-zinc-700 dark:text-slate-200 uppercase mb-1">Số điện thoại</label>
+                <input type="text" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-slate-700 focus:border-emerald-500 outline-none" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Tải ảnh đại diện</label>
+                <label className="block text-xs font-bold text-zinc-700 dark:text-slate-200 uppercase mb-1">Tải ảnh đại diện</label>
                 <input 
                   type="file" 
                   accept="image/*"
@@ -230,14 +230,14 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
                       setSaving(false);
                     }
                   }} 
-                  className="w-full px-4 py-2 rounded-xl border border-zinc-200 focus:border-emerald-500 outline-none file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer" 
+                  className="w-full px-4 py-2 rounded-xl border border-zinc-200 dark:border-slate-700 focus:border-emerald-500 outline-none file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer" 
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Địa chỉ</label>
-              <input type="text" value={form.address} onChange={e => setForm({...form, address: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 focus:border-emerald-500 outline-none" />
+              <label className="block text-xs font-bold text-zinc-700 dark:text-slate-200 uppercase mb-1">Địa chỉ</label>
+              <input type="text" value={form.address} onChange={e => setForm({...form, address: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-slate-700 focus:border-emerald-500 outline-none" />
             </div>
 
 
@@ -252,23 +252,23 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
         {(activeTab === 'history' || activeTab === 'cancelled') && (
           <div className="space-y-4">
             {activeTab === 'history' && activeBookings.length === 0 && (
-              <div className="text-center py-10 text-zinc-500">Bạn chưa có đơn đặt tour nào.</div>
+              <div className="text-center py-10 text-zinc-500 dark:text-slate-400">Bạn chưa có đơn đặt tour nào.</div>
             )}
             {activeTab === 'cancelled' && cancelledBookings.length === 0 && (
-              <div className="text-center py-10 text-zinc-500">Bạn chưa hủy đơn tour nào.</div>
+              <div className="text-center py-10 text-zinc-500 dark:text-slate-400">Bạn chưa hủy đơn tour nào.</div>
             )}
             
             {(activeTab === 'history' ? activeBookings : cancelledBookings).map(booking => (
-              <div key={booking.id} className="border border-zinc-200 rounded-xl p-4 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+              <div key={booking.id} className="border border-zinc-200 dark:border-slate-700 rounded-xl p-4 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
                 <div>
-                  <h4 className="font-black text-lg text-zinc-900">{booking.experience_title}</h4>
-                  <div className="text-sm font-medium text-zinc-500 mt-1 flex items-center gap-4">
+                  <h4 className="font-black text-lg text-zinc-900 dark:text-slate-100">{booking.experience_title}</h4>
+                  <div className="text-sm font-medium text-zinc-500 dark:text-slate-400 mt-1 flex items-center gap-4">
                     <span className="flex items-center gap-1"><Calendar className="h-4 w-4" /> Ngày đặt: {booking.booking_date}</span>
                     <span>•</span>
                     <span>{booking.guests} khách</span>
                   </div>
                   {booking.payment_status && (
-                     <div className="text-xs font-semibold text-zinc-500 mt-2">
+                     <div className="text-xs font-semibold text-zinc-500 dark:text-slate-400 mt-2">
                        Thanh toán: <span className={booking.payment_status === 'paid' ? 'text-emerald-600' : 'text-amber-600'}>{booking.payment_status.toUpperCase()}</span>
                        {booking.refund_status && booking.refund_status !== 'none' && ` | Hoàn tiền: ${booking.refund_status.toUpperCase()}`}
                      </div>
@@ -291,35 +291,35 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
         {activeTab === 'wishlists' && (
           <div className="space-y-4">
             {wishlistDetails.length === 0 ? (
-              <div className="text-center py-10 text-zinc-500">Bạn chưa có tour yêu thích nào.</div>
+              <div className="text-center py-10 text-zinc-500 dark:text-slate-400">Bạn chưa có tour yêu thích nào.</div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {wishlistDetails.map(experience => (
-                  <article key={experience.id} className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+                  <article key={experience.id} className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
                     <div className="relative">
                       <img
                         src={experience.image || 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1'}
                         alt={experience.title}
                         className="h-40 w-full object-cover"
                       />
-                      <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2 py-1 text-xs font-black text-emerald-700">
+                      <span className="absolute left-3 top-3 rounded-full bg-white dark:bg-slate-800/95 px-2 py-1 text-xs font-black text-emerald-700">
                         {experience.category}
                       </span>
                       <button
                         onClick={() => handleRemoveWishlist(experience.id)}
-                        className="absolute right-3 top-3 rounded-full bg-white/90 p-2 text-rose-500 hover:bg-rose-50"
+                        className="absolute right-3 top-3 rounded-full bg-white dark:bg-slate-800/90 p-2 text-rose-500 hover:bg-rose-50"
                         title="Bỏ yêu thích"
                       >
                         <Heart className="h-4 w-4 fill-rose-500" />
                       </button>
                     </div>
                     <div className="flex flex-col flex-1 p-4">
-                      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-zinc-500">
+                      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-zinc-500 dark:text-slate-400">
                         <span className="flex items-center gap-1"><MapPin className="h-3 w-3 text-emerald-600" />{experience.location}</span>
                         <span className="flex items-center gap-1"><Clock className="h-3 w-3 text-emerald-600" />{experience.duration}</span>
                       </div>
-                      <h3 className="mt-2 line-clamp-2 text-sm font-black text-zinc-950">{experience.title}</h3>
-                      <div className="mt-3 flex items-center justify-between border-t border-zinc-100 pt-3">
+                      <h3 className="mt-2 line-clamp-2 text-sm font-black text-zinc-950 dark:text-slate-50">{experience.title}</h3>
+                      <div className="mt-3 flex items-center justify-between border-t border-zinc-100 dark:border-slate-800 pt-3">
                         <span className="text-sm font-black text-emerald-700">{formatVnd(experience.price)}</span>
                         <div className="flex items-center gap-1 text-xs font-black text-amber-500">
                           <Star className="h-3 w-3 fill-current" />

@@ -28,11 +28,11 @@ export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="bg-white px-4 py-16 sm:px-6 lg:px-8">
+    <section id="faq" className="bg-white dark:bg-slate-800 px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 text-center">
           <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Hỏi đáp</p>
-          <h2 className="mt-2 text-3xl font-black tracking-tight text-zinc-950">Câu hỏi thường gặp</h2>
+          <h2 className="mt-2 text-3xl font-black tracking-tight text-zinc-950 dark:text-slate-50">Câu hỏi thường gặp</h2>
         </div>
 
         <div className="space-y-3">
@@ -40,20 +40,20 @@ export default function FAQSection() {
             const open = openIndex === index;
 
             return (
-              <div key={faq.question} className="rounded-2xl border border-zinc-200 bg-zinc-50">
+              <div key={faq.question} className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50">
                 <button
                   type="button"
                   onClick={() => setOpenIndex(open ? null : index)}
                   className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
                 >
-                  <span className="flex items-center gap-3 font-bold text-zinc-900">
+                  <span className="flex items-center gap-3 font-bold text-zinc-900 dark:text-slate-100">
                     <HelpCircle className="h-5 w-5 shrink-0 text-emerald-600" />
                     {faq.question}
                   </span>
-                  <ChevronDown className={`h-5 w-5 shrink-0 text-zinc-500 transition-transform ${open ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-5 w-5 shrink-0 text-zinc-500 dark:text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
                 </button>
                 {open && (
-                  <div className="border-t border-zinc-200 px-5 py-4 text-sm leading-6 text-zinc-600">
+                  <div className="border-t border-zinc-200 dark:border-slate-700 px-5 py-4 text-sm leading-6 text-zinc-600 dark:text-slate-300">
                     {faq.answer}
                   </div>
                 )}

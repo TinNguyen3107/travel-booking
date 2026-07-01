@@ -203,11 +203,11 @@ export default function ModalBooking({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl max-h-[95vh] overflow-y-auto rounded-2xl border border-zinc-200 bg-white shadow-2xl">
+      <div className="relative w-full max-w-2xl max-h-[95vh] overflow-y-auto rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-2xl">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900"
+          className="absolute right-4 top-4 rounded-lg p-2 text-zinc-400 dark:text-slate-500 hover:bg-zinc-100 dark:bg-slate-800 hover:text-zinc-900 dark:text-slate-100"
           aria-label="Đóng"
         >
           <X className="h-5 w-5" />
@@ -233,11 +233,11 @@ export default function ModalBooking({
               <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold uppercase text-emerald-700">
                 Đặt tour
               </span>
-              <h2 className="mt-3 text-2xl font-black leading-tight text-zinc-950">{experience.title}</h2>
-              <p className="mt-1 text-sm text-zinc-500">
+              <h2 className="mt-3 text-2xl font-black leading-tight text-zinc-950 dark:text-slate-50">{experience.title}</h2>
+              <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">
                 {experience.location} · {formatVnd(experience.price)} / khách
               </p>
-              <div className="mt-3 grid gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-xs font-bold text-zinc-600">
+              <div className="mt-3 grid gap-2 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-3 text-xs font-bold text-zinc-600 dark:text-slate-300">
                 <span className="inline-flex items-center gap-1.5">
                   <Users className="h-3.5 w-3.5 text-emerald-600" />
                   Tối đa {maxGuests} khách/ngày
@@ -256,14 +256,14 @@ export default function ModalBooking({
             <form onSubmit={handleBookingSubmit} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Ngày đi</span>
+                  <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Ngày đi</span>
                   <span className="relative block">
-                    <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                    <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
                     {schedules.length > 0 ? (
                       <select
                         value={selectedScheduleId}
                         onChange={(e) => setSelectedScheduleId(Number(e.target.value) || '')}
-                        className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                        className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
                       >
                         <option value="">-- Chọn lịch trình --</option>
                         {schedules.filter(s => s.remaining_slots >= guests).map(s => (
@@ -279,12 +279,12 @@ export default function ModalBooking({
                         max={maxBookingDate || undefined}
                         value={bookingDate}
                         onChange={(event) => setBookingDate(event.target.value)}
-                        className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                        className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
                       />
                     )}
                   </span>
                   {schedules.length === 0 && availability && (
-                    <div className="mt-2 grid gap-1 text-xs font-bold text-zinc-500">
+                    <div className="mt-2 grid gap-1 text-xs font-bold text-zinc-500 dark:text-slate-400">
                       <span className={availability.dailyRemaining > 0 ? 'text-emerald-600' : 'text-rose-500'}>
                         • Còn {availability.dailyRemaining} chỗ trong ngày này
                       </span>
@@ -298,29 +298,29 @@ export default function ModalBooking({
                 {experience.allow_children ? (
                   <div className="grid gap-2">
                     <label className="block">
-                      <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Người lớn</span>
-                      <span className="flex h-10.5 rounded-xl border border-zinc-200 bg-zinc-50 p-1">
-                        <button type="button" onClick={() => setAdultCount(adults - 1)} className="h-8 w-9 rounded-lg bg-white text-sm font-black text-zinc-700 shadow-sm">-</button>
+                      <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Người lớn</span>
+                      <span className="flex h-10.5 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-1">
+                        <button type="button" onClick={() => setAdultCount(adults - 1)} className="h-8 w-9 rounded-lg bg-white dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">-</button>
                         <input type="number" min={1} max={maxGuests - children} value={adults} onChange={(event) => setAdultCount(Number(event.target.value))} className="min-w-0 flex-1 bg-transparent text-center text-sm font-black outline-none" />
-                        <button type="button" onClick={() => setAdultCount(adults + 1)} className="h-8 w-9 rounded-lg bg-white text-sm font-black text-zinc-700 shadow-sm">+</button>
+                        <button type="button" onClick={() => setAdultCount(adults + 1)} className="h-8 w-9 rounded-lg bg-white dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">+</button>
                       </span>
                     </label>
                     <label className="block">
-                      <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Trẻ em ({experience.min_age} - {experience.child_max_age} tuổi)</span>
-                      <span className="flex h-10.5 rounded-xl border border-zinc-200 bg-zinc-50 p-1">
-                        <button type="button" onClick={() => setChildCount(children - 1)} className="h-8 w-9 rounded-lg bg-white text-sm font-black text-zinc-700 shadow-sm">-</button>
+                      <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Trẻ em ({experience.min_age} - {experience.child_max_age} tuổi)</span>
+                      <span className="flex h-10.5 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-1">
+                        <button type="button" onClick={() => setChildCount(children - 1)} className="h-8 w-9 rounded-lg bg-white dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">-</button>
                         <input type="number" min={0} max={maxGuests - adults} value={children} onChange={(event) => setChildCount(Number(event.target.value))} className="min-w-0 flex-1 bg-transparent text-center text-sm font-black outline-none" />
-                        <button type="button" onClick={() => setChildCount(children + 1)} className="h-8 w-9 rounded-lg bg-white text-sm font-black text-zinc-700 shadow-sm">+</button>
+                        <button type="button" onClick={() => setChildCount(children + 1)} className="h-8 w-9 rounded-lg bg-white dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">+</button>
                       </span>
                     </label>
                   </div>
                 ) : (
                   <label className="block">
-                    <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Số khách</span>
-                    <span className="flex h-10.5 rounded-xl border border-zinc-200 bg-zinc-50 p-1">
-                      <button type="button" onClick={() => setAdultCount(adults - 1)} className="h-8 w-9 rounded-lg bg-white text-sm font-black text-zinc-700 shadow-sm">-</button>
+                    <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Số khách</span>
+                    <span className="flex h-10.5 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-1">
+                      <button type="button" onClick={() => setAdultCount(adults - 1)} className="h-8 w-9 rounded-lg bg-white dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">-</button>
                       <input type="number" min={1} max={maxGuests} value={adults} onChange={(event) => setAdultCount(Number(event.target.value))} className="min-w-0 flex-1 bg-transparent text-center text-sm font-black outline-none" />
-                      <button type="button" onClick={() => setAdultCount(adults + 1)} className="h-8 w-9 rounded-lg bg-white text-sm font-black text-zinc-700 shadow-sm">+</button>
+                      <button type="button" onClick={() => setAdultCount(adults + 1)} className="h-8 w-9 rounded-lg bg-white dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">+</button>
                     </span>
                   </label>
                 )}
@@ -328,30 +328,30 @@ export default function ModalBooking({
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">
+                  <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">
                     Người liên hệ
                   </span>
                   <span className="relative block">
-                    <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                    <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
                     <input
                       value={contactName}
                       onChange={(event) => setContactName(event.target.value)}
-                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
                       placeholder="Nguyễn Văn A"
                     />
                   </span>
                 </label>
 
                 <label className="block">
-                  <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">
+                  <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">
                     Số điện thoại
                   </span>
                   <span className="relative block">
-                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
                     <input
                       value={contactPhone}
                       onChange={(event) => setContactPhone(event.target.value)}
-                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
                       placeholder="09xx xxx xxx"
                     />
                   </span>
@@ -359,33 +359,33 @@ export default function ModalBooking({
               </div>
 
               <label className="block">
-                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">
+                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">
                   Ghi chú
                 </span>
                 <span className="relative block">
-                  <MessageSquare className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                  <MessageSquare className="absolute left-3 top-3 h-4 w-4 text-zinc-400 dark:text-slate-500" />
                   <textarea
                     value={note}
                     onChange={(event) => setNote(event.target.value)}
                     rows={3}
                     maxLength={300}
-                    className="w-full resize-none rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                    className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
                     placeholder="Yêu cầu đón trả, ăn uống, trẻ em đi cùng..."
                   />
                 </span>
               </label>
 
               <label className="block">
-                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">
+                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">
                   Mã giảm giá
                 </span>
                 <span className="relative flex gap-2">
                   <span className="relative flex-1">
-                    <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                    <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
                     <input
                       value={promoCode}
                       onChange={(event) => setPromoCode(event.target.value)}
-                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
                       placeholder="Nhập mã khuyến mãi"
                     />
                   </span>
@@ -406,7 +406,7 @@ export default function ModalBooking({
 
               <div className="flex flex-col gap-1 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
                 {activePromo && (
-                  <div className="flex items-center justify-between text-sm font-bold text-zinc-500">
+                  <div className="flex items-center justify-between text-sm font-bold text-zinc-500 dark:text-slate-400">
                     <span>Tạm tính</span>
                     <span className="line-through">{formatVnd(basePrice)}</span>
                   </div>
@@ -431,7 +431,7 @@ export default function ModalBooking({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-xl border border-zinc-200 px-4 py-2.5 text-sm font-bold text-zinc-600 hover:bg-zinc-50 sm:w-1/3"
+                  className="rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2.5 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:bg-slate-900/50 sm:w-1/3"
                 >
                   Hủy
                 </button>

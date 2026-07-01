@@ -244,22 +244,22 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
   };
 
   if (loading) {
-    return <div className="p-8 text-center text-zinc-500">Đang tải bảng tin...</div>;
+    return <div className="p-8 text-center text-zinc-500 dark:text-slate-400">Đang tải bảng tin...</div>;
   }
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
       <div className="mb-8 text-center">
-        <h2 className="text-3xl font-black tracking-tight text-zinc-900">Cộng đồng Travel</h2>
-        <p className="mt-2 text-sm text-zinc-500">Chia sẻ khoảnh khắc và trải nghiệm của bạn cùng những người đam mê du lịch.</p>
+        <h2 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-slate-100">Cộng đồng Travel</h2>
+        <p className="mt-2 text-sm text-zinc-500 dark:text-slate-400">Chia sẻ khoảnh khắc và trải nghiệm của bạn cùng những người đam mê du lịch.</p>
       </div>
 
       {/* Create post */}
-      <div className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+      <div className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
         <div className="p-4">
           <form onSubmit={handleCreatePost}>
             <textarea
-              className="w-full resize-none bg-transparent text-lg outline-none placeholder:text-zinc-400"
+              className="w-full resize-none bg-transparent text-lg outline-none placeholder:text-zinc-400 dark:text-slate-500"
               rows={3}
               placeholder={currentUser ? `${currentUser.fullname} ơi, bạn đang nghĩ gì?` : 'Đăng nhập để chia sẻ trải nghiệm của bạn...'}
               value={postContent}
@@ -268,7 +268,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
             />
 
             {mediaUrl && (
-              <div className="relative mt-2 rounded-xl bg-zinc-100 p-2">
+              <div className="relative mt-2 rounded-xl bg-zinc-100 dark:bg-slate-800 p-2">
                 {mediaType === 'image' ? (
                   <img src={mediaUrl} alt="Preview" className="max-h-64 rounded-lg object-contain" />
                 ) : (
@@ -284,7 +284,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
               </div>
             )}
 
-            <hr className="my-4 border-zinc-100" />
+            <hr className="my-4 border-zinc-100 dark:border-slate-800" />
 
             <div className="flex items-center justify-between">
               <div className="flex gap-2">
@@ -293,7 +293,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                   type="button"
                   disabled={submitting}
                   onClick={() => { if (!currentUser) return onLogin(); fileInputRef.current?.click(); }}
-                  className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:bg-slate-800 disabled:opacity-50"
                 >
                   <ImageIcon className="h-4 w-4 text-emerald-500" /> Ảnh / Video
                 </button>
@@ -319,7 +319,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
           const { sorted: reactionSummary, total: reactionTotal } = getReactionSummary(postReactions);
 
           return (
-            <div key={post.id} className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <div key={post.id} className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
               <div className="flex items-start justify-between">
                 <div className="flex gap-3 w-full">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-700">
@@ -327,16 +327,16 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-zinc-900">{post.fullname}</span>
+                      <span className="font-bold text-zinc-900 dark:text-slate-100">{post.fullname}</span>
                       {post.role === 'host' && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">Host</span>}
                       {post.role === 'admin' && <span className="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] font-medium text-white">Quản trị viên</span>}
                     </div>
 
-                    <div className="mt-1 text-[15px] leading-relaxed text-zinc-800 whitespace-pre-wrap">{post.content}</div>
+                    <div className="mt-1 text-[15px] leading-relaxed text-zinc-800 dark:text-slate-200 whitespace-pre-wrap">{post.content}</div>
 
                     {/* Action row */}
-                    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-zinc-500">
-                      <button onClick={() => toggleComments(post.id)} className="hover:text-zinc-800 hover:underline">
+                    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-zinc-500 dark:text-slate-400">
+                      <button onClick={() => toggleComments(post.id)} className="hover:text-zinc-800 dark:text-slate-200 hover:underline">
                         Gửi trả lời {post.comments_count > 0 && `(${post.comments_count})`}
                       </button>
                       <span>•</span>
@@ -345,7 +345,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                       <div className="group relative flex items-center">
                         {/* Invisible bridge */}
                         <div className="absolute bottom-full left-0 h-4 w-full" />
-                        <div className="absolute bottom-full left-0 mb-2 hidden items-center gap-4 rounded-full border border-zinc-200 bg-white px-5 py-3 shadow-xl group-hover:flex z-50">
+                        <div className="absolute bottom-full left-0 mb-2 hidden items-center gap-4 rounded-full border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-3 shadow-xl group-hover:flex z-50">
                           {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
                             <button
                               key={reaction}
@@ -367,7 +367,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                       </div>
 
                       <span>•</span>
-                      <span className="text-zinc-400">{new Date(post.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                      <span className="text-zinc-400 dark:text-slate-500">{new Date(post.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                     </div>
 
                     {/* Reaction summary bar (Facebook-style) */}
@@ -375,12 +375,12 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                       <div className="mt-2 flex items-center gap-1.5">
                         <div className="flex -space-x-1">
                           {reactionSummary.slice(0, 3).map(([type]) => (
-                            <span key={type} className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-white text-sm shadow-sm" title={reactionLabels[type]}>
+                            <span key={type} className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-white dark:bg-slate-800 text-sm shadow-sm" title={reactionLabels[type]}>
                               {tinyReactionEmoji[type]}
                             </span>
                           ))}
                         </div>
-                        <span className="text-xs text-zinc-500 hover:underline cursor-default">
+                        <span className="text-xs text-zinc-500 dark:text-slate-400 hover:underline cursor-default">
                           {reactionTotal} người
                           {reactionSummary.length <= 2
                             ? ' · ' + reactionSummary.map(([t, c]) => `${reactionLabels[t]} (${c})`).join(', ')
@@ -391,7 +391,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
 
                     {/* Media */}
                     {post.media_url && (
-                      <div className="mt-4 bg-zinc-50 rounded-xl overflow-hidden border border-zinc-200 inline-block">
+                      <div className="mt-4 bg-zinc-50 dark:bg-slate-900/50 rounded-xl overflow-hidden border border-zinc-200 dark:border-slate-700 inline-block">
                         {post.media_type === 'image' ? (
                           <img src={post.media_url} alt="Post media" className="max-h-64 object-cover" />
                         ) : (
@@ -406,25 +406,25 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                         {commentsData[post.id]?.length > 0 && (
                           <div className="space-y-4">
                             {commentsData[post.id].map(comment => (
-                              <div key={comment.id} className="flex gap-3 pl-4 border-l-2 border-zinc-200">
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600">
+                              <div key={comment.id} className="flex gap-3 pl-4 border-l-2 border-zinc-200 dark:border-slate-700">
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600 dark:text-slate-300">
                                   {comment.fullname.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                  <span className="font-bold text-zinc-900 text-sm">{comment.fullname}</span>
-                                  <div className="mt-0.5 text-sm leading-relaxed text-zinc-800">{comment.comment}</div>
+                                  <span className="font-bold text-zinc-900 dark:text-slate-100 text-sm">{comment.fullname}</span>
+                                  <div className="mt-0.5 text-sm leading-relaxed text-zinc-800 dark:text-slate-200">{comment.comment}</div>
                                 </div>
                               </div>
                             ))}
                           </div>
                         )}
 
-                        <form onSubmit={(e) => submitComment(e, post.id)} className="flex items-start gap-3 pl-4 border-l-2 border-zinc-200 pt-2">
+                        <form onSubmit={(e) => submitComment(e, post.id)} className="flex items-start gap-3 pl-4 border-l-2 border-zinc-200 dark:border-slate-700 pt-2">
                           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
                             {currentUser?.fullname?.charAt(0).toUpperCase() || '?'}
                           </div>
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 rounded-2xl border border-zinc-300 bg-white px-4 py-2 focus-within:border-indigo-500">
+                            <div className="flex items-center gap-2 rounded-2xl border border-zinc-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2 focus-within:border-indigo-500">
                               <input
                                 type="text"
                                 placeholder="Viết phản hồi..."
@@ -445,7 +445,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                 </div>
 
                 {currentUser?.role === 'admin' && (
-                  <button onClick={() => deletePost(post.id)} className="ml-4 shrink-0 text-zinc-400 hover:text-rose-500">
+                  <button onClick={() => deletePost(post.id)} className="ml-4 shrink-0 text-zinc-400 dark:text-slate-500 hover:text-rose-500">
                     <Trash2 className="h-5 w-5" />
                   </button>
                 )}
@@ -454,7 +454,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
           );
         })}
         {posts.length === 0 && (
-          <div className="py-12 text-center text-zinc-500">Chưa có bài viết nào. Hãy là người đầu tiên!</div>
+          <div className="py-12 text-center text-zinc-500 dark:text-slate-400">Chưa có bài viết nào. Hãy là người đầu tiên!</div>
         )}
       </div>
     </div>

@@ -63,7 +63,7 @@ export default function Header({
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <button
           type="button"
@@ -72,7 +72,7 @@ export default function Header({
         >
           <img src={logoImg} alt="VietTour Logo" className="h-12 w-12 shrink-0 object-contain rounded-xl" />
           <span className="hidden text-sm font-black sm:block lg:text-base">
-            <span className="text-zinc-950">Viet</span>
+            <span className="text-zinc-950 dark:text-slate-50">Viet</span>
             <span className="text-emerald-600">Tour</span>
           </span>
         </button>
@@ -90,7 +90,7 @@ export default function Header({
                 className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                   active
                     ? 'bg-emerald-50 text-emerald-700'
-                    : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950'
+                    : 'text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:bg-slate-800 hover:text-zinc-950 dark:text-slate-50'
                 }`}
               >
                 {Icon && <Icon className="h-4 w-4" />}
@@ -117,7 +117,7 @@ export default function Header({
               className={`flex h-7 w-7 items-center justify-center rounded-full shadow-md transition-all duration-300 ${
                 isDark
                   ? 'translate-x-7 bg-indigo-100 text-indigo-700'
-                  : 'translate-x-0 bg-white text-amber-500'
+                  : 'translate-x-0 bg-white dark:bg-slate-800 text-amber-500'
               }`}
             >
               {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
@@ -126,7 +126,7 @@ export default function Header({
 
           {user ? (
             <>
-              <button type="button" onClick={onOpenProfile} className="flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100">
+              <button type="button" onClick={onOpenProfile} className="flex items-center gap-2 rounded-full border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:bg-slate-800">
                 {user.role === 'admin' && <ShieldCheck className="h-4 w-4 text-emerald-600" />}
                 <span className="max-w-40 truncate">{user.fullname || user.email}</span>
               </button>
@@ -154,7 +154,7 @@ export default function Header({
         <button
           type="button"
           onClick={() => setMobileMenuOpen((value) => !value)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 text-zinc-700 sm:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 dark:border-slate-700 text-zinc-700 dark:text-slate-200 sm:hidden"
           aria-label="Mở menu"
         >
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -162,7 +162,7 @@ export default function Header({
       </div>
 
       {mobileMenuOpen && (
-        <div className="border-t border-zinc-200 bg-white px-4 py-3 sm:hidden">
+        <div className="border-t border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 sm:hidden">
           <div className="space-y-1">
             {navItems.map((item) => (
               <button
@@ -172,7 +172,7 @@ export default function Header({
                 className={`block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold ${
                   activeSection === item.id
                     ? 'bg-emerald-50 text-emerald-700'
-                    : 'text-zinc-700 hover:bg-zinc-100'
+                    : 'text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:bg-slate-800'
                 }`}
               >
                 {item.label}
@@ -180,12 +180,12 @@ export default function Header({
             ))}
           </div>
 
-          <div className="mt-3 border-t border-zinc-100 pt-3 space-y-2">
+          <div className="mt-3 border-t border-zinc-100 dark:border-slate-800 pt-3 space-y-2">
             {/* Mobile dark toggle */}
             <button
               type="button"
               onClick={onToggleDark}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               {isDark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-indigo-500" />}
               {isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}

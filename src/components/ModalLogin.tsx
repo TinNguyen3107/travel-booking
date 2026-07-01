@@ -109,21 +109,21 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl">
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-2xl">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900"
+          className="absolute right-4 top-4 rounded-lg p-2 text-zinc-400 dark:text-slate-500 hover:bg-zinc-100 dark:bg-slate-800 hover:text-zinc-900 dark:text-slate-100"
           aria-label="Đóng"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <div className="border-b border-zinc-100 px-6 py-5">
-          <h2 className="text-xl font-black text-zinc-950">
+        <div className="border-b border-zinc-100 dark:border-slate-800 px-6 py-5">
+          <h2 className="text-xl font-black text-zinc-950 dark:text-slate-50">
             {isForgotPassword ? 'Quên mật khẩu' : isRegisterMode ? 'Đăng ký tài khoản' : 'Đăng nhập'}
           </h2>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">
             {isForgotPassword 
               ? 'Nhập email và mật khẩu mới của bạn để đổi mật khẩu.'
               : isRegisterMode
@@ -138,13 +138,13 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isForgotPassword && isRegisterMode && (
               <label className="block">
-                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Họ và tên</span>
+                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Họ và tên</span>
                 <span className="relative block">
-                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
                   <input
                     value={fullname}
                     onChange={(event) => setFullname(event.target.value)}
-                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
                     placeholder="Nguyễn Văn A"
                     autoComplete="name"
                   />
@@ -153,14 +153,14 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
             )}
 
             <label className="block">
-              <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Email</span>
+              <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Email</span>
               <span className="relative block">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
                 <input
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                  className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
                   placeholder="name@example.com"
                   autoComplete="email"
                 />
@@ -169,7 +169,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
 
             <label className="block">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="block text-xs font-bold uppercase text-zinc-600">
+                <span className="block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">
                   {isForgotPassword ? 'Mật khẩu mới' : 'Mật khẩu'}
                 </span>
                 {!isRegisterMode && !isForgotPassword && (
@@ -179,12 +179,12 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                 )}
               </div>
               <span className="relative block">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
                 <input
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                  className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
                   placeholder={isForgotPassword ? 'Mật khẩu mới (tối thiểu 6 ký tự)' : 'Tối thiểu 6 ký tự'}
                   autoComplete={isRegisterMode || isForgotPassword ? 'new-password' : 'current-password'}
                 />
@@ -193,14 +193,14 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
 
             {isForgotPassword && (
               <label className="block">
-                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600">Xác nhận mật khẩu mới</span>
+                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Xác nhận mật khẩu mới</span>
                 <span className="relative block">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
-                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white"
+                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
                     placeholder="Nhập lại mật khẩu mới"
                     autoComplete="new-password"
                   />
@@ -231,7 +231,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
             </button>
           </form>
 
-          <div className="mt-5 text-center text-sm text-zinc-500">
+          <div className="mt-5 text-center text-sm text-zinc-500 dark:text-slate-400">
             {isForgotPassword ? (
               <button
                 type="button"

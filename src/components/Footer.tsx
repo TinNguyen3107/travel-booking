@@ -12,7 +12,7 @@ interface FooterProps {
 
 export default function Footer({ onNavigate }: FooterProps) {
   return (
-    <footer className="border-t border-zinc-200 bg-zinc-950 px-4 py-10 text-zinc-300 sm:px-6 lg:px-8">
+    <footer className="border-t border-zinc-200 dark:border-slate-700 bg-zinc-950 px-4 py-10 text-zinc-300 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <button
@@ -26,7 +26,7 @@ export default function Footer({ onNavigate }: FooterProps) {
               <span className="text-emerald-500">Tour</span>
             </span>
           </button>
-          <p className="mt-4 max-w-md text-sm leading-6 text-zinc-400">
+          <p className="mt-4 max-w-md text-sm leading-6 text-zinc-400 dark:text-slate-500">
             Nền tảng đặt tour trải nghiệm địa phương tại Việt Nam, tập trung vào lịch trình rõ ràng,
             host đáng tin cậy và thao tác đặt tour nhanh.
           </p>
@@ -46,7 +46,7 @@ export default function Footer({ onNavigate }: FooterProps) {
                 key={id}
                 type="button"
                 onClick={() => onNavigate(id)}
-                className="text-left text-zinc-400 hover:text-white"
+                className="text-left text-zinc-400 dark:text-slate-500 hover:text-white"
               >
                 {label}
               </button>
@@ -56,7 +56,7 @@ export default function Footer({ onNavigate }: FooterProps) {
 
         <div>
           <h3 className="text-sm font-black uppercase tracking-widest text-white">Liên hệ</h3>
-          <div className="mt-4 space-y-3 text-sm text-zinc-400">
+          <div className="mt-4 space-y-3 text-sm text-zinc-400 dark:text-slate-500">
             <p className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-emerald-500" />
               tin310704@gmail.com
@@ -72,7 +72,7 @@ export default function Footer({ onNavigate }: FooterProps) {
           </div>
         </div>
       </div>
-      <div className="mx-auto mt-8 max-w-7xl border-t border-zinc-800 pt-5 text-xs text-zinc-500">
+      <div className="mx-auto mt-8 max-w-7xl border-t border-zinc-800 pt-5 text-xs text-zinc-500 dark:text-slate-400">
         © 2026 VietTour. Bảo lưu mọi quyền.
       </div>
     </footer>

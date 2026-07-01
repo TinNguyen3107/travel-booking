@@ -58,11 +58,11 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm overflow-y-auto py-10">
-      <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl my-auto">
+      <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-2xl my-auto">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 rounded-full bg-white/80 p-2 text-zinc-600 shadow-sm backdrop-blur-md hover:bg-white hover:text-zinc-950"
+          className="absolute right-4 top-4 z-10 rounded-full bg-white dark:bg-slate-800/80 p-2 text-zinc-600 dark:text-slate-300 shadow-sm backdrop-blur-md hover:bg-white dark:bg-slate-800 hover:text-zinc-950 dark:text-slate-50"
           aria-label="Đóng"
         >
           <X className="h-5 w-5" />
@@ -81,18 +81,18 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
             onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
             className="relative h-full w-full object-contain"
           />
-          <div className="absolute bottom-4 left-4 rounded-full bg-white/95 px-3 py-1.5 text-xs font-black text-emerald-700 shadow-sm">
+          <div className="absolute bottom-4 left-4 rounded-full bg-white dark:bg-slate-800/95 px-3 py-1.5 text-xs font-black text-emerald-700 shadow-sm">
             {experience.category}
           </div>
         </div>
 
         <div className="p-6 sm:p-8">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-100 pb-5">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-100 dark:border-slate-800 pb-5">
             <div>
-              <h2 className={`text-2xl sm:text-3xl font-black leading-tight text-zinc-950 ${highlightClass('title')}`}>
+              <h2 className={`text-2xl sm:text-3xl font-black leading-tight text-zinc-950 dark:text-slate-50 ${highlightClass('title')}`}>
                 {experience.title}
               </h2>
-              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm font-semibold text-zinc-500">
+              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm font-semibold text-zinc-500 dark:text-slate-400">
                 <span className={`inline-flex items-center gap-1.5 ${highlightClass('location')}`}>
                   <MapPin className="h-4 w-4 text-emerald-600" />
                   {experience.location}
@@ -108,7 +108,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
               </div>
             </div>
             <div className={`flex items-center gap-2 ${highlightClass('price')}`}>
-              <span className="text-xs font-bold uppercase text-zinc-400">Giá tour</span>
+              <span className="text-xs font-bold uppercase text-zinc-400 dark:text-slate-500">Giá tour</span>
               <span className="text-2xl font-black text-emerald-700">
                 {formatVnd(experience.price)}
               </span>
@@ -116,38 +116,38 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
           </div>
 
           {experience.host_email && (
-            <div className="mt-6 border-b border-zinc-100 pb-5">
-              <h3 className="text-sm font-bold uppercase text-zinc-500 mb-3">Thông tin Host</h3>
+            <div className="mt-6 border-b border-zinc-100 dark:border-slate-800 pb-5">
+              <h3 className="text-sm font-bold uppercase text-zinc-500 dark:text-slate-400 mb-3">Thông tin Host</h3>
               <HostProfileWidget email={experience.host_email} />
             </div>
           )}
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className={`rounded-xl border border-zinc-200 bg-zinc-50 p-4 ${highlightClass(['max_guests', 'daily_capacity_max', 'daily_capacity'])}`}>
-              <div className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500">
+            <div className={`rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass(['max_guests', 'daily_capacity_max', 'daily_capacity'])}`}>
+              <div className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">
                 <Users className="h-4 w-4 text-emerald-600" />
                 Sức chứa
               </div>
-              <div className="mt-2 text-base font-black text-zinc-950">
+              <div className="mt-2 text-base font-black text-zinc-950 dark:text-slate-50">
                 {Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests ?? 50)} khách/ngày
               </div>
-              <div className="text-xs text-zinc-500">
+              <div className="text-xs text-zinc-500 dark:text-slate-400">
                 (Tổng {Number(experience.max_guests || 50)} khách tối đa trong 1 tour)
               </div>
             </div>
-            <div className={`rounded-xl border border-zinc-200 bg-zinc-50 p-4 ${highlightClass(['booking_open_date', 'booking_close_date'])}`}>
-              <div className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500">
+            <div className={`rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass(['booking_open_date', 'booking_close_date'])}`}>
+              <div className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">
                 <CalendarCheck className="h-4 w-4 text-emerald-600" />
                 Nhận đặt
               </div>
-              <div className="mt-2 text-sm font-black text-zinc-950">
+              <div className="mt-2 text-sm font-black text-zinc-950 dark:text-slate-50">
                 {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
               </div>
             </div>
-            <div className={`rounded-xl border border-zinc-200 bg-zinc-50 p-4 ${highlightClass(['allow_children', 'min_age', 'child_max_age', 'child_price'])}`}>
-              <div className="text-xs font-bold uppercase text-zinc-500">Chính sách trẻ em</div>
+            <div className={`rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass(['allow_children', 'min_age', 'child_max_age', 'child_price'])}`}>
+              <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Chính sách trẻ em</div>
               {experience.allow_children ? (
-                <div className="mt-2 text-xs font-bold text-zinc-700">
+                <div className="mt-2 text-xs font-bold text-zinc-700 dark:text-slate-200">
                   <span className="block">• Tuổi tham gia: từ {experience.min_age || 0} tuổi</span>
                   <span className="block">• Trẻ em ({experience.min_age || 0}-{experience.child_max_age || 12} tuổi): Giảm {experience.child_price || 0}%</span>
                 </div>
@@ -157,8 +157,8 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
                 </div>
               )}
             </div>
-            <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
-              <div className="text-xs font-bold uppercase text-zinc-500">Trạng thái</div>
+            <div className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4">
+              <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Trạng thái</div>
               <div className={`mt-2 inline-flex rounded-full border px-2.5 py-1 text-xs font-black ${isOpen ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
                 {isOpen ? 'Đang mở bán' : 'Đã đóng nhận đặt'}
               </div>
@@ -170,7 +170,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
               <h3 className="text-sm font-black uppercase text-amber-800 mb-3 flex items-center gap-2">
                 <AlertCircle className="h-4 w-4" /> Chi tiết cập nhật (So sánh với bản cũ)
               </h3>
-              <div className="text-xs text-amber-900 bg-white/60 p-3 rounded-lg border border-amber-100 whitespace-pre-wrap max-h-60 overflow-y-auto font-mono">
+              <div className="text-xs text-amber-900 bg-white dark:bg-slate-800/60 p-3 rounded-lg border border-amber-100 whitespace-pre-wrap max-h-60 overflow-y-auto font-mono">
                 {(() => {
                   try {
                     const oldState = JSON.parse(experience.previous_state);
@@ -197,24 +197,24 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
           {(experience.rooms || experience.beds) ? (
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               {experience.rooms ? (
-                <div className={`flex items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-4 ${highlightClass('rooms')}`}>
+                <div className={`flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass('rooms')}`}>
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                     <Home className="h-5 w-5" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold uppercase text-zinc-500">Số phòng</div>
-                    <div className="text-base font-black text-zinc-950">{experience.rooms} phòng</div>
+                    <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Số phòng</div>
+                    <div className="text-base font-black text-zinc-950 dark:text-slate-50">{experience.rooms} phòng</div>
                   </div>
                 </div>
               ) : null}
               {experience.beds ? (
-                <div className={`flex items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-4 ${highlightClass('beds')}`}>
+                <div className={`flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass('beds')}`}>
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                     <Bed className="h-5 w-5" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold uppercase text-zinc-500">Số giường</div>
-                    <div className="text-base font-black text-zinc-950">{experience.beds} giường</div>
+                    <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Số giường</div>
+                    <div className="text-base font-black text-zinc-950 dark:text-slate-50">{experience.beds} giường</div>
                   </div>
                 </div>
               ) : null}
@@ -223,10 +223,10 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
 
           {parsedAmenities.length > 0 && (
             <div className={`mt-6 ${highlightClass('amenities')}`}>
-              <h3 className="text-lg font-black text-zinc-900 mb-3">Tiện ích</h3>
+              <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Tiện ích</h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 {parsedAmenities.map((amenity, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-sm font-semibold text-zinc-700">
+                  <div key={idx} className="flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-slate-200">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                     {amenity}
                   </div>
@@ -237,7 +237,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
 
           {schedules.length > 0 && (
             <div className="mt-6">
-              <h3 className="text-lg font-black text-zinc-900 mb-3">Lịch khởi hành sắp tới</h3>
+              <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Lịch khởi hành sắp tới</h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 {schedules.filter(s => s.remaining_slots > 0).slice(0, 4).map(schedule => (
                   <div key={schedule.id} className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
@@ -258,18 +258,18 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
 
           {parsedImages.length > 0 && (
             <div className={`mt-6 ${highlightClass('images')}`}>
-              <h3 className="text-lg font-black text-zinc-900 mb-3">Thư viện ảnh</h3>
+              <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Thư viện ảnh</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {parsedImages.map((img, idx) => (
-                  <img key={idx} src={img} alt={`${experience.title} ${idx}`} className="h-32 w-full object-cover rounded-xl border border-zinc-200" />
+                  <img key={idx} src={img} alt={`${experience.title} ${idx}`} className="h-32 w-full object-cover rounded-xl border border-zinc-200 dark:border-slate-700" />
                 ))}
               </div>
             </div>
           )}
 
           <div className={`mt-6 ${highlightClass('description')}`}>
-            <h3 className="text-lg font-black text-zinc-900 mb-3">Mô tả trải nghiệm</h3>
-            <div className="text-zinc-600 leading-relaxed space-y-3 whitespace-pre-wrap">
+            <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Mô tả trải nghiệm</h3>
+            <div className="text-zinc-600 dark:text-slate-300 leading-relaxed space-y-3 whitespace-pre-wrap">
               {experience.description || 'Chưa có mô tả cho tour này.'}
             </div>
           </div>
@@ -279,8 +279,8 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
           )}
 
           <div className="mt-6">
-            <h3 className="text-lg font-black text-zinc-900 mb-3">Bản đồ khu vực</h3>
-            <div className="rounded-2xl overflow-hidden border border-zinc-200">
+            <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Bản đồ khu vực</h3>
+            <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-slate-700">
               <iframe
                 title="Bản đồ khu vực"
                 width="100%"
@@ -293,11 +293,11 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
             </div>
           </div>
 
-          <div className="mt-8 flex justify-end gap-3 border-t border-zinc-100 pt-6">
+          <div className="mt-8 flex justify-end gap-3 border-t border-zinc-100 dark:border-slate-800 pt-6">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-zinc-200 px-5 py-2.5 text-sm font-bold text-zinc-600 hover:bg-zinc-50"
+              className="rounded-xl border border-zinc-200 dark:border-slate-700 px-5 py-2.5 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:bg-slate-900/50"
             >
               Đóng
             </button>
