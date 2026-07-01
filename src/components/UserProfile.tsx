@@ -138,28 +138,28 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
       <div className="flex border-b border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800">
         <button
           onClick={() => setActiveTab('info')}
-          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'info' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:bg-slate-900/50'}`}
+          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'info' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:hover:bg-slate-900/50'}`}
         >
           <User className="h-4 w-4" />
           Thông tin cá nhân
         </button>
         <button
           onClick={() => setActiveTab('history')}
-          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'history' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:bg-slate-900/50'}`}
+          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'history' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:hover:bg-slate-900/50'}`}
         >
           <History className="h-4 w-4" />
           Đơn đã đặt ({activeBookings.length})
         </button>
         <button
           onClick={() => setActiveTab('cancelled')}
-          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'cancelled' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:bg-slate-900/50'}`}
+          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'cancelled' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:hover:bg-slate-900/50'}`}
         >
           <XCircle className="h-4 w-4" />
           Đơn đã hủy ({cancelledBookings.length})
         </button>
         <button
           onClick={() => setActiveTab('wishlists')}
-          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'wishlists' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:bg-slate-900/50'}`}
+          className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'wishlists' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:hover:bg-slate-900/50'}`}
         >
           <Heart className="h-4 w-4" />
           Yêu thích ({wishlistDetails.length})

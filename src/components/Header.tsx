@@ -90,7 +90,7 @@ export default function Header({
                 className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                   active
                     ? 'bg-emerald-50 text-emerald-700'
-                    : 'text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:bg-slate-800 hover:text-zinc-950 dark:text-slate-50'
+                    : 'text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800 hover:text-zinc-950 dark:text-slate-50'
                 }`}
               >
                 {Icon && <Icon className="h-4 w-4" />}
@@ -126,7 +126,7 @@ export default function Header({
 
           {user ? (
             <>
-              <button type="button" onClick={onOpenProfile} className="flex items-center gap-2 rounded-full border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:bg-slate-800">
+              <button type="button" onClick={onOpenProfile} className="flex items-center gap-2 rounded-full border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800">
                 {user.role === 'admin' && <ShieldCheck className="h-4 w-4 text-emerald-600" />}
                 <span className="max-w-40 truncate">{user.fullname || user.email}</span>
               </button>
@@ -172,7 +172,7 @@ export default function Header({
                 className={`block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold ${
                   activeSection === item.id
                     ? 'bg-emerald-50 text-emerald-700'
-                    : 'text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:bg-slate-800'
+                    : 'text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800'
                 }`}
               >
                 {item.label}
@@ -185,7 +185,7 @@ export default function Header({
             <button
               type="button"
               onClick={onToggleDark}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               {isDark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-indigo-500" />}
               {isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}

@@ -360,7 +360,7 @@ export default function App() {
 
   if (user?.role === 'admin' || user?.role === 'host') {
     return (
-      <div className="min-h-screen bg-zinc-100 dark:bg-slate-800 font-sans">
+      <div className={`min-h-screen bg-zinc-100 dark:bg-slate-800 font-sans transition-colors duration-300 text-zinc-900 dark:text-slate-100`}>
         <Header
           user={user}
           onOpenLogin={() => setShowLoginModal(true)}
@@ -369,6 +369,8 @@ export default function App() {
           onOpenProfile={() => setShowUserProfile(true)}
           activeSection={activeSection === 'hero' ? 'dashboard' : activeSection}
           adminMode
+          isDark={isDark}
+          onToggleDark={toggleDark}
         />
 
         <main id="dashboard" className="px-4 py-6 sm:px-6 lg:px-8">
@@ -435,7 +437,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => scrollToSection('host-register')}
-                className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-3 text-sm font-black text-zinc-800 dark:text-slate-200 hover:bg-zinc-100 dark:bg-slate-800"
+                className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-3 text-sm font-black text-zinc-800 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800"
               >
                 Đăng ký làm host
               </button>
@@ -499,7 +501,7 @@ export default function App() {
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Tìm theo tên tour, địa điểm hoặc danh mục"
-                className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
+                className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
               />
             </label>
             <input
@@ -594,7 +596,7 @@ export default function App() {
                         <button
                           type="button"
                           onClick={() => handleViewDetails(experience)}
-                          className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:bg-slate-900/50"
+                          className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-900/50"
                         >
                           Chi tiết
                         </button>

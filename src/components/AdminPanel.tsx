@@ -538,26 +538,26 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
 
   if (activeSection === 'preview') {
     return (
-      <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm p-6">
+      <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm p-6">
         <div className="mb-6">
-          <h3 className="text-2xl font-black text-zinc-950">Tour đang mở bán</h3>
-          <p className="mt-1 text-sm text-zinc-500">Xem trước danh sách tour hiển thị với khách hàng.</p>
+          <h3 className="text-2xl font-black text-zinc-950 dark:text-slate-50">Tour đang mở bán</h3>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">Xem trước danh sách tour hiển thị với khách hàng.</p>
         </div>
 
-        <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 lg:flex-row lg:items-center mb-6">
+        <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 lg:flex-row lg:items-center mb-6">
           <label className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
             <input
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Tìm theo tên tour, địa điểm hoặc danh mục"
-              className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500"
+              className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500"
             />
           </label>
           <select
             value={selectedCategory}
             onChange={(event) => setSelectedCategory(event.target.value)}
-            className="rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm font-bold text-zinc-700 outline-none focus:border-emerald-500"
+            className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
           >
             <option value="all">Tất cả danh mục</option>
             {categories.map((category) => (
@@ -568,7 +568,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
 
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {filteredExperiences.map((experience) => (
-            <article key={experience.id} className="flex overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+            <article key={experience.id} className="flex overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
               <div className="flex w-full flex-col">
                 <div className="relative">
                   <img
@@ -580,25 +580,25 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                     }}
                     className="h-48 w-full object-cover"
                   />
-                  <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-xs font-black text-emerald-700 shadow-sm">
+                  <span className="absolute left-3 top-3 rounded-full bg-white dark:bg-slate-800/95 px-3 py-1 text-xs font-black text-emerald-700 shadow-sm">
                     {experience.category}
                   </span>
                 </div>
                 <div className="flex flex-1 flex-col p-4">
-                  <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-zinc-500">
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-zinc-500 dark:text-slate-400">
                     <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-emerald-600" />{experience.location}</span>
                     <span className="inline-flex items-center gap-1"><Clock3 className="h-3.5 w-3.5 text-emerald-600" />{experience.duration}</span>
                   </div>
-                  <h3 className="mt-2 line-clamp-2 text-base font-black leading-snug text-zinc-950">{experience.title}</h3>
-                  <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-zinc-500">
+                  <h3 className="mt-2 line-clamp-2 text-base font-black leading-snug text-zinc-950 dark:text-slate-50">{experience.title}</h3>
+                  <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-zinc-500 dark:text-slate-400">
                     {experience.description || 'Chưa có mô tả cho tour này.'}
                   </p>
                   <div className="mt-3 flex items-center gap-1 text-sm font-black text-amber-500">
                     <Star className="h-4 w-4 fill-current" />
                     <span>{Number(experience.rating || 0).toFixed(1)}</span>
-                    <span className="font-semibold text-zinc-400">({experience.reviews_count} đánh giá)</span>
+                    <span className="font-semibold text-zinc-400 dark:text-slate-500">({experience.reviews_count} đánh giá)</span>
                   </div>
-                  <div className="mt-3 grid gap-1 rounded-xl border border-zinc-100 bg-zinc-50 p-3 text-xs font-bold text-zinc-600">
+                  <div className="mt-3 grid gap-1 rounded-xl border border-zinc-100 dark:border-slate-800 bg-zinc-50 dark:bg-slate-900/50 p-3 text-xs font-bold text-zinc-600 dark:text-slate-300">
                     <span className="inline-flex items-center gap-1.5">
                       <Users className="h-3.5 w-3.5 text-emerald-600" />
                       Tối đa {Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests ?? 50)} khách/ngày
@@ -608,10 +608,10 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                       Nhận đặt: {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
                     </span>
                   </div>
-                  <div className="mt-auto flex flex-col gap-3 border-t border-zinc-100 pt-4">
+                  <div className="mt-auto flex flex-col gap-3 border-t border-zinc-100 dark:border-slate-800 pt-4">
                     <div className="flex items-end justify-between">
                       <div>
-                        <div className="text-xs font-bold uppercase text-zinc-400">Giá từ</div>
+                        <div className="text-xs font-bold uppercase text-zinc-400 dark:text-slate-500">Giá từ</div>
                         <div className="text-lg font-black text-emerald-700">{formatVnd(experience.price)}</div>
                       </div>
                     </div>
@@ -619,7 +619,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                       <button
                         type="button"
                         onClick={() => setViewExperienceDetail(experience)}
-                        className="flex-1 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-black text-zinc-600 hover:bg-zinc-50"
+                        className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-900/50"
                       >
                         Chi tiết
                       </button>
@@ -630,7 +630,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
             </article>
           ))}
           {filteredExperiences.length === 0 && (
-            <div className="col-span-full rounded-2xl border border-dashed border-zinc-300 bg-white p-10 text-center text-sm font-semibold text-zinc-500">
+            <div className="col-span-full rounded-2xl border border-dashed border-zinc-300 dark:border-slate-600 bg-white dark:bg-slate-800 p-10 text-center text-sm font-semibold text-zinc-500 dark:text-slate-400">
               Không tìm thấy tour phù hợp.
             </div>
           )}
@@ -651,26 +651,26 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm">
-      <div className="flex flex-col gap-4 border-b border-zinc-200 p-5 lg:flex-row lg:items-center lg:justify-between">
+    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+      <div className="flex flex-col gap-4 border-b border-zinc-200 dark:border-slate-700 p-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Bảng điều khiển</p>
-          <h2 className="mt-1 text-2xl font-black text-zinc-950">Quản trị VietTour</h2>
-          <p className="mt-1 text-sm text-zinc-500">
+          <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-slate-50">Quản trị VietTour</h2>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">
             Quản lý tour, đơn đặt, host và phân quyền người dùng.
           </p>
         </div>
         <button
           type="button"
           onClick={fetchAllData}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 px-4 py-2 text-sm font-bold text-zinc-700 hover:bg-zinc-50"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-50 dark:hover:bg-slate-900/50"
         >
           <RefreshCcw className="h-4 w-4" />
           Làm mới
         </button>
       </div>
 
-      <div className="border-b border-zinc-200 p-4">
+      <div className="border-b border-zinc-200 dark:border-slate-700 p-4">
         <div className="flex gap-2 overflow-x-auto">
           {tabs.map((tab) => (
             <button
@@ -679,7 +679,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
               onClick={() => setActiveTab(tab.id as AdminTab)}
               className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-bold ${activeTab === tab.id
                 ? 'bg-emerald-600 text-white'
-                : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+                : 'bg-zinc-100 dark:bg-slate-800 text-zinc-700 dark:text-slate-200 hover:bg-zinc-200'
                 }`}
             >
               {tab.label}
@@ -696,7 +696,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         )}
 
         {loading && (
-          <div className="py-10 text-center text-sm font-bold text-zinc-500">Đang tải dữ liệu...</div>
+          <div className="py-10 text-center text-sm font-bold text-zinc-500 dark:text-slate-400">Đang tải dữ liệu...</div>
         )}
 
         {!loading && activeTab === 'overview' && (
@@ -710,14 +710,14 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
-              <div className="rounded-2xl border border-zinc-200">
-                <div className="border-b border-zinc-200 px-4 py-3 font-black text-zinc-950">Đơn mới</div>
+              <div className="rounded-2xl border border-zinc-200 dark:border-slate-700">
+                <div className="border-b border-zinc-200 dark:border-slate-700 px-4 py-3 font-black text-zinc-950 dark:text-slate-50">Đơn mới</div>
                 <div className="divide-y divide-zinc-100">
                   {bookings.slice(0, 5).map((booking) => (
                     <div key={booking.id} className="flex items-center justify-between gap-4 p-4 text-sm">
                       <div>
-                        <div className="font-bold text-zinc-900">{booking.experience_title}</div>
-                        <div className="text-xs text-zinc-500">
+                        <div className="font-bold text-zinc-900 dark:text-slate-100">{booking.experience_title}</div>
+                        <div className="text-xs text-zinc-500 dark:text-slate-400">
                           {booking.contact_name} · {booking.guests} khách · {formatVnd(booking.total_price)}
                         </div>
                       </div>
@@ -730,16 +730,16 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-zinc-200">
-                <div className="border-b border-zinc-200 px-4 py-3 font-black text-zinc-950">Người dùng mới</div>
+              <div className="rounded-2xl border border-zinc-200 dark:border-slate-700">
+                <div className="border-b border-zinc-200 dark:border-slate-700 px-4 py-3 font-black text-zinc-950 dark:text-slate-50">Người dùng mới</div>
                 <div className="divide-y divide-zinc-100">
                   {users.slice(0, 5).map((item) => (
                     <div key={item.id} className="flex items-center justify-between gap-4 p-4 text-sm">
                       <div>
-                        <div className="font-bold text-zinc-900">{item.fullname}</div>
-                        <div className="text-xs text-zinc-500">{item.email}</div>
+                        <div className="font-bold text-zinc-900 dark:text-slate-100">{item.fullname}</div>
+                        <div className="text-xs text-zinc-500 dark:text-slate-400">{item.email}</div>
                       </div>
-                      <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-bold text-zinc-700 capitalize">
+                      <span className="rounded-full border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-2.5 py-1 text-xs font-bold text-zinc-700 dark:text-slate-200 capitalize">
                         {item.role}
                       </span>
                     </div>
@@ -755,14 +755,14 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
           <div className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="text-lg font-black text-zinc-950">Duyệt & Quản lý Tour</h3>
-                <p className="mt-0.5 text-sm text-zinc-500">Chỉ Host mới được tạo tour. Admin có thể ẩn hoặc xóa tour vi phạm.</p>
+                <h3 className="text-lg font-black text-zinc-950 dark:text-slate-50">Duyệt & Quản lý Tour</h3>
+                <p className="mt-0.5 text-sm text-zinc-500 dark:text-slate-400">Chỉ Host mới được tạo tour. Admin có thể ẩn hoặc xóa tour vi phạm.</p>
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-zinc-200">
+            <div className="overflow-x-auto rounded-2xl border border-zinc-200 dark:border-slate-700">
               <table className="min-w-full text-sm">
-                <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
+                <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
                   <tr>
                     <th className="px-4 py-3 text-left">Tour</th>
                     <th className="px-4 py-3 text-left">Host</th>
@@ -780,21 +780,21 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                         <div className="flex items-center gap-3">
                           <img src={item.image || FALLBACK_IMAGE} alt={item.title} className="h-12 w-16 rounded-lg object-cover" />
                           <div>
-                            <div className="font-bold text-zinc-900">{item.title}</div>
-                            <div className="text-xs text-zinc-500">{item.location} · {item.duration}</div>
+                            <div className="font-bold text-zinc-900 dark:text-slate-100">{item.title}</div>
+                            <div className="text-xs text-zinc-500 dark:text-slate-400">{item.location} · {item.duration}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-xs text-zinc-500">{item.host_email || '—'}</td>
+                      <td className="px-4 py-3 text-xs text-zinc-500 dark:text-slate-400">{item.host_email || '—'}</td>
                       <td className="px-4 py-3 font-bold text-emerald-700">{formatVnd(item.price)}</td>
-                      <td className="px-4 py-3 text-zinc-600">
+                      <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">
                         <div>{Number(item.max_guests || 50)} khách (tổng)</div>
-                        <div className="text-xs text-zinc-400">{Number(item.daily_capacity_max ?? item.daily_capacity ?? item.max_guests ?? 50)}/ngày</div>
+                        <div className="text-xs text-zinc-400 dark:text-slate-500">{Number(item.daily_capacity_max ?? item.daily_capacity ?? item.max_guests ?? 50)}/ngày</div>
                       </td>
-                      <td className="px-4 py-3 text-zinc-600">{Number(item.rating || 0).toFixed(1)} ({item.reviews_count})</td>
+                      <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{Number(item.rating || 0).toFixed(1)} ({item.reviews_count})</td>
                       <td className="px-4 py-3 text-center">
                         <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${
-                          item.status === 'hidden' ? 'border-zinc-200 bg-zinc-100 text-zinc-500'
+                          item.status === 'hidden' ? 'border-zinc-200 dark:border-slate-700 bg-zinc-100 dark:bg-slate-800 text-zinc-500 dark:text-slate-400'
                           : item.status === 'suspended' ? 'border-orange-200 bg-orange-50 text-orange-700'
                           : item.status === 'closed' ? 'border-red-200 bg-red-50 text-red-700'
                           : item.status === 'pending_review' || item.status === 'pending_update' ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
@@ -847,7 +847,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                             <button
                               type="button"
                               onClick={() => toggleExperienceStatus(item.id, item.status)}
-                              className={`mr-1 rounded-lg border px-2 py-1.5 text-xs font-bold ${item.status === 'hidden' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100'}`}
+                              className={`mr-1 rounded-lg border px-2 py-1.5 text-xs font-bold ${item.status === 'hidden' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800'}`}
                             >
                               {item.status === 'hidden' ? 'Hiện' : item.status === 'closed' ? 'Đã đóng' : 'Ẩn'}
                             </button>
@@ -869,7 +869,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         {!loading && activeTab === 'experiences' && isHost && (
           <div className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-lg font-black text-zinc-950">Quản lý tour của tôi</h3>
+              <h3 className="text-lg font-black text-zinc-950 dark:text-slate-50">Quản lý tour của tôi</h3>
               <button
                 type="button"
                 onClick={() => {
@@ -884,41 +884,41 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
             </div>
 
             {showForm && (
-              <form onSubmit={saveExperience} className="grid gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 lg:grid-cols-6">
-                <input value={form.title} onChange={(event) => updateForm('title', event.target.value)} placeholder="Tên tour" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
-                <input value={form.location} onChange={(event) => updateForm('location', event.target.value)} placeholder="Địa điểm" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <input value={form.duration} onChange={(event) => updateForm('duration', event.target.value)} placeholder="Thời lượng" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <input type="number" min="1000" step="1000" value={form.price} onChange={(event) => updateForm('price', Number(event.target.value))} placeholder="Giá" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <select value={form.category} onChange={(event) => updateForm('category', event.target.value)} className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500">
+              <form onSubmit={saveExperience} className="grid gap-3 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 lg:grid-cols-6">
+                <input value={form.title} onChange={(event) => updateForm('title', event.target.value)} placeholder="Tên tour" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
+                <input value={form.location} onChange={(event) => updateForm('location', event.target.value)} placeholder="Địa điểm" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <input value={form.duration} onChange={(event) => updateForm('duration', event.target.value)} placeholder="Thời lượng" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <input type="number" min="1000" step="1000" value={form.price} onChange={(event) => updateForm('price', Number(event.target.value))} placeholder="Giá" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <select value={form.category} onChange={(event) => updateForm('category', event.target.value)} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500">
                   <option value="" disabled>Chọn danh mục</option>
                   {dbCategories.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}
                 </select>
-                <input type="number" min="1" max="1000" value={form.max_guests} onChange={(event) => updateForm('max_guests', Number(event.target.value))} placeholder="Số khách tối đa (toàn tour)" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <input type="number" min="1" max={form.max_guests} value={form.daily_capacity_max} onChange={(event) => updateForm('daily_capacity_max', Number(event.target.value))} placeholder="Khách tối đa mỗi ngày" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <input type="number" min="1" max="1000" value={form.max_guests} onChange={(event) => updateForm('max_guests', Number(event.target.value))} placeholder="Số khách tối đa (toàn tour)" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <input type="number" min="1" max={form.max_guests} value={form.daily_capacity_max} onChange={(event) => updateForm('daily_capacity_max', Number(event.target.value))} placeholder="Khách tối đa mỗi ngày" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500">Mở đặt từ ngày</span>
-                  <input type="date" value={form.booking_open_date} onChange={(event) => updateForm('booking_open_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Mở đặt từ ngày</span>
+                  <input type="date" value={form.booking_open_date} onChange={(event) => updateForm('booking_open_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500">Đóng đặt sau ngày</span>
-                  <input type="date" min={form.booking_open_date} value={form.booking_close_date} onChange={(event) => updateForm('booking_close_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Đóng đặt sau ngày</span>
+                  <input type="date" min={form.booking_open_date} value={form.booking_close_date} onChange={(event) => updateForm('booking_close_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
-                <input type="number" min="0" value={form.rooms} onChange={(event) => updateForm('rooms', Number(event.target.value))} placeholder="Số phòng" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <input type="number" min="0" value={form.beds} onChange={(event) => updateForm('beds', Number(event.target.value))} placeholder="Số giường" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <input value={form.amenities} onChange={(event) => updateForm('amenities', event.target.value)} placeholder="Tiện ích (cách nhau dấu phẩy)" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
-                <input value={form.image} onChange={(event) => updateForm('image', event.target.value)} placeholder="URL ảnh đại diện" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
-                <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder="Danh sách ảnh phụ (cách nhau dấu phẩy hoặc khoảng trắng)" rows={3} className="resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
-                <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} placeholder="Mô tả tour (hiển thị khi khách xem chi tiết)" rows={3} className="resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-4" />
+                <input type="number" min="0" value={form.rooms} onChange={(event) => updateForm('rooms', Number(event.target.value))} placeholder="Số phòng" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <input type="number" min="0" value={form.beds} onChange={(event) => updateForm('beds', Number(event.target.value))} placeholder="Số giường" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <input value={form.amenities} onChange={(event) => updateForm('amenities', event.target.value)} placeholder="Tiện ích (cách nhau dấu phẩy)" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
+                <input value={form.image} onChange={(event) => updateForm('image', event.target.value)} placeholder="URL ảnh đại diện" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
+                <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder="Danh sách ảnh phụ (cách nhau dấu phẩy hoặc khoảng trắng)" rows={3} className="resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
+                <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} placeholder="Mô tả tour (hiển thị khi khách xem chi tiết)" rows={3} className="resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-4" />
                 <div className="flex gap-2 lg:col-span-2">
                   <button type="submit" className="flex-1 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-bold text-white hover:bg-emerald-700">Lưu</button>
-                  <button type="button" onClick={resetForm} className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-600 hover:bg-zinc-100">Hủy</button>
+                  <button type="button" onClick={resetForm} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800">Hủy</button>
                 </div>
               </form>
             )}
 
-            <div className="overflow-x-auto rounded-2xl border border-zinc-200">
+            <div className="overflow-x-auto rounded-2xl border border-zinc-200 dark:border-slate-700">
               <table className="min-w-full text-sm">
-                <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
+                <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
                   <tr>
                     <th className="px-4 py-3 text-left">Tour</th>
                     <th className="px-4 py-3 text-left">Danh mục</th>
@@ -936,24 +936,24 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                         <div className="flex items-center gap-3">
                           <img src={item.image || FALLBACK_IMAGE} alt={item.title} className="h-12 w-16 rounded-lg object-cover" />
                           <div>
-                            <div className="font-bold text-zinc-900">{item.title}</div>
-                            <div className="text-xs text-zinc-500">{item.location} · {item.duration}</div>
+                            <div className="font-bold text-zinc-900 dark:text-slate-100">{item.title}</div>
+                            <div className="text-xs text-zinc-500 dark:text-slate-400">{item.location} · {item.duration}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-zinc-600">{item.category}</td>
+                      <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{item.category}</td>
                       <td className="px-4 py-3 font-bold text-emerald-700">{formatVnd(item.price)}</td>
-                      <td className="px-4 py-3 text-zinc-600">{Number(item.daily_capacity_max ?? item.daily_capacity ?? item.max_guests ?? 50)} khách/ngày</td>
-                      <td className="px-4 py-3 text-zinc-600">
+                      <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{Number(item.daily_capacity_max ?? item.daily_capacity ?? item.max_guests ?? 50)} khách/ngày</td>
+                      <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">
                         <div className="text-xs font-semibold">{formatDateVi(item.booking_open_date)} - {formatDateVi(item.booking_close_date)}</div>
                         <span className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs font-bold ${isExperienceOpen(item) ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : item.booking_open_date && item.booking_open_date > todayIso() ? 'border-sky-100 bg-sky-50 text-sky-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
                           {isExperienceOpen(item) ? 'Đang mở' : item.booking_open_date && item.booking_open_date > todayIso() ? 'Chưa mở' : 'Đã đóng'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-zinc-600">{Number(item.rating || 0).toFixed(1)} ({item.reviews_count})</td>
+                      <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{Number(item.rating || 0).toFixed(1)} ({item.reviews_count})</td>
                       <td className="px-4 py-3 text-right">
                         <button type="button" onClick={() => setScheduleExperience(item)} className="mr-2 rounded-lg border border-emerald-100 bg-emerald-50 p-2 text-emerald-600 hover:bg-emerald-100" aria-label="Quản lý lịch"><Calendar className="h-4 w-4" /></button>
-                        <button type="button" onClick={() => editExperience(item)} className="mr-2 rounded-lg border border-zinc-200 p-2 text-zinc-600 hover:bg-zinc-50" aria-label="Sửa tour"><Edit2 className="h-4 w-4" /></button>
+                        <button type="button" onClick={() => editExperience(item)} className="mr-2 rounded-lg border border-zinc-200 dark:border-slate-700 p-2 text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-900/50" aria-label="Sửa tour"><Edit2 className="h-4 w-4" /></button>
                         <button type="button" onClick={() => deleteExperience(item.id)} className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50" aria-label="Xóa tour"><Trash2 className="h-4 w-4" /></button>
                       </td>
                     </tr>
@@ -971,14 +971,14 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
 
         {!loading && activeTab === 'categories' && (
           <div className="space-y-4">
-            <h3 className="text-lg font-black text-zinc-950">Quản lý danh mục tour</h3>
+            <h3 className="text-lg font-black text-zinc-950 dark:text-slate-50">Quản lý danh mục tour</h3>
 
             <form onSubmit={addCategory} className="flex gap-2">
               <input
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
                 placeholder="Tên danh mục mới..."
-                className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm outline-none focus:border-emerald-500"
+                className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm outline-none focus:border-emerald-500"
               />
               <button
                 type="submit"
@@ -988,9 +988,9 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
               </button>
             </form>
 
-            <div className="overflow-x-auto rounded-2xl border border-zinc-200 mt-4">
+            <div className="overflow-x-auto rounded-2xl border border-zinc-200 dark:border-slate-700 mt-4">
               <table className="min-w-full text-sm">
-                <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
+                <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
                   <tr>
                     <th className="px-4 py-3 text-left">ID</th>
                     <th className="px-4 py-3 text-left">Tên danh mục</th>
@@ -1000,8 +1000,8 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                 <tbody className="divide-y divide-zinc-200">
                   {dbCategories.map((item) => (
                     <tr key={item.id}>
-                      <td className="px-4 py-3 text-zinc-500">#{item.id}</td>
-                      <td className="px-4 py-3 font-bold text-zinc-900">{item.name}</td>
+                      <td className="px-4 py-3 text-zinc-500 dark:text-slate-400">#{item.id}</td>
+                      <td className="px-4 py-3 font-bold text-zinc-900 dark:text-slate-100">{item.name}</td>
                       <td className="px-4 py-3 text-right">
                         <button
                           type="button"
@@ -1026,7 +1026,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         {!loading && activeTab === 'bookings' && (
           <AdminTable title="Quản lý đơn đặt tour">
             <table className="min-w-full text-sm">
-              <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
+              <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
                 <tr>
                   <th className="px-4 py-3 text-left">Đơn</th>
                   <th className="px-4 py-3 text-left">Liên hệ</th>
@@ -1039,11 +1039,11 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                 {bookings.map((booking) => (
                   <tr key={booking.id}>
                     <td className="px-4 py-3">
-                      <div className="font-bold text-zinc-900">#{booking.id} · {booking.experience_title}</div>
-                      <div className="text-xs text-zinc-500">{booking.user_email} · {booking.guests} khách</div>
+                      <div className="font-bold text-zinc-900 dark:text-slate-100">#{booking.id} · {booking.experience_title}</div>
+                      <div className="text-xs text-zinc-500 dark:text-slate-400">{booking.user_email} · {booking.guests} khách</div>
                     </td>
-                    <td className="px-4 py-3 text-zinc-600">{booking.contact_name}<br /><span className="text-xs">{booking.contact_phone}</span></td>
-                    <td className="px-4 py-3 text-zinc-600">
+                    <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{booking.contact_name}<br /><span className="text-xs">{booking.contact_phone}</span></td>
+                    <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">
                       {booking.booking_date}
                       {booking.schedule_id && <div className="mt-1 text-xs font-bold text-emerald-600">Lịch ID: #{booking.schedule_id}</div>}
                     </td>
@@ -1062,7 +1062,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                           {booking.status === 'pending' ? 'Chờ xử lý' : booking.status === 'confirmed' ? 'Đã xác nhận' : 'Đã hủy'}
                         </div>
                         <div
-                          className={`w-full rounded-lg border px-2 py-1.5 text-xs font-bold text-center ${booking.payment_status === 'paid' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : booking.payment_status === 'refunded' ? 'border-zinc-200 bg-zinc-50 text-zinc-600' : 'border-rose-200 bg-rose-50 text-rose-700'}`}
+                          className={`w-full rounded-lg border px-2 py-1.5 text-xs font-bold text-center ${booking.payment_status === 'paid' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : booking.payment_status === 'refunded' ? 'border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 text-zinc-600 dark:text-slate-300' : 'border-rose-200 bg-rose-50 text-rose-700'}`}
                         >
                           {booking.payment_status === 'paid' ? 'Đã thanh toán' : booking.payment_status === 'refunded' ? 'Đã hoàn tiền' : 'Chưa thanh toán'}
                         </div>
@@ -1080,7 +1080,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                         )}
 
                         {booking.refund_status === 'completed' && (
-                          <div className="mt-2 text-center text-xs font-bold text-zinc-500 bg-zinc-100 py-1 rounded">
+                          <div className="mt-2 text-center text-xs font-bold text-zinc-500 dark:text-slate-400 bg-zinc-100 dark:bg-slate-800 py-1 rounded">
                             Đã hoàn tiền
                           </div>
                         )}
@@ -1110,51 +1110,51 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
             </div>
             
             {showPromoForm && (
-              <form onSubmit={savePromotion} className="mb-8 rounded-2xl border border-zinc-200 bg-zinc-50 p-6">
-                <h3 className="mb-6 text-lg font-black text-zinc-900">Thêm mã mới</h3>
+              <form onSubmit={savePromotion} className="mb-8 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-6">
+                <h3 className="mb-6 text-lg font-black text-zinc-900 dark:text-slate-100">Thêm mã mới</h3>
                 <div className="grid gap-6 sm:grid-cols-2">
                   <label className="block">
-                    <span className="mb-2 block text-sm font-bold text-zinc-700">Mã giảm giá</span>
+                    <span className="mb-2 block text-sm font-bold text-zinc-700 dark:text-slate-200">Mã giảm giá</span>
                     <input
                       value={promoForm.code}
                       onChange={(e) => setPromoForm({ ...promoForm, code: e.target.value })}
-                      className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                       placeholder="VD: SUMMER2024"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-sm font-bold text-zinc-700">Ngày hết hạn</span>
+                    <span className="mb-2 block text-sm font-bold text-zinc-700 dark:text-slate-200">Ngày hết hạn</span>
                     <input
                       type="date"
                       value={promoForm.expiry_date}
                       onChange={(e) => setPromoForm({ ...promoForm, expiry_date: e.target.value })}
-                      className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-sm font-bold text-zinc-700">Giảm theo %</span>
+                    <span className="mb-2 block text-sm font-bold text-zinc-700 dark:text-slate-200">Giảm theo %</span>
                     <input
                       type="number"
                       value={promoForm.discount_percent}
                       onChange={(e) => setPromoForm({ ...promoForm, discount_percent: Number(e.target.value) })}
-                      className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-sm font-bold text-zinc-700">Hoặc Giảm tiền mặt (VNĐ)</span>
+                    <span className="mb-2 block text-sm font-bold text-zinc-700 dark:text-slate-200">Hoặc Giảm tiền mặt (VNĐ)</span>
                     <input
                       type="number"
                       value={promoForm.discount_amount}
                       onChange={(e) => setPromoForm({ ...promoForm, discount_amount: Number(e.target.value) })}
-                      className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-sm font-bold text-zinc-700">Áp dụng cho Tour (Bỏ trống: Tất cả)</span>
+                    <span className="mb-2 block text-sm font-bold text-zinc-700 dark:text-slate-200">Áp dụng cho Tour (Bỏ trống: Tất cả)</span>
                     <select
                       value={promoForm.experience_id}
                       onChange={(e) => setPromoForm({ ...promoForm, experience_id: e.target.value })}
-                      className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                     >
                       <option value="">-- Áp dụng cho tất cả tour --</option>
                       {experiences.map(exp => (
@@ -1163,21 +1163,21 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                     </select>
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-sm font-bold text-zinc-700">Giới hạn số lượt dùng</span>
+                    <span className="mb-2 block text-sm font-bold text-zinc-700 dark:text-slate-200">Giới hạn số lượt dùng</span>
                     <input
                       type="number"
                       value={promoForm.usage_limit}
                       onChange={(e) => setPromoForm({ ...promoForm, usage_limit: Number(e.target.value) })}
-                      className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                     />
                   </label>
                   <label className="block sm:col-span-2">
-                    <span className="mb-2 block text-sm font-bold text-zinc-700">Mô tả (hiển thị trên băng rôn)</span>
+                    <span className="mb-2 block text-sm font-bold text-zinc-700 dark:text-slate-200">Mô tả (hiển thị trên băng rôn)</span>
                     <input
                       value={promoForm.description}
                       onChange={(e) => setPromoForm({ ...promoForm, description: e.target.value })}
                       placeholder="VD: Nhập SUMMER2024 giảm 10% khi đặt tour!"
-                      className="w-full rounded-xl border border-zinc-200 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                     />
                   </label>
                 </div>
@@ -1185,7 +1185,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                   <button
                     type="button"
                     onClick={() => setShowPromoForm(false)}
-                    className="rounded-xl px-5 py-2.5 text-sm font-bold text-zinc-600 hover:bg-zinc-200"
+                    className="rounded-xl px-5 py-2.5 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-200"
                   >
                     Hủy
                   </button>
@@ -1199,9 +1199,9 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
               </form>
             )}
 
-            <div className="overflow-x-auto rounded-2xl border border-zinc-200">
+            <div className="overflow-x-auto rounded-2xl border border-zinc-200 dark:border-slate-700">
               <table className="w-full text-left text-sm">
-                <thead className="bg-zinc-50 font-bold text-zinc-900">
+                <thead className="bg-zinc-50 dark:bg-slate-900/50 font-bold text-zinc-900 dark:text-slate-100">
                   <tr>
                     <th className="p-4">Mã</th>
                     <th className="p-4">Giảm giá</th>
@@ -1211,20 +1211,20 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                     <th className="p-4">Trạng thái</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-200 bg-white">
+                <tbody className="divide-y divide-zinc-200 bg-white dark:bg-slate-800">
                   {promotions.map((p) => (
-                    <tr key={p.id} className="hover:bg-zinc-50">
+                    <tr key={p.id} className="hover:bg-zinc-50 dark:hover:bg-slate-900/50">
                       <td className="p-4">
                         <div className="font-bold">{p.code}</div>
-                        <div className="text-xs text-zinc-500">{p.experience_id ? `Áp dụng tour ID: ${p.experience_id}` : 'Mọi tour'}</div>
-                        <div className="text-xs text-zinc-400 mt-1">{p.description}</div>
+                        <div className="text-xs text-zinc-500 dark:text-slate-400">{p.experience_id ? `Áp dụng tour ID: ${p.experience_id}` : 'Mọi tour'}</div>
+                        <div className="text-xs text-zinc-400 dark:text-slate-500 mt-1">{p.description}</div>
                       </td>
                       <td className="p-4">{p.discount_percent ? `${p.discount_percent}%` : formatVnd(p.discount_amount)}</td>
                       <td className="p-4">{p.usage_limit || 'Không giới hạn'}</td>
                       <td className="p-4 font-bold text-emerald-600">{p.used_count || 0}</td>
                       <td className="p-4">{new Date(p.expiry_date).toLocaleDateString()}</td>
                       <td className="p-4">
-                        <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${p.is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-zinc-100 text-zinc-600 border-zinc-200'}`}>
+                        <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${p.is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-zinc-100 dark:bg-slate-800 text-zinc-600 dark:text-slate-300 border-zinc-200 dark:border-slate-700'}`}>
                           {p.is_active ? 'Hoạt động' : 'Tạm dừng'}
                         </span>
                       </td>
@@ -1242,7 +1242,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         {!loading && activeTab === 'users' && (
           <AdminTable title="Phân quyền người dùng">
             <table className="min-w-full text-sm">
-              <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
+              <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
                 <tr>
                   <th className="px-4 py-3 text-left">Người dùng</th>
                   <th className="px-4 py-3 text-left">Email</th>
@@ -1252,14 +1252,14 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
               <tbody className="divide-y divide-zinc-200">
                 {users.map((item) => (
                   <tr key={item.id}>
-                    <td className="px-4 py-3 font-bold text-zinc-900">{item.fullname}</td>
-                    <td className="px-4 py-3 text-zinc-600">{item.email}</td>
+                    <td className="px-4 py-3 font-bold text-zinc-900 dark:text-slate-100">{item.fullname}</td>
+                    <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{item.email}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <select
                           value={item.role}
                           onChange={(event) => updateUserRole(item.id, event.target.value as UserTable['role'])}
-                          className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-700 outline-none focus:border-emerald-500"
+                          className="rounded-lg border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
                         >
                           <option value="user">User</option>
                           <option value="admin">Admin</option>
@@ -1288,7 +1288,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         {!loading && activeTab === 'hosts' && (
           <AdminTable title="Duyệt đăng ký Host">
             <table className="min-w-full text-sm">
-              <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
+              <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
                 <tr>
                   <th className="px-4 py-3 text-left">Người đăng ký</th>
                   <th className="px-4 py-3 text-left">Liên hệ</th>
@@ -1301,18 +1301,18 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                 {hosts.map((item) => (
                   <tr key={item.id}>
                     <td className="px-4 py-3">
-                      <div className="font-bold text-zinc-900">{item.name}</div>
-                      <div className="mt-1 text-xs text-zinc-400">#{item.id} · {new Date(item.created_at).toLocaleDateString('vi-VN')}</div>
+                      <div className="font-bold text-zinc-900 dark:text-slate-100">{item.name}</div>
+                      <div className="mt-1 text-xs text-zinc-400 dark:text-slate-500">#{item.id} · {new Date(item.created_at).toLocaleDateString('vi-VN')}</div>
                     </td>
-                    <td className="px-4 py-3 text-zinc-600">
+                    <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">
                       <div>{item.email}</div>
-                      <div className="mt-1 font-semibold text-zinc-500">{item.phone}</div>
+                      <div className="mt-1 font-semibold text-zinc-500 dark:text-slate-400">{item.phone}</div>
                     </td>
-                    <td className="px-4 py-3 text-zinc-600">
-                      <div className="text-xs"><span className="font-bold text-zinc-500">Đ/c:</span> {item.address || 'Chưa cập nhật'}</div>
-                      <div className="mt-1 text-xs"><span className="font-bold text-zinc-500">CCCD:</span> {item.id_number || 'Chưa cập nhật'}</div>
+                    <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">
+                      <div className="text-xs"><span className="font-bold text-zinc-500 dark:text-slate-400">Đ/c:</span> {item.address || 'Chưa cập nhật'}</div>
+                      <div className="mt-1 text-xs"><span className="font-bold text-zinc-500 dark:text-slate-400">CCCD:</span> {item.id_number || 'Chưa cập nhật'}</div>
                     </td>
-                    <td className="max-w-xs px-4 py-3 text-zinc-600">
+                    <td className="max-w-xs px-4 py-3 text-zinc-600 dark:text-slate-300">
                       <div className="text-xs font-bold text-emerald-600 mb-1">{item.experience_location || 'Chưa cập nhật'}</div>
                       <div className="text-xs line-clamp-2" title={item.description}>{item.description}</div>
                     </td>
@@ -1400,27 +1400,27 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
 
       {rejectTourId !== null && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white shadow-2xl">
+          <div className="w-full max-w-md rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-2xl">
             <div className="p-6 text-center">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
                 <XCircle className="h-7 w-7" />
               </div>
-              <h2 className="mb-2 text-xl font-black text-zinc-950">Từ chối duyệt tour</h2>
-              <p className="mb-4 text-sm leading-relaxed text-zinc-500">Vui lòng nhập lý do từ chối. Host sẽ nhận được thông báo kèm lý do này.</p>
+              <h2 className="mb-2 text-xl font-black text-zinc-950 dark:text-slate-50">Từ chối duyệt tour</h2>
+              <p className="mb-4 text-sm leading-relaxed text-zinc-500 dark:text-slate-400">Vui lòng nhập lý do từ chối. Host sẽ nhận được thông báo kèm lý do này.</p>
               <textarea
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
                 placeholder="Nhập lý do từ chối (bắt buộc)..."
                 rows={3}
-                className="w-full resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-red-400"
+                className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-red-400"
                 autoFocus
               />
             </div>
-            <div className="flex gap-2 border-t border-zinc-100 bg-zinc-50 p-4">
+            <div className="flex gap-2 border-t border-zinc-100 dark:border-slate-800 bg-zinc-50 dark:bg-slate-900/50 p-4">
               <button
                 type="button"
                 onClick={() => { setRejectTourId(null); setRejectReason(''); }}
-                className="flex-1 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-bold text-zinc-700 hover:bg-zinc-100"
+                className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800"
               >
                 Hủy
               </button>
@@ -1454,16 +1454,16 @@ function StatCard({
     emerald: 'bg-emerald-50 text-emerald-700',
     amber: 'bg-amber-50 text-amber-700',
     sky: 'bg-sky-50 text-sky-700',
-    zinc: 'bg-zinc-100 text-zinc-700'
+    zinc: 'bg-zinc-100 dark:bg-slate-800 text-zinc-700 dark:text-slate-200'
   }[tone];
 
   return (
-    <div className="rounded-2xl border border-zinc-200 p-4">
+    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 p-4">
       <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${toneClass}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="text-2xl font-black text-zinc-950">{value}</div>
-      <div className="mt-1 text-xs font-bold uppercase tracking-wide text-zinc-500">{label}</div>
+      <div className="text-2xl font-black text-zinc-950 dark:text-slate-50">{value}</div>
+      <div className="mt-1 text-xs font-bold uppercase tracking-wide text-zinc-500 dark:text-slate-400">{label}</div>
     </div>
   );
 }
@@ -1471,12 +1471,12 @@ function StatCard({
 function AdminTable({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-black text-zinc-950">{title}</h3>
-      <div className="overflow-x-auto rounded-2xl border border-zinc-200">{children}</div>
+      <h3 className="text-lg font-black text-zinc-950 dark:text-slate-50">{title}</h3>
+      <div className="overflow-x-auto rounded-2xl border border-zinc-200 dark:border-slate-700">{children}</div>
     </div>
   );
 }
 
 function EmptyRow({ text }: { text: string }) {
-  return <div className="p-8 text-center text-sm font-semibold text-zinc-400">{text}</div>;
+  return <div className="p-8 text-center text-sm font-semibold text-zinc-400 dark:text-slate-500">{text}</div>;
 }

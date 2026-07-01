@@ -207,7 +207,7 @@ export default function ModalBooking({
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-2 text-zinc-400 dark:text-slate-500 hover:bg-zinc-100 dark:bg-slate-800 hover:text-zinc-900 dark:text-slate-100"
+          className="absolute right-4 top-4 rounded-lg p-2 text-zinc-400 dark:text-slate-500 hover:bg-zinc-100 dark:hover:bg-slate-800 hover:text-zinc-900 dark:hover:text-slate-100"
           aria-label="Đóng"
         >
           <X className="h-5 w-5" />
@@ -263,7 +263,7 @@ export default function ModalBooking({
                       <select
                         value={selectedScheduleId}
                         onChange={(e) => setSelectedScheduleId(Number(e.target.value) || '')}
-                        className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
+                        className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
                       >
                         <option value="">-- Chọn lịch trình --</option>
                         {schedules.filter(s => s.remaining_slots >= guests).map(s => (
@@ -279,7 +279,7 @@ export default function ModalBooking({
                         max={maxBookingDate || undefined}
                         value={bookingDate}
                         onChange={(event) => setBookingDate(event.target.value)}
-                        className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
+                        className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
                       />
                     )}
                   </span>
@@ -336,7 +336,7 @@ export default function ModalBooking({
                     <input
                       value={contactName}
                       onChange={(event) => setContactName(event.target.value)}
-                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
                       placeholder="Nguyễn Văn A"
                     />
                   </span>
@@ -351,7 +351,7 @@ export default function ModalBooking({
                     <input
                       value={contactPhone}
                       onChange={(event) => setContactPhone(event.target.value)}
-                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
                       placeholder="09xx xxx xxx"
                     />
                   </span>
@@ -369,7 +369,7 @@ export default function ModalBooking({
                     onChange={(event) => setNote(event.target.value)}
                     rows={3}
                     maxLength={300}
-                    className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
+                    className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
                     placeholder="Yêu cầu đón trả, ăn uống, trẻ em đi cùng..."
                   />
                 </span>
@@ -385,7 +385,7 @@ export default function ModalBooking({
                     <input
                       value={promoCode}
                       onChange={(event) => setPromoCode(event.target.value)}
-                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
                       placeholder="Nhập mã khuyến mãi"
                     />
                   </span>
@@ -431,7 +431,7 @@ export default function ModalBooking({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2.5 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:bg-slate-900/50 sm:w-1/3"
+                  className="rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2.5 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-900/50 sm:w-1/3"
                 >
                   Hủy
                 </button>

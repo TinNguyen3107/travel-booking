@@ -113,7 +113,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-2 text-zinc-400 dark:text-slate-500 hover:bg-zinc-100 dark:bg-slate-800 hover:text-zinc-900 dark:text-slate-100"
+          className="absolute right-4 top-4 rounded-lg p-2 text-zinc-400 dark:text-slate-500 hover:bg-zinc-100 dark:hover:bg-slate-800 hover:text-zinc-900 dark:hover:text-slate-100"
           aria-label="Đóng"
         >
           <X className="h-5 w-5" />
@@ -144,7 +144,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                   <input
                     value={fullname}
                     onChange={(event) => setFullname(event.target.value)}
-                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
+                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
                     placeholder="Nguyễn Văn A"
                     autoComplete="name"
                   />
@@ -160,7 +160,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
+                  className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
                   placeholder="name@example.com"
                   autoComplete="email"
                 />
@@ -184,7 +184,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
+                  className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
                   placeholder={isForgotPassword ? 'Mật khẩu mới (tối thiểu 6 ký tự)' : 'Tối thiểu 6 ký tự'}
                   autoComplete={isRegisterMode || isForgotPassword ? 'new-password' : 'current-password'}
                 />
@@ -200,7 +200,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                     type="password"
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
-                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800"
+                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
                     placeholder="Nhập lại mật khẩu mới"
                     autoComplete="new-password"
                   />

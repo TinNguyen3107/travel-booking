@@ -62,7 +62,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 rounded-full bg-white dark:bg-slate-800/80 p-2 text-zinc-600 dark:text-slate-300 shadow-sm backdrop-blur-md hover:bg-white dark:bg-slate-800 hover:text-zinc-950 dark:text-slate-50"
+          className="absolute right-4 top-4 z-10 rounded-full bg-white dark:bg-slate-800/80 p-2 text-zinc-600 dark:text-slate-300 shadow-sm backdrop-blur-md hover:bg-white dark:hover:bg-slate-800 hover:text-zinc-950 dark:text-slate-50"
           aria-label="Đóng"
         >
           <X className="h-5 w-5" />
@@ -297,7 +297,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-zinc-200 dark:border-slate-700 px-5 py-2.5 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:bg-slate-900/50"
+              className="rounded-xl border border-zinc-200 dark:border-slate-700 px-5 py-2.5 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-900/50"
             >
               Đóng
             </button>

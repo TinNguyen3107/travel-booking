@@ -293,7 +293,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                   type="button"
                   disabled={submitting}
                   onClick={() => { if (!currentUser) return onLogin(); fileInputRef.current?.click(); }}
-                  className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:bg-slate-800 disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800 disabled:opacity-50"
                 >
                   <ImageIcon className="h-4 w-4 text-emerald-500" /> Ảnh / Video
                 </button>
@@ -336,7 +336,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
 
                     {/* Action row */}
                     <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-zinc-500 dark:text-slate-400">
-                      <button onClick={() => toggleComments(post.id)} className="hover:text-zinc-800 dark:text-slate-200 hover:underline">
+                      <button onClick={() => toggleComments(post.id)} className="hover:text-zinc-800 dark:hover:text-slate-200 hover:underline">
                         Gửi trả lời {post.comments_count > 0 && `(${post.comments_count})`}
                       </button>
                       <span>•</span>
