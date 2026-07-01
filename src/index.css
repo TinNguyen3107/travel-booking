@@ -3,6 +3,11 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* Làm dịu toàn bộ giao diện sáng: Thay vì trắng tinh chói mắt (#ffffff), đổi thành trắng ngà/xanh ngọc nhạt */
+  --color-white: #f8fafc;
+  --color-zinc-50: #f1f5f9;
+  --color-slate-100: #e2e8f0;
+
   --animate-marquee: marquee 20s linear infinite;
 
   @keyframes marquee {
