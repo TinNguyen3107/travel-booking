@@ -389,7 +389,7 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen font-sans transition-colors duration-300 bg-white dark:bg-slate-900/70 text-zinc-900 dark:text-slate-100`}>
+    <div className={`min-h-screen font-sans transition-colors duration-300 bg-slate-50 dark:bg-slate-900/70 text-zinc-900 dark:text-slate-100`}>
       <Header
         user={user}
         onOpenLogin={() => setShowLoginModal(true)}
