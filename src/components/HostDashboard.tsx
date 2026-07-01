@@ -558,7 +558,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
 
   if (activeSection === 'preview') {
     return (
-      <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-sm p-6">
+      <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm p-6">
         <div className="mb-6">
           <h3 className="text-2xl font-black text-zinc-950 dark:text-slate-50">Tour đang mở bán</h3>
           <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">Xem trước danh sách tour hiển thị với khách hàng.</p>
@@ -571,13 +571,13 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Tìm theo tên tour, địa điểm hoặc danh mục"
-              className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500"
+              className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500"
             />
           </label>
           <select
             value={selectedCategory}
             onChange={(event) => setSelectedCategory(event.target.value)}
-            className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
+            className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
           >
             <option value="all">Tất cả danh mục</option>
             {categories.map((category) => (
@@ -588,7 +588,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
 
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {filteredExperiences.map((experience) => (
-            <article key={experience.id} className="flex overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-sm">
+            <article key={experience.id} className="flex overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm">
               <div className="flex w-full flex-col">
                 <div className="relative">
                   <img
@@ -600,7 +600,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                     }}
                     className="h-48 w-full object-cover"
                   />
-                  <span className="absolute left-3 top-3 rounded-full bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800/95 px-3 py-1 text-xs font-black text-emerald-700 shadow-sm">
+                  <span className="absolute left-3 top-3 rounded-full bg-white/80 backdrop-blur-lg dark:bg-slate-800/95 px-3 py-1 text-xs font-black text-emerald-700 shadow-sm">
                     {experience.category}
                   </span>
                 </div>
@@ -639,7 +639,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                       <button
                         type="button"
                         onClick={() => setViewExperienceDetail(experience)}
-                        className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:bg-slate-900/50 dark:hover:bg dark:hover:bg dark:hover:bg-slate-900/50"
+                        className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:bg-slate-900/50 dark:hover:bg dark:hover:bg dark:hover:bg-slate-900/50"
                       >
                         Chi tiết
                       </button>
@@ -650,7 +650,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
             </article>
           ))}
           {filteredExperiences.length === 0 && (
-            <div className="col-span-full rounded-2xl border border-dashed border-zinc-300 dark:border-slate-600 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 p-10 text-center text-sm font-semibold text-zinc-500 dark:text-slate-400">
+            <div className="col-span-full rounded-2xl border border-dashed border-zinc-300 dark:border-slate-600 bg-white/80 backdrop-blur-lg dark:bg-slate-800 p-10 text-center text-sm font-semibold text-zinc-500 dark:text-slate-400">
               Không tìm thấy tour phù hợp.
             </div>
           )}
@@ -671,7 +671,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-sm">
+    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm">
       <div className="flex flex-col gap-4 border-b border-zinc-200 dark:border-slate-700 p-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Bảng điều khiển</p>
@@ -697,7 +697,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 top-12 z-50 w-80 max-h-96 overflow-y-auto rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-2xl">
+              <div className="absolute right-0 top-12 z-50 w-80 max-h-96 overflow-y-auto rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-2xl">
                 <div className="flex items-center justify-between border-b border-zinc-100 dark:border-slate-800 p-4">
                   <h4 className="text-sm font-black text-zinc-900 dark:text-slate-100">Thông báo</h4>
                   <button type="button" onClick={() => setShowNotifications(false)} className="rounded-lg p-1 text-zinc-400 dark:text-slate-500 hover:bg-zinc-100 dark:hover:bg-slate-800">
@@ -908,52 +908,52 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
               <form onSubmit={saveExperience} className="grid gap-3 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 lg:grid-cols-6">
                 <label className="block lg:col-span-2">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Tên tour</span>
-                  <input value={form.title} onChange={(event) => updateForm('title', event.target.value)} placeholder="Nhập tên tour" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <input value={form.title} onChange={(event) => updateForm('title', event.target.value)} placeholder="Nhập tên tour" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Địa điểm</span>
-                  <input value={form.location} onChange={(event) => updateForm('location', event.target.value)} placeholder="Nhập địa điểm" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <input value={form.location} onChange={(event) => updateForm('location', event.target.value)} placeholder="Nhập địa điểm" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Thời lượng</span>
-                  <input value={form.duration} onChange={(event) => updateForm('duration', event.target.value)} placeholder="VD: 2 ngày 1 đêm" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <input value={form.duration} onChange={(event) => updateForm('duration', event.target.value)} placeholder="VD: 2 ngày 1 đêm" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Giá (VND)</span>
-                  <input type="number" min="1000" step="1000" value={form.price} onChange={(event) => updateForm('price', Number(event.target.value))} placeholder="Nhập giá" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <input type="number" min="1000" step="1000" value={form.price} onChange={(event) => updateForm('price', Number(event.target.value))} placeholder="Nhập giá" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Danh mục</span>
-                  <select value={form.category} onChange={(event) => updateForm('category', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500">
+                  <select value={form.category} onChange={(event) => updateForm('category', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500">
                     <option value="" disabled>Chọn danh mục</option>
                     {dbCategories.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}
                   </select>
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Tổng khách tối đa (toàn tour)</span>
-                  <input type="number" min="1" max="1000" value={form.max_guests} onChange={(event) => updateForm('max_guests', Number(event.target.value))} placeholder="Số lượng" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <input type="number" min="1" max="1000" value={form.max_guests} onChange={(event) => updateForm('max_guests', Number(event.target.value))} placeholder="Số lượng" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Khách tối đa mỗi ngày</span>
-                  <input type="number" min="1" max={form.max_guests} value={form.daily_capacity_max} onChange={(event) => updateForm('daily_capacity_max', Number(event.target.value))} placeholder="Khách/ngày" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <input type="number" min="1" max={form.max_guests} value={form.daily_capacity_max} onChange={(event) => updateForm('daily_capacity_max', Number(event.target.value))} placeholder="Khách/ngày" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Mở đặt từ ngày</span>
-                  <input type="date" value={form.booking_open_date} onChange={(event) => updateForm('booking_open_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <input type="date" value={form.booking_open_date} onChange={(event) => updateForm('booking_open_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Đóng đặt sau ngày</span>
-                  <input type="date" min={form.booking_open_date} value={form.booking_close_date} onChange={(event) => updateForm('booking_close_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <input type="date" min={form.booking_open_date} value={form.booking_close_date} onChange={(event) => updateForm('booking_close_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Số phòng</span>
-                  <input type="number" min="0" value={form.rooms} onChange={(event) => updateForm('rooms', Number(event.target.value))} placeholder="Phòng" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <input type="number" min="0" value={form.rooms} onChange={(event) => updateForm('rooms', Number(event.target.value))} placeholder="Phòng" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Số giường</span>
-                  <input type="number" min="0" value={form.beds} onChange={(event) => updateForm('beds', Number(event.target.value))} placeholder="Giường" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <input type="number" min="0" value={form.beds} onChange={(event) => updateForm('beds', Number(event.target.value))} placeholder="Giường" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
-                <div className="lg:col-span-6 grid gap-3 lg:grid-cols-6 rounded-xl border border-zinc-200 dark:border-slate-700 p-3 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800">
+                <div className="lg:col-span-6 grid gap-3 lg:grid-cols-6 rounded-xl border border-zinc-200 dark:border-slate-700 p-3 bg-white/80 backdrop-blur-lg dark:bg-slate-800">
                   <label className="flex lg:col-span-1 items-center gap-2 mt-4">
                     <input type="checkbox" checked={form.allow_children} onChange={(event) => updateForm('allow_children', event.target.checked)} className="h-4 w-4 rounded border-zinc-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-600" />
                     <span className="text-xs font-bold text-zinc-700 dark:text-slate-200">Cho trẻ em tham gia</span>
@@ -973,12 +973,12 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                 </div>
                 <label className="block lg:col-span-2">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Tiện ích</span>
-                  <input value={form.amenities} onChange={(event) => updateForm('amenities', event.target.value)} placeholder="Nhập các tiện ích (cách nhau bằng dấu phẩy)" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <input value={form.amenities} onChange={(event) => updateForm('amenities', event.target.value)} placeholder="Nhập các tiện ích (cách nhau bằng dấu phẩy)" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <div className="lg:col-span-2 space-y-1">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Ảnh đại diện</span>
                   <div className="flex gap-2">
-                    <input value={form.image} onChange={(event) => updateForm('image', event.target.value)} placeholder="URL hoặc tải lên" className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                    <input value={form.image} onChange={(event) => updateForm('image', event.target.value)} placeholder="URL hoặc tải lên" className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                     <label className="flex cursor-pointer items-center justify-center rounded-xl bg-zinc-100 dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-200 dark:hover:bg-slate-700">
                       Tải lên
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'image')} />
@@ -988,7 +988,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                 <div className="lg:col-span-2 space-y-1">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Danh sách ảnh phụ</span>
                   <div className="flex gap-2 items-start">
-                    <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder="Các link cách nhau bằng dấu phẩy hoặc khoảng trắng" rows={3} className="flex-1 resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                    <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder="Các link cách nhau bằng dấu phẩy hoặc khoảng trắng" rows={3} className="flex-1 resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                     <label className="flex cursor-pointer items-center justify-center rounded-xl bg-zinc-100 dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-200 dark:hover:bg-slate-700 h-9">
                       Tải lên
                       <input type="file" className="hidden" accept="image/*" multiple onChange={(e) => handleImageUpload(e, 'images')} />
@@ -997,13 +997,13 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                 </div>
                 <label className="block lg:col-span-4">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Mô tả chi tiết</span>
-                  <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} placeholder="Nhập mô tả chi tiết về tour để thu hút khách hàng" rows={3} className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} placeholder="Nhập mô tả chi tiết về tour để thu hút khách hàng" rows={3} className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <div className="flex items-end justify-end gap-2 lg:col-span-6">
                   <button type="submit" className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-bold text-white hover:bg-emerald-700">
                     {editingId && !['draft', 'pending_review'].includes(experiences.find(e => e.id === editingId)?.status || '') ? 'Lưu & Gửi duyệt cập nhật' : 'Lưu'}
                   </button>
-                  <button type="button" onClick={resetForm} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-5 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800">Hủy</button>
+                  <button type="button" onClick={resetForm} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-5 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800">Hủy</button>
                 </div>
               </form>
             )}
@@ -1296,7 +1296,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
 
       {evaluatingBooking && (
         <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 p-6 shadow-2xl">
+          <div className="w-full max-w-md rounded-2xl bg-white/80 backdrop-blur-lg dark:bg-slate-800 p-6 shadow-2xl">
             <h3 className="mb-4 text-xl font-black text-zinc-900 dark:text-slate-100">Đánh giá khách hàng</h3>
             <div className="mb-4 rounded-lg bg-zinc-50 dark:bg-slate-900/50 p-3 text-sm">
               Đánh giá khách hàng <span className="font-bold">{evaluatingBooking.contact_name}</span> cho đơn hàng <span className="font-bold">#{evaluatingBooking.id}</span>
@@ -1310,7 +1310,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                       key={value}
                       type="button"
                       onClick={() => setHostReviewForm({ ...hostReviewForm, rating: value })}
-                      className={`rounded-lg border p-2 ${hostReviewForm.rating >= value ? 'border-amber-200 bg-amber-50 text-amber-500' : 'border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 text-zinc-300'}`}
+                      className={`rounded-lg border p-2 ${hostReviewForm.rating >= value ? 'border-amber-200 bg-amber-50 text-amber-500' : 'border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-zinc-300'}`}
                     >
                       <Star className="h-5 w-5 fill-current" />
                     </button>

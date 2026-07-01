@@ -28,7 +28,7 @@ export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-4 py-16 sm:px-6 lg:px-8">
+    <section id="faq" className="bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 text-center">
           <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Hỏi đáp</p>

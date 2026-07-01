@@ -63,7 +63,7 @@ export default function Header({
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <button
           type="button"
@@ -117,7 +117,7 @@ export default function Header({
               className={`flex h-7 w-7 items-center justify-center rounded-full shadow-md transition-all duration-300 ${
                 isDark
                   ? 'translate-x-7 bg-indigo-100 text-indigo-700'
-                  : 'translate-x-0 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 text-amber-500'
+                  : 'translate-x-0 bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-amber-500'
               }`}
             >
               {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
@@ -162,7 +162,7 @@ export default function Header({
       </div>
 
       {mobileMenuOpen && (
-        <div className="border-t border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-4 py-3 sm:hidden">
+        <div className="border-t border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-4 py-3 sm:hidden">
           <div className="space-y-1">
             {navItems.map((item) => (
               <button

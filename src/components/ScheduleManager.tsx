@@ -92,7 +92,7 @@ export default function ScheduleManager({ experienceId, experienceTitle, onClose
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm shadow-2xl">
+      <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white/80 backdrop-blur-lg shadow-2xl">
         <div className="border-b border-zinc-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-black text-zinc-900">
@@ -140,7 +140,7 @@ export default function ScheduleManager({ experienceId, experienceTitle, onClose
           ) : (
             <div className="space-y-3">
               {schedules.map(schedule => (
-                <div key={schedule.id} className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm p-4 shadow-sm">
+                <div key={schedule.id} className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white/80 backdrop-blur-lg p-4 shadow-sm">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
                       <Calendar className="h-5 w-5" />

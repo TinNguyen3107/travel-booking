@@ -109,7 +109,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-2xl">
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-2xl">
         <button
           type="button"
           onClick={onClose}

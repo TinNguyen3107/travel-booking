@@ -30,7 +30,7 @@ export default function HostProfileWidget({ email }: { email: string }) {
   if (!profile) return null;
 
   return (
-    <div className="mt-8 rounded-2xl border border-zinc-200 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm p-5 flex items-start gap-4">
+    <div className="mt-8 rounded-2xl border border-zinc-200 bg-white/80 backdrop-blur-lg p-5 flex items-start gap-4">
       <img
         src={profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.host_name || 'Host')}&background=10b981&color=fff&size=256`}
         alt={profile.host_name}

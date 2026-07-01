@@ -203,7 +203,7 @@ export default function ModalBooking({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl max-h-[95vh] overflow-y-auto rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-2xl">
+      <div className="relative w-full max-w-2xl max-h-[95vh] overflow-y-auto rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-2xl">
         <button
           type="button"
           onClick={onClose}
@@ -300,17 +300,17 @@ export default function ModalBooking({
                     <label className="block">
                       <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Người lớn</span>
                       <span className="flex h-10.5 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-1">
-                        <button type="button" onClick={() => setAdultCount(adults - 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">-</button>
+                        <button type="button" onClick={() => setAdultCount(adults - 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">-</button>
                         <input type="number" min={1} max={maxGuests - children} value={adults} onChange={(event) => setAdultCount(Number(event.target.value))} className="min-w-0 flex-1 bg-transparent text-center text-sm font-black outline-none" />
-                        <button type="button" onClick={() => setAdultCount(adults + 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">+</button>
+                        <button type="button" onClick={() => setAdultCount(adults + 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">+</button>
                       </span>
                     </label>
                     <label className="block">
                       <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Trẻ em ({experience.min_age} - {experience.child_max_age} tuổi)</span>
                       <span className="flex h-10.5 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-1">
-                        <button type="button" onClick={() => setChildCount(children - 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">-</button>
+                        <button type="button" onClick={() => setChildCount(children - 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">-</button>
                         <input type="number" min={0} max={maxGuests - adults} value={children} onChange={(event) => setChildCount(Number(event.target.value))} className="min-w-0 flex-1 bg-transparent text-center text-sm font-black outline-none" />
-                        <button type="button" onClick={() => setChildCount(children + 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">+</button>
+                        <button type="button" onClick={() => setChildCount(children + 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">+</button>
                       </span>
                     </label>
                   </div>
@@ -318,9 +318,9 @@ export default function ModalBooking({
                   <label className="block">
                     <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Số khách</span>
                     <span className="flex h-10.5 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-1">
-                      <button type="button" onClick={() => setAdultCount(adults - 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">-</button>
+                      <button type="button" onClick={() => setAdultCount(adults - 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">-</button>
                       <input type="number" min={1} max={maxGuests} value={adults} onChange={(event) => setAdultCount(Number(event.target.value))} className="min-w-0 flex-1 bg-transparent text-center text-sm font-black outline-none" />
-                      <button type="button" onClick={() => setAdultCount(adults + 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">+</button>
+                      <button type="button" onClick={() => setAdultCount(adults + 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">+</button>
                     </span>
                   </label>
                 )}

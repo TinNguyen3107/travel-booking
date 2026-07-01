@@ -25,7 +25,7 @@ export default function ModalConfirm({
 }: ModalConfirmProps) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-2xl animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-2xl animate-in zoom-in-95 duration-200">
         <button
           type="button"
           onClick={onClose}
@@ -47,7 +47,7 @@ export default function ModalConfirm({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-4 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800"
+            className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-4 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800"
           >
             {cancelText}
           </button>
