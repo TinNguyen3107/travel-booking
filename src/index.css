@@ -17,17 +17,18 @@
 }
 
 /* ─── Dark mode theme ────────────────────────────────────────────
-   Dùng palette slate/navy - không đen tuyệt, nhìn rất dễ chịu
+   Dùng palette slate/navy - không đen, nhìn rất dễ chịu
    ────────────────────────────────────────────────────────────── */
 html.dark {
   color-scheme: dark;
-  background-color: #0f172a;
-  /* slate-900 */
   color: #e2e8f0;
-  /* slate-200 */
 }
 
 html.dark body {
+  background-image: url('../background/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   background-color: #0f172a;
 }
 

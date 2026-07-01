@@ -619,7 +619,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                       <button
                         type="button"
                         onClick={() => setViewExperienceDetail(experience)}
-                        className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-900/50"
+                        className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:bg-slate-900/50 dark:hover:bg dark:hover:bg-slate-900/50"
                       >
                         Chi tiết
                       </button>
@@ -663,7 +663,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         <button
           type="button"
           onClick={fetchAllData}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-50 dark:hover:bg-slate-900/50"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-50 dark:bg-slate-900/50 dark:hover:bg dark:hover:bg-slate-900/50"
         >
           <RefreshCcw className="h-4 w-4" />
           Làm mới
@@ -953,7 +953,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                       <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{Number(item.rating || 0).toFixed(1)} ({item.reviews_count})</td>
                       <td className="px-4 py-3 text-right">
                         <button type="button" onClick={() => setScheduleExperience(item)} className="mr-2 rounded-lg border border-emerald-100 bg-emerald-50 p-2 text-emerald-600 hover:bg-emerald-100" aria-label="Quản lý lịch"><Calendar className="h-4 w-4" /></button>
-                        <button type="button" onClick={() => editExperience(item)} className="mr-2 rounded-lg border border-zinc-200 dark:border-slate-700 p-2 text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-900/50" aria-label="Sửa tour"><Edit2 className="h-4 w-4" /></button>
+                        <button type="button" onClick={() => editExperience(item)} className="mr-2 rounded-lg border border-zinc-200 dark:border-slate-700 p-2 text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:bg-slate-900/50 dark:hover:bg dark:hover:bg-slate-900/50" aria-label="Sửa tour"><Edit2 className="h-4 w-4" /></button>
                         <button type="button" onClick={() => deleteExperience(item.id)} className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50" aria-label="Xóa tour"><Trash2 className="h-4 w-4" /></button>
                       </td>
                     </tr>
@@ -1213,7 +1213,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                 </thead>
                 <tbody className="divide-y divide-zinc-200 bg-white dark:bg-slate-800">
                   {promotions.map((p) => (
-                    <tr key={p.id} className="hover:bg-zinc-50 dark:hover:bg-slate-900/50">
+                    <tr key={p.id} className="hover:bg-zinc-50 dark:bg-slate-900/50 dark:hover:bg dark:hover:bg-slate-900/50">
                       <td className="p-4">
                         <div className="font-bold">{p.code}</div>
                         <div className="text-xs text-zinc-500 dark:text-slate-400">{p.experience_id ? `Áp dụng tour ID: ${p.experience_id}` : 'Mọi tour'}</div>
