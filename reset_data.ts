@@ -22,7 +22,7 @@ async function resetData() {
   try {
     console.log('Đang xóa dữ liệu...');
     await connection.query('SET FOREIGN_KEY_CHECKS = 0');
-    
+
     // Xóa toàn bộ dữ liệu trong các bảng (Trừ danh mục)
     await connection.query('TRUNCATE TABLE host_reviews');
     await connection.query('TRUNCATE TABLE hosts');
@@ -37,12 +37,12 @@ async function resetData() {
     await connection.query('TRUNCATE TABLE reviews');
     await connection.query('TRUNCATE TABLE bookings');
     await connection.query('TRUNCATE TABLE experiences');
-    
+
     // Xóa toàn bộ user, ngoại trừ tài khoản admin mặc định
     await connection.query('DELETE FROM users WHERE email != "admin@gmail.com"');
-    
+
     await connection.query('SET FOREIGN_KEY_CHECKS = 1');
-    
+
     console.log('Đã xóa thành công toàn bộ dữ liệu thử nghiệm!');
     console.log('Chỉ còn lại tài khoản: admin@gmail.com');
   } catch (error) {

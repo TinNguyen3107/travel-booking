@@ -34,6 +34,7 @@ import ModalConfirm, { ConfirmConfig } from './components/ModalConfirm';
 import ModalExperienceDetail from './components/ModalExperienceDetail';
 import ModalLogin from './components/ModalLogin';
 import UserProfile from './components/UserProfile';
+import { useDarkMode } from './hooks/useDarkMode';
 import { ExperienceTable, formatDateVi, formatVnd, isExperienceOpen, ReviewTable } from './types';
 
 type CurrentUser = { email: string; fullname: string; role: 'user' | 'admin' | 'host' };
@@ -45,6 +46,7 @@ const phonePattern = /^(0|\+84)[0-9\s.-]{8,13}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function App() {
+  const { isDark, toggle: toggleDark } = useDarkMode();
   const [user, setUser] = useState<CurrentUser | null>(() => {
     const saved = localStorage.getItem('currentUser');
     try { return saved ? JSON.parse(saved) : null; } catch { return null; }
@@ -385,7 +387,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-white font-sans text-zinc-900">
+    <div className={`min-h-screen font-sans transition-colors duration-300 ${isDark ? 'bg-slate-900 text-slate-100' : 'bg-white text-zinc-900'}`}>
       <Header
         user={user}
         onOpenLogin={() => setShowLoginModal(true)}
@@ -393,6 +395,8 @@ export default function App() {
         onNavigate={scrollToSection}
         onOpenProfile={() => setShowUserProfile(true)}
         activeSection={activeSection}
+        isDark={isDark}
+        onToggleDark={toggleDark}
       />
 
       {promotions.filter(p => p.is_active && p.description && (!p.usage_limit || p.used_count < p.usage_limit)).length > 0 && (

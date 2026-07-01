@@ -1,10 +1,42 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --animate-marquee: marquee 20s linear infinite;
-  
+
   @keyframes marquee {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
+    0% {
+      transform: translateX(100%);
+    }
+
+    100% {
+      transform: translateX(-100%);
+    }
   }
+}
+
+/* ─── Dark mode theme ────────────────────────────────────────────
+   Dùng palette slate/navy - không đen tuyệt, nhìn rất dễ chịu
+   ────────────────────────────────────────────────────────────── */
+html.dark {
+  color-scheme: dark;
+  background-color: #0f172a;
+  /* slate-900 */
+  color: #e2e8f0;
+  /* slate-200 */
+}
+
+html.dark body {
+  background-color: #0f172a;
+}
+
+/* Scrollbar tối */
+html.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
 }

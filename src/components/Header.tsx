@@ -9,7 +9,9 @@ import {
   LogIn,
   LogOut,
   Menu,
+  Moon,
   ShieldCheck,
+  Sun,
   X
 } from 'lucide-react';
 import { useState } from 'react';
@@ -25,6 +27,8 @@ interface HeaderProps {
   onOpenProfile?: () => void;
   activeSection: string;
   adminMode?: boolean;
+  isDark?: boolean;
+  onToggleDark?: () => void;
 }
 
 export default function Header({
@@ -34,7 +38,9 @@ export default function Header({
   onNavigate,
   onOpenProfile,
   activeSection,
-  adminMode = false
+  adminMode = false,
+  isDark = false,
+  onToggleDark
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -95,6 +101,29 @@ export default function Header({
         </nav>
 
         <div className="hidden items-center gap-3 sm:flex">
+          {/* Dark mode toggle */}
+          <button
+            type="button"
+            onClick={onToggleDark}
+            aria-label={isDark ? 'Chuyển giao diện sáng' : 'Chuyển giao diện tối'}
+            title={isDark ? 'Chuyển giao diện sáng' : 'Chuyển giao diện tối'}
+            className={`relative flex h-9 w-16 items-center rounded-full p-1 transition-all duration-300 ${
+              isDark
+                ? 'bg-indigo-600 shadow-inner shadow-indigo-900'
+                : 'bg-amber-100 shadow-inner shadow-amber-200'
+            }`}
+          >
+            <span
+              className={`flex h-7 w-7 items-center justify-center rounded-full shadow-md transition-all duration-300 ${
+                isDark
+                  ? 'translate-x-7 bg-indigo-100 text-indigo-700'
+                  : 'translate-x-0 bg-white text-amber-500'
+              }`}
+            >
+              {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            </span>
+          </button>
+
           {user ? (
             <>
               <button type="button" onClick={onOpenProfile} className="flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100">
@@ -151,7 +180,16 @@ export default function Header({
             ))}
           </div>
 
-          <div className="mt-3 border-t border-zinc-100 pt-3">
+          <div className="mt-3 border-t border-zinc-100 pt-3 space-y-2">
+            {/* Mobile dark toggle */}
+            <button
+              type="button"
+              onClick={onToggleDark}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 dark:text-slate-200 dark:hover:bg-slate-700"
+            >
+              {isDark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-indigo-500" />}
+              {isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
+            </button>
             {user ? (
               <button
                 type="button"
