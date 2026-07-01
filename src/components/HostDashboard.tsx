@@ -763,7 +763,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
               onClick={() => setActiveTab(tab.id as HostTab)}
               className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-bold ${activeTab === tab.id
                 ? 'bg-emerald-600 text-white'
-                : 'bg-zinc-100 dark:bg-slate-800 text-zinc-700 dark:text-slate-200 hover:bg-zinc-200'
+                : 'bg-zinc-100 dark:bg-slate-800 text-zinc-700 dark:text-slate-200 hover:bg-zinc-200 dark:hover:bg-slate-700'
                 }`}
             >
               {tab.label}
@@ -979,7 +979,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Ảnh đại diện</span>
                   <div className="flex gap-2">
                     <input value={form.image} onChange={(event) => updateForm('image', event.target.value)} placeholder="URL hoặc tải lên" className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                    <label className="flex cursor-pointer items-center justify-center rounded-xl bg-zinc-100 dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-200">
+                    <label className="flex cursor-pointer items-center justify-center rounded-xl bg-zinc-100 dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-200 dark:hover:bg-slate-700">
                       Tải lên
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'image')} />
                     </label>
@@ -989,7 +989,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Danh sách ảnh phụ</span>
                   <div className="flex gap-2 items-start">
                     <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder="Các link cách nhau bằng dấu phẩy hoặc khoảng trắng" rows={3} className="flex-1 resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                    <label className="flex cursor-pointer items-center justify-center rounded-xl bg-zinc-100 dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-200 h-9">
+                    <label className="flex cursor-pointer items-center justify-center rounded-xl bg-zinc-100 dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-200 dark:hover:bg-slate-700 h-9">
                       Tải lên
                       <input type="file" className="hidden" accept="image/*" multiple onChange={(e) => handleImageUpload(e, 'images')} />
                     </label>
@@ -1331,7 +1331,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                 <button
                   type="button"
                   onClick={() => setEvaluatingBooking(null)}
-                  className="flex-1 rounded-xl bg-zinc-100 dark:bg-slate-800 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-200"
+                  className="flex-1 rounded-xl bg-zinc-100 dark:bg-slate-800 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-200 dark:hover:bg-slate-700"
                 >
                   Hủy
                 </button>

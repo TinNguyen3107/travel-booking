@@ -679,7 +679,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
               onClick={() => setActiveTab(tab.id as AdminTab)}
               className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-bold ${activeTab === tab.id
                 ? 'bg-emerald-600 text-white'
-                : 'bg-zinc-100 dark:bg-slate-800 text-zinc-700 dark:text-slate-200 hover:bg-zinc-200'
+                : 'bg-zinc-100 dark:bg-slate-800 text-zinc-700 dark:text-slate-200 hover:bg-zinc-200 dark:hover:bg-slate-700'
                 }`}
             >
               {tab.label}
@@ -1185,7 +1185,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                   <button
                     type="button"
                     onClick={() => setShowPromoForm(false)}
-                    className="rounded-xl px-5 py-2.5 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-200"
+                    className="rounded-xl px-5 py-2.5 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-200 dark:hover:bg-slate-700"
                   >
                     Hủy
                   </button>
