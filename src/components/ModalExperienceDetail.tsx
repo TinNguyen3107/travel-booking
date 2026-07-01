@@ -58,11 +58,11 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm overflow-y-auto py-10">
-      <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-2xl my-auto">
+      <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-2xl my-auto">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 rounded-full bg-white dark:bg-slate-800/80 p-2 text-zinc-600 dark:text-slate-300 shadow-sm backdrop-blur-md hover:bg-white dark:hover:bg-slate-800 hover:text-zinc-950 dark:hover:text"
+          className="absolute right-4 top-4 z-10 rounded-full bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800/80 p-2 text-zinc-600 dark:text-slate-300 shadow-sm backdrop-blur-md hover:bg-white dark:hover:bg-slate-800 hover:text-zinc-950 dark:hover:text"
           aria-label="Đóng"
         >
           <X className="h-5 w-5" />
@@ -81,7 +81,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
             onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
             className="relative h-full w-full object-contain"
           />
-          <div className="absolute bottom-4 left-4 rounded-full bg-white dark:bg-slate-800/95 px-3 py-1.5 text-xs font-black text-emerald-700 shadow-sm">
+          <div className="absolute bottom-4 left-4 rounded-full bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800/95 px-3 py-1.5 text-xs font-black text-emerald-700 shadow-sm">
             {experience.category}
           </div>
         </div>
@@ -170,7 +170,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
               <h3 className="text-sm font-black uppercase text-amber-800 mb-3 flex items-center gap-2">
                 <AlertCircle className="h-4 w-4" /> Chi tiết cập nhật (So sánh với bản cũ)
               </h3>
-              <div className="text-xs text-amber-900 bg-white dark:bg-slate-800/60 p-3 rounded-lg border border-amber-100 whitespace-pre-wrap max-h-60 overflow-y-auto font-mono">
+              <div className="text-xs text-amber-900 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800/60 p-3 rounded-lg border border-amber-100 whitespace-pre-wrap max-h-60 overflow-y-auto font-mono">
                 {(() => {
                   try {
                     const oldState = JSON.parse(experience.previous_state);

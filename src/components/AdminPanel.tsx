@@ -538,7 +538,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
 
   if (activeSection === 'preview') {
     return (
-      <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm p-6">
+      <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-sm p-6">
         <div className="mb-6">
           <h3 className="text-2xl font-black text-zinc-950 dark:text-slate-50">Tour đang mở bán</h3>
           <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">Xem trước danh sách tour hiển thị với khách hàng.</p>
@@ -551,13 +551,13 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Tìm theo tên tour, địa điểm hoặc danh mục"
-              className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500"
+              className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500"
             />
           </label>
           <select
             value={selectedCategory}
             onChange={(event) => setSelectedCategory(event.target.value)}
-            className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
+            className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
           >
             <option value="all">Tất cả danh mục</option>
             {categories.map((category) => (
@@ -568,7 +568,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
 
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {filteredExperiences.map((experience) => (
-            <article key={experience.id} className="flex overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+            <article key={experience.id} className="flex overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-sm">
               <div className="flex w-full flex-col">
                 <div className="relative">
                   <img
@@ -580,7 +580,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                     }}
                     className="h-48 w-full object-cover"
                   />
-                  <span className="absolute left-3 top-3 rounded-full bg-white dark:bg-slate-800/95 px-3 py-1 text-xs font-black text-emerald-700 shadow-sm">
+                  <span className="absolute left-3 top-3 rounded-full bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800/95 px-3 py-1 text-xs font-black text-emerald-700 shadow-sm">
                     {experience.category}
                   </span>
                 </div>
@@ -619,7 +619,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                       <button
                         type="button"
                         onClick={() => setViewExperienceDetail(experience)}
-                        className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:bg-slate-900/50 dark:hover:bg dark:hover:bg dark:hover:bg-slate-900/50"
+                        className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:bg-slate-900/50 dark:hover:bg dark:hover:bg dark:hover:bg-slate-900/50"
                       >
                         Chi tiết
                       </button>
@@ -630,7 +630,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
             </article>
           ))}
           {filteredExperiences.length === 0 && (
-            <div className="col-span-full rounded-2xl border border-dashed border-zinc-300 dark:border-slate-600 bg-white dark:bg-slate-800 p-10 text-center text-sm font-semibold text-zinc-500 dark:text-slate-400">
+            <div className="col-span-full rounded-2xl border border-dashed border-zinc-300 dark:border-slate-600 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 p-10 text-center text-sm font-semibold text-zinc-500 dark:text-slate-400">
               Không tìm thấy tour phù hợp.
             </div>
           )}
@@ -651,7 +651,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-sm">
       <div className="flex flex-col gap-4 border-b border-zinc-200 dark:border-slate-700 p-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Bảng điều khiển</p>
@@ -885,33 +885,33 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
 
             {showForm && (
               <form onSubmit={saveExperience} className="grid gap-3 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 lg:grid-cols-6">
-                <input value={form.title} onChange={(event) => updateForm('title', event.target.value)} placeholder="Tên tour" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
-                <input value={form.location} onChange={(event) => updateForm('location', event.target.value)} placeholder="Địa điểm" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <input value={form.duration} onChange={(event) => updateForm('duration', event.target.value)} placeholder="Thời lượng" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <input type="number" min="1000" step="1000" value={form.price} onChange={(event) => updateForm('price', Number(event.target.value))} placeholder="Giá" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <select value={form.category} onChange={(event) => updateForm('category', event.target.value)} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500">
+                <input value={form.title} onChange={(event) => updateForm('title', event.target.value)} placeholder="Tên tour" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
+                <input value={form.location} onChange={(event) => updateForm('location', event.target.value)} placeholder="Địa điểm" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <input value={form.duration} onChange={(event) => updateForm('duration', event.target.value)} placeholder="Thời lượng" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <input type="number" min="1000" step="1000" value={form.price} onChange={(event) => updateForm('price', Number(event.target.value))} placeholder="Giá" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <select value={form.category} onChange={(event) => updateForm('category', event.target.value)} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500">
                   <option value="" disabled>Chọn danh mục</option>
                   {dbCategories.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}
                 </select>
-                <input type="number" min="1" max="1000" value={form.max_guests} onChange={(event) => updateForm('max_guests', Number(event.target.value))} placeholder="Số khách tối đa (toàn tour)" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <input type="number" min="1" max={form.max_guests} value={form.daily_capacity_max} onChange={(event) => updateForm('daily_capacity_max', Number(event.target.value))} placeholder="Khách tối đa mỗi ngày" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <input type="number" min="1" max="1000" value={form.max_guests} onChange={(event) => updateForm('max_guests', Number(event.target.value))} placeholder="Số khách tối đa (toàn tour)" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <input type="number" min="1" max={form.max_guests} value={form.daily_capacity_max} onChange={(event) => updateForm('daily_capacity_max', Number(event.target.value))} placeholder="Khách tối đa mỗi ngày" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Mở đặt từ ngày</span>
-                  <input type="date" value={form.booking_open_date} onChange={(event) => updateForm('booking_open_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <input type="date" value={form.booking_open_date} onChange={(event) => updateForm('booking_open_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Đóng đặt sau ngày</span>
-                  <input type="date" min={form.booking_open_date} value={form.booking_close_date} onChange={(event) => updateForm('booking_close_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <input type="date" min={form.booking_open_date} value={form.booking_close_date} onChange={(event) => updateForm('booking_close_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
-                <input type="number" min="0" value={form.rooms} onChange={(event) => updateForm('rooms', Number(event.target.value))} placeholder="Số phòng" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <input type="number" min="0" value={form.beds} onChange={(event) => updateForm('beds', Number(event.target.value))} placeholder="Số giường" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
-                <input value={form.amenities} onChange={(event) => updateForm('amenities', event.target.value)} placeholder="Tiện ích (cách nhau dấu phẩy)" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
-                <input value={form.image} onChange={(event) => updateForm('image', event.target.value)} placeholder="URL ảnh đại diện" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
-                <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder="Danh sách ảnh phụ (cách nhau dấu phẩy hoặc khoảng trắng)" rows={3} className="resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
-                <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} placeholder="Mô tả tour (hiển thị khi khách xem chi tiết)" rows={3} className="resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-4" />
+                <input type="number" min="0" value={form.rooms} onChange={(event) => updateForm('rooms', Number(event.target.value))} placeholder="Số phòng" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <input type="number" min="0" value={form.beds} onChange={(event) => updateForm('beds', Number(event.target.value))} placeholder="Số giường" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                <input value={form.amenities} onChange={(event) => updateForm('amenities', event.target.value)} placeholder="Tiện ích (cách nhau dấu phẩy)" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
+                <input value={form.image} onChange={(event) => updateForm('image', event.target.value)} placeholder="URL ảnh đại diện" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
+                <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder="Danh sách ảnh phụ (cách nhau dấu phẩy hoặc khoảng trắng)" rows={3} className="resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-2" />
+                <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} placeholder="Mô tả tour (hiển thị khi khách xem chi tiết)" rows={3} className="resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500 lg:col-span-4" />
                 <div className="flex gap-2 lg:col-span-2">
                   <button type="submit" className="flex-1 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-bold text-white hover:bg-emerald-700">Lưu</button>
-                  <button type="button" onClick={resetForm} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800">Hủy</button>
+                  <button type="button" onClick={resetForm} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800">Hủy</button>
                 </div>
               </form>
             )}
@@ -978,7 +978,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
                 placeholder="Tên danh mục mới..."
-                className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm outline-none focus:border-emerald-500"
+                className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-4 py-2 text-sm outline-none focus:border-emerald-500"
               />
               <button
                 type="submit"
@@ -1211,7 +1211,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                     <th className="p-4">Trạng thái</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-200 bg-white dark:bg-slate-800">
+                <tbody className="divide-y divide-zinc-200 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800">
                   {promotions.map((p) => (
                     <tr key={p.id} className="hover:bg-zinc-50 dark:bg-slate-900/50 dark:hover:bg dark:hover:bg dark:hover:bg-slate-900/50">
                       <td className="p-4">
@@ -1259,7 +1259,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                         <select
                           value={item.role}
                           onChange={(event) => updateUserRole(item.id, event.target.value as UserTable['role'])}
-                          className="rounded-lg border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
+                          className="rounded-lg border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
                         >
                           <option value="user">User</option>
                           <option value="admin">Admin</option>
@@ -1400,7 +1400,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
 
       {rejectTourId !== null && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-2xl">
+          <div className="w-full max-w-md rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-2xl">
             <div className="p-6 text-center">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
                 <XCircle className="h-7 w-7" />
@@ -1412,7 +1412,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                 onChange={(e) => setRejectReason(e.target.value)}
                 placeholder="Nhập lý do từ chối (bắt buộc)..."
                 rows={3}
-                className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-red-400"
+                className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-red-400"
                 autoFocus
               />
             </div>
@@ -1420,7 +1420,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
               <button
                 type="button"
                 onClick={() => { setRejectTourId(null); setRejectReason(''); }}
-                className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800"
+                className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-4 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800"
               >
                 Hủy
               </button>

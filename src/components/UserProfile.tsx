@@ -134,8 +134,8 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm overflow-y-auto py-10">
-      <div className="relative w-full max-w-4xl rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shadow-2xl my-auto">
-      <div className="flex border-b border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+      <div className="relative w-full max-w-4xl rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 overflow-hidden shadow-2xl my-auto">
+      <div className="flex border-b border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800">
         <button
           onClick={() => setActiveTab('info')}
           className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'info' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:hover:bg-slate-900/50'}`}
@@ -295,19 +295,19 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {wishlistDetails.map(experience => (
-                  <article key={experience.id} className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+                  <article key={experience.id} className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-sm">
                     <div className="relative">
                       <img
                         src={experience.image || 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1'}
                         alt={experience.title}
                         className="h-40 w-full object-cover"
                       />
-                      <span className="absolute left-3 top-3 rounded-full bg-white dark:bg-slate-800/95 px-2 py-1 text-xs font-black text-emerald-700">
+                      <span className="absolute left-3 top-3 rounded-full bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800/95 px-2 py-1 text-xs font-black text-emerald-700">
                         {experience.category}
                       </span>
                       <button
                         onClick={() => handleRemoveWishlist(experience.id)}
-                        className="absolute right-3 top-3 rounded-full bg-white dark:bg-slate-800/90 p-2 text-rose-500 hover:bg-rose-50"
+                        className="absolute right-3 top-3 rounded-full bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800/90 p-2 text-rose-500 hover:bg-rose-50"
                         title="Bỏ yêu thích"
                       >
                         <Heart className="h-4 w-4 fill-rose-500" />

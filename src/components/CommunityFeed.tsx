@@ -255,7 +255,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
       </div>
 
       {/* Create post */}
-      <div className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+      <div className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-sm">
         <div className="p-4">
           <form onSubmit={handleCreatePost}>
             <textarea
@@ -319,7 +319,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
           const { sorted: reactionSummary, total: reactionTotal } = getReactionSummary(postReactions);
 
           return (
-            <div key={post.id} className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+            <div key={post.id} className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 p-5 shadow-sm">
               <div className="flex items-start justify-between">
                 <div className="flex gap-3 w-full">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-700">
@@ -345,7 +345,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                       <div className="group relative flex items-center">
                         {/* Invisible bridge */}
                         <div className="absolute bottom-full left-0 h-4 w-full" />
-                        <div className="absolute bottom-full left-0 mb-2 hidden items-center gap-4 rounded-full border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-3 shadow-xl group-hover:flex z-50">
+                        <div className="absolute bottom-full left-0 mb-2 hidden items-center gap-4 rounded-full border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-5 py-3 shadow-xl group-hover:flex z-50">
                           {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
                             <button
                               key={reaction}
@@ -375,7 +375,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                       <div className="mt-2 flex items-center gap-1.5">
                         <div className="flex -space-x-1">
                           {reactionSummary.slice(0, 3).map(([type]) => (
-                            <span key={type} className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-white dark:bg-slate-800 text-sm shadow-sm" title={reactionLabels[type]}>
+                            <span key={type} className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 text-sm shadow-sm" title={reactionLabels[type]}>
                               {tinyReactionEmoji[type]}
                             </span>
                           ))}
@@ -424,7 +424,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                             {currentUser?.fullname?.charAt(0).toUpperCase() || '?'}
                           </div>
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 rounded-2xl border border-zinc-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2 focus-within:border-indigo-500">
+                            <div className="flex items-center gap-2 rounded-2xl border border-zinc-300 dark:border-slate-600 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-4 py-2 focus-within:border-indigo-500">
                               <input
                                 type="text"
                                 placeholder="Viết phản hồi..."

@@ -389,7 +389,7 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen font-sans transition-colors duration-300 bg-slate-50 dark:bg-slate-900/70 text-zinc-900 dark:text-slate-100`}>
+    <div className={`min-h-screen font-sans transition-colors duration-300 bg-slate-100 dark:bg-slate-900/70 text-zinc-900 dark:text-slate-100`}>
       <Header
         user={user}
         onOpenLogin={() => setShowLoginModal(true)}
@@ -437,7 +437,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => scrollToSection('host-register')}
-                className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-3 text-sm font-black text-zinc-800 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800"
+                className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-5 py-3 text-sm font-black text-zinc-800 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800"
               >
                 Đăng ký làm host
               </button>
@@ -494,7 +494,7 @@ export default function App() {
             description="Chi phí tour được niêm yết theo VNĐ và cập nhật trực tiếp trên hệ thống. Tour chưa có đánh giá sẽ hiển thị 0.0 sao."
           />
 
-          <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 lg:flex-row lg:items-center">
+          <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 p-4 lg:flex-row lg:items-center">
             <label className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
               <input
@@ -532,7 +532,7 @@ export default function App() {
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {filteredExperiences.map((experience) => (
-              <article key={experience.id} className="flex overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+              <article key={experience.id} className="flex overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 shadow-sm">
                 <div className="flex w-full flex-col">
                   <div className="relative">
                     <img
@@ -544,12 +544,12 @@ export default function App() {
                       }}
                       className="h-48 w-full object-cover"
                     />
-                    <span className="absolute left-3 top-3 rounded-full bg-white dark:bg-slate-800/95 px-3 py-1 text-xs font-black text-emerald-700 shadow-sm">
+                    <span className="absolute left-3 top-3 rounded-full bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800/95 px-3 py-1 text-xs font-black text-emerald-700 shadow-sm">
                       {experience.category}
                     </span>
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleWishlist(experience.id); }}
-                      className="absolute right-3 top-3 rounded-full bg-white dark:bg-slate-800/90 p-2 text-zinc-400 dark:text-slate-500 hover:text-rose-500 shadow-sm"
+                      className="absolute right-3 top-3 rounded-full bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800/90 p-2 text-zinc-400 dark:text-slate-500 hover:text-rose-500 shadow-sm"
                     >
                       <Heart className={`h-4 w-4 ${wishlists.includes(experience.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
                     </button>
@@ -596,7 +596,7 @@ export default function App() {
                         <button
                           type="button"
                           onClick={() => handleViewDetails(experience)}
-                          className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-900/50"
+                          className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-900/50"
                         >
                           Chi tiết
                         </button>
@@ -615,7 +615,7 @@ export default function App() {
               </article>
             ))}
             {filteredExperiences.length === 0 && (
-              <div className="col-span-full rounded-2xl border border-dashed border-zinc-300 dark:border-slate-600 bg-white dark:bg-slate-800 p-10 text-center text-sm font-semibold text-zinc-500 dark:text-slate-400">
+              <div className="col-span-full rounded-2xl border border-dashed border-zinc-300 dark:border-slate-600 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 p-10 text-center text-sm font-semibold text-zinc-500 dark:text-slate-400">
                 Không tìm thấy tour phù hợp.
               </div>
             )}
@@ -623,7 +623,7 @@ export default function App() {
         </div>
       </section>
 
-      <section id="reviews" className="bg-white dark:bg-slate-800 px-4 py-16 sm:px-6 lg:px-8">
+      <section id="reviews" className="bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
             <SectionHeader
@@ -636,7 +636,7 @@ export default function App() {
               <select
                 value={reviewExperienceId ?? ''}
                 onChange={(event) => setReviewExperienceId(Number(event.target.value))}
-                className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
+                className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
               >
                 {experiences.map((experience) => (
                   <option key={experience.id} value={experience.id}>{experience.title}</option>
@@ -649,7 +649,7 @@ export default function App() {
                     key={value}
                     type="button"
                     onClick={() => setReviewRating(value)}
-                    className={`rounded-lg border p-2 ${reviewRating >= value ? 'border-amber-200 bg-amber-50 text-amber-500' : 'border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-zinc-300'}`}
+                    className={`rounded-lg border p-2 ${reviewRating >= value ? 'border-amber-200 bg-amber-50 text-amber-500' : 'border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 text-zinc-300'}`}
                     aria-label={`${value} sao`}
                   >
                     <Star className="h-5 w-5 fill-current" />
@@ -663,7 +663,7 @@ export default function App() {
                 rows={4}
                 maxLength={500}
                 placeholder={user ? 'Chia sẻ cảm nhận của bạn...' : 'Đăng nhập để gửi bình luận'}
-                className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
+                className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
               />
 
               <input
@@ -671,11 +671,11 @@ export default function App() {
                 value={reviewImage}
                 onChange={(event) => setReviewImage(event.target.value)}
                 placeholder="Đường dẫn hình ảnh minh họa (không bắt buộc)"
-                className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
+                className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
               />
 
               {reviewMessage && (
-                <div className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-sm font-semibold text-zinc-700 dark:text-slate-200">
+                <div className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 p-3 text-sm font-semibold text-zinc-700 dark:text-slate-200">
                   {reviewMessage}
                 </div>
               )}
@@ -757,19 +757,19 @@ export default function App() {
             />
 
             <form onSubmit={submitHostApplication} className="mt-6 grid gap-3 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-5">
-              <input value={hostForm.name} onChange={(event) => setHostForm((current) => ({ ...current, name: event.target.value }))} placeholder="Họ tên" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+              <input value={hostForm.name} onChange={(event) => setHostForm((current) => ({ ...current, name: event.target.value }))} placeholder="Họ tên" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
               <div className="grid gap-3 sm:grid-cols-2">
-                <input value={hostForm.email} onChange={(event) => setHostForm((current) => ({ ...current, email: event.target.value }))} placeholder="Email" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
-                <input value={hostForm.phone} onChange={(event) => setHostForm((current) => ({ ...current, phone: event.target.value }))} placeholder="Số điện thoại" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+                <input value={hostForm.email} onChange={(event) => setHostForm((current) => ({ ...current, email: event.target.value }))} placeholder="Email" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+                <input value={hostForm.phone} onChange={(event) => setHostForm((current) => ({ ...current, phone: event.target.value }))} placeholder="Số điện thoại" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
               </div>
-              <input value={hostForm.address} onChange={(event) => setHostForm((current) => ({ ...current, address: event.target.value }))} placeholder="Địa chỉ (VD: 123 Nguyễn Văn Cừ, Q.5, TP.HCM)" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+              <input value={hostForm.address} onChange={(event) => setHostForm((current) => ({ ...current, address: event.target.value }))} placeholder="Địa chỉ (VD: 123 Nguyễn Văn Cừ, Q.5, TP.HCM)" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
               <div className="grid gap-3 sm:grid-cols-2">
-                <input value={hostForm.id_number} onChange={(event) => setHostForm((current) => ({ ...current, id_number: event.target.value.replace(/\D/g, '').slice(0, 12) }))} placeholder="Số CCCD/Passport (12 số)" maxLength={12} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
-                <input value={hostForm.experience_location} onChange={(event) => setHostForm((current) => ({ ...current, experience_location: event.target.value }))} placeholder="Địa điểm trải nghiệm (VD: Vịnh Hạ Long, Hội An)" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+                <input value={hostForm.id_number} onChange={(event) => setHostForm((current) => ({ ...current, id_number: event.target.value.replace(/\D/g, '').slice(0, 12) }))} placeholder="Số CCCD/Passport (12 số)" maxLength={12} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+                <input value={hostForm.experience_location} onChange={(event) => setHostForm((current) => ({ ...current, experience_location: event.target.value }))} placeholder="Địa điểm trải nghiệm (VD: Vịnh Hạ Long, Hội An)" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
               </div>
-              <textarea value={hostForm.description} onChange={(event) => setHostForm((current) => ({ ...current, description: event.target.value }))} rows={4} placeholder="Bạn muốn tổ chức trải nghiệm gì? Mô tả tối thiểu 20 ký tự." className="resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+              <textarea value={hostForm.description} onChange={(event) => setHostForm((current) => ({ ...current, description: event.target.value }))} rows={4} placeholder="Bạn muốn tổ chức trải nghiệm gì? Mô tả tối thiểu 20 ký tự." className="resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
               {hostMessage && (
-                <div className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-sm font-semibold text-zinc-700 dark:text-slate-200">
+                <div className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 p-3 text-sm font-semibold text-zinc-700 dark:text-slate-200">
                   {hostMessage}
                 </div>
               )}
@@ -785,7 +785,7 @@ export default function App() {
           </div>
 
           <div className="rounded-2xl">
-            <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 p-5 bg-white dark:bg-slate-800">
+            <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 p-5 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Chuyến đi của tôi</p>
@@ -890,7 +890,7 @@ function FeatureCard({
   text: string;
 }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
+    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 p-5">
       <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
         <Icon className="h-5 w-5" />
       </div>
@@ -902,7 +902,7 @@ function FeatureCard({
 
 function StepCard({ step, title, text }: { step: string; title: string; text: string }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
+    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 p-5">
       <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-zinc-950 text-sm font-black text-white">
         {step}
       </div>
@@ -920,7 +920,7 @@ function HeroStat({
   label: string;
 }) {
   return (
-    <div className="flex items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-3 text-sm font-black text-zinc-800 dark:text-slate-200">
+    <div className="flex items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg border border-white/50 shadow-sm dark:bg-slate-800 px-3 py-3 text-sm font-black text-zinc-800 dark:text-slate-200">
       <Icon className="h-4 w-4 text-emerald-600" />
       {label}
     </div>
