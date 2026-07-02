@@ -373,8 +373,8 @@ export default function App() {
           onToggleDark={toggleDark}
         />
 
-        <main id="dashboard" className="px-4 py-6 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
+        <main id="dashboard" className="px-3 py-4 sm:px-5 lg:px-6">
+          <div className="w-full">
             {activeSection !== 'hero' && user?.role === 'admin' && (
               <AdminPanel onExperiencesChange={fetchExperiences} activeSection={activeSection === 'hero' ? 'dashboard' : activeSection} currentUser={user} />
             )}

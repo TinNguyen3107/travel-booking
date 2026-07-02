@@ -538,7 +538,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
 
   if (activeSection === 'preview') {
     return (
-      <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm p-6">
+      <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm p-5 sm:p-6">
         <div className="mb-6">
           <h3 className="text-2xl font-black text-zinc-950 dark:text-slate-50">Tour đang mở bán</h3>
           <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">Xem trước danh sách tour hiển thị với khách hàng.</p>
@@ -651,7 +651,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm">
+    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm w-full">
       <div className="flex flex-col gap-4 border-b border-zinc-200 dark:border-slate-700 p-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Bảng điều khiển</p>
