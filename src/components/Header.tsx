@@ -63,7 +63,7 @@ export default function Header({
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800/95">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <button
           type="button"
@@ -90,7 +90,7 @@ export default function Header({
                 className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                   active
                     ? 'bg-emerald-50 text-emerald-700'
-                    : 'text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800 hover:text-zinc-950 dark:hover:text'
+                    : 'text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800 hover:text-zinc-950 dark:hover:text-white'
                 }`}
               >
                 {Icon && <Icon className="h-4 w-4" />}
@@ -185,7 +185,7 @@ export default function Header({
             <button
               type="button"
               onClick={onToggleDark}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800 dark:hover:text dark:hover:bg-slate-700"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-700 dark:hover:text-white"
             >
               {isDark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-indigo-500" />}
               {isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}

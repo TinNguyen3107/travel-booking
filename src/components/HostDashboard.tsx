@@ -639,7 +639,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                       <button
                         type="button"
                         onClick={() => setViewExperienceDetail(experience)}
-                        className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:bg-slate-900/50 dark:hover:bg dark:hover:bg dark:hover:bg-slate-900/50"
+                        className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-700"
                       >
                         Chi tiết
                       </button>
@@ -685,7 +685,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
             <button
               type="button"
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative inline-flex items-center justify-center rounded-xl border border-zinc-200 dark:border-slate-700 p-2.5 text-zinc-700 dark:text-slate-200 hover:bg-zinc-50 dark:bg-slate-900/50 dark:hover:bg dark:hover:bg dark:hover:bg-slate-900/50"
+              className="relative inline-flex items-center justify-center rounded-xl border border-zinc-200 dark:border-slate-700 p-2.5 text-zinc-700 dark:text-slate-200 hover:bg-zinc-50 dark:hover:bg-slate-700"
               title="Thông báo"
             >
               <Bell className="h-5 w-5" />
@@ -711,7 +711,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                     {notifications.map((noti) => (
                       <div
                         key={noti.id}
-                        className={`p-3 text-sm cursor-pointer hover:bg-zinc-50 dark:bg-slate-900/50 dark:hover:bg dark:hover:bg dark:hover:bg-slate-900/50 transition ${!noti.is_read ? 'bg-blue-50/50' : ''}`}
+                        className={`p-3 text-sm cursor-pointer hover:bg-zinc-50 dark:hover:bg-slate-700 transition ${!noti.is_read ? 'bg-blue-50/50' : ''}`}
                         onClick={async () => {
                           if (!noti.is_read) {
                             try {
@@ -746,7 +746,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
           <button
             type="button"
             onClick={fetchAllData}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-50 dark:bg-slate-900/50 dark:hover:bg dark:hover:bg dark:hover:bg-slate-900/50"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-50 dark:hover:bg-slate-700"
           >
             <RefreshCcw className="h-4 w-4" />
             Làm mới
@@ -960,15 +960,15 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   </label>
                   <label className="block lg:col-span-1">
                     <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Tuổi tối thiểu</span>
-                    <input type="number" min="0" value={form.min_age} onChange={(event) => updateForm('min_age', Number(event.target.value))} placeholder="Tuổi" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800 dark:focus:dark:bg-slate-800 dark:focus:dark:bg-slate-800 dark:focus:bg-slate-800" />
+                    <input type="number" min="0" value={form.min_age} onChange={(event) => updateForm('min_age', Number(event.target.value))} placeholder="Tuổi" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800" />
                   </label>
                   <label className="block lg:col-span-2">
                     <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Trẻ em tối đa (tuổi)</span>
-                    <input type="number" min={form.min_age} max="17" value={form.child_max_age} onChange={(event) => updateForm('child_max_age', Number(event.target.value))} placeholder="Độ tuổi tối đa tính là trẻ em" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800 dark:focus:dark:bg-slate-800 dark:focus:dark:bg-slate-800 dark:focus:bg-slate-800" disabled={!form.allow_children} />
+                    <input type="number" min={form.min_age} max="17" value={form.child_max_age} onChange={(event) => updateForm('child_max_age', Number(event.target.value))} placeholder="Độ tuổi tối đa tính là trẻ em" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800" disabled={!form.allow_children} />
                   </label>
                   <label className="block lg:col-span-2">
                     <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Giảm giá cho trẻ em (%)</span>
-                    <input type="number" min="0" max="100" step="1" value={form.child_price} onChange={(event) => updateForm('child_price', Number(event.target.value))} placeholder="% giảm so với người lớn" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-800 dark:focus:dark:bg-slate-800 dark:focus:dark:bg-slate-800 dark:focus:bg-slate-800" disabled={!form.allow_children} />
+                    <input type="number" min="0" max="100" step="1" value={form.child_price} onChange={(event) => updateForm('child_price', Number(event.target.value))} placeholder="% giảm so với người lớn" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800" disabled={!form.allow_children} />
                   </label>
                 </div>
                 <label className="block lg:col-span-2">
@@ -1073,7 +1073,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                         )}
                         <button type="button" onClick={() => setViewExperienceDetail(item)} className="mr-2 rounded-lg border border-sky-200 bg-sky-50 p-2 text-sky-600 hover:bg-sky-100" aria-label="Xem chi tiết tour"><Eye className="h-4 w-4" /></button>
                         <button type="button" onClick={() => setScheduleExperience(item)} className="mr-2 rounded-lg border border-emerald-100 bg-emerald-50 p-2 text-emerald-600 hover:bg-emerald-100" aria-label="Quản lý lịch"><Calendar className="h-4 w-4" /></button>
-                        <button type="button" onClick={() => editExperience(item)} className="mr-2 rounded-lg border border-zinc-200 dark:border-slate-700 p-2 text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:bg-slate-900/50 dark:hover:bg dark:hover:bg dark:hover:bg-slate-900/50" aria-label="Sửa tour"><Edit2 className="h-4 w-4" /></button>
+                        <button type="button" onClick={() => editExperience(item)} className="mr-2 rounded-lg border border-zinc-200 dark:border-slate-700 p-2 text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-700" aria-label="Sửa tour"><Edit2 className="h-4 w-4" /></button>
                         <button type="button" onClick={() => deleteExperience(item.id)} className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50" aria-label="Xóa tour"><Trash2 className="h-4 w-4" /></button>
                       </td>
                     </tr>

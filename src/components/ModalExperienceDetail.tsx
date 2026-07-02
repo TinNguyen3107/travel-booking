@@ -74,7 +74,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 z-20 rounded-full bg-white/80 backdrop-blur-lg dark:bg-slate-800/80 p-2 text-zinc-600 dark:text-slate-300 shadow-sm backdrop-blur-md hover:bg-white dark:hover:bg-slate-800 hover:text-zinc-950 dark:hover:text"
+          className="absolute right-4 top-4 z-20 rounded-full bg-white/80 backdrop-blur-lg dark:bg-slate-800/80 p-2 text-zinc-600 dark:text-slate-300 shadow-sm hover:bg-white dark:hover:bg-slate-700 hover:text-zinc-950 dark:hover:text-white"
           aria-label="Đóng"
         >
           <X className="h-5 w-5" />
