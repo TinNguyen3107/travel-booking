@@ -12,9 +12,10 @@ import {
   Moon,
   ShieldCheck,
   Sun,
-  X
+  X,
+  Bell
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import logoImg from '@/logo/logo.png';
 
 type CurrentUser = { email: string; fullname: string; role: 'user' | 'admin' | 'host' };
@@ -43,6 +44,41 @@ export default function Header({
   onToggleDark
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+    }
+  }, [user]);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch('/api/notifications', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) {
+        setNotifications(await res.json());
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const markAsRead = async (id: number) => {
+    try {
+      await fetch(`/api/notifications/${id}/read`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const navItems = adminMode
     ? [
@@ -126,6 +162,65 @@ export default function Header({
 
           {user ? (
             <>
+              {/* Notifications */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative flex items-center justify-center rounded-full p-2 text-zinc-500 hover:bg-zinc-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl z-50 overflow-hidden">
+                    <div className="border-b border-zinc-100 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-4 py-3">
+                      <h3 className="font-bold text-zinc-900 dark:text-slate-100">Hòm thư / Thông báo</h3>
+                    </div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="p-6 text-center text-sm text-zinc-500 dark:text-slate-400">
+                          Chưa có thông báo nào.
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-zinc-100 dark:divide-slate-700/50">
+                          {notifications.map((noti) => (
+                            <div
+                              key={noti.id}
+                              onClick={() => {
+                                if (!noti.is_read) markAsRead(noti.id);
+                              }}
+                              className={`cursor-pointer p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-slate-700/30 ${
+                                noti.is_read ? 'opacity-70' : 'bg-emerald-50/50 dark:bg-emerald-900/10'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1">
+                                  <h4 className={`text-sm font-bold ${!noti.is_read ? 'text-zinc-900 dark:text-slate-100' : 'text-zinc-700 dark:text-slate-300'}`}>
+                                    {noti.title}
+                                  </h4>
+                                  <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-slate-400">
+                                    {noti.message}
+                                  </p>
+                                </div>
+                                {!noti.is_read && (
+                                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <button type="button" onClick={onOpenProfile} className="flex items-center gap-2 rounded-full border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800">
                 {user.role === 'admin' && <ShieldCheck className="h-4 w-4 text-emerald-600" />}
                 <span className="max-w-40 truncate">{user.fullname || user.email}</span>
