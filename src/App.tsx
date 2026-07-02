@@ -82,6 +82,11 @@ export default function App() {
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [promotions, setPromotions] = useState<any[]>([]);
+  const [visibleCount, setVisibleCount] = useState(4);
+
+  useEffect(() => {
+    setVisibleCount(4);
+  }, [searchTerm, selectedCategory, minPrice, maxPrice]);
 
   useEffect(() => {
     fetchExperiences();
@@ -531,7 +536,7 @@ export default function App() {
           </div>
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {filteredExperiences.map((experience) => (
+            {filteredExperiences.slice(0, visibleCount).map((experience) => (
               <article key={experience.id} className="flex overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
                 <div className="flex w-full flex-col">
                   <div className="relative">
@@ -614,12 +619,24 @@ export default function App() {
                 </div>
               </article>
             ))}
-            {filteredExperiences.length === 0 && (
-              <div className="col-span-full rounded-2xl border border-dashed border-zinc-300 dark:border-slate-600 bg-white dark:bg-slate-800 p-10 text-center text-sm font-semibold text-zinc-500 dark:text-slate-400">
-                Không tìm thấy tour phù hợp.
-              </div>
-            )}
           </div>
+
+          {visibleCount < filteredExperiences.length && (
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={() => setVisibleCount((prev) => prev + 4)}
+                className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 shadow-sm hover:bg-zinc-50 dark:hover:bg-slate-900/50"
+              >
+                Xem thêm
+              </button>
+            </div>
+          )}
+
+          {filteredExperiences.length === 0 && (
+            <div className="col-span-full rounded-2xl border border-dashed border-zinc-300 dark:border-slate-600 bg-white dark:bg-slate-800 p-10 text-center text-sm font-semibold text-zinc-500 dark:text-slate-400">
+              Không tìm thấy tour phù hợp.
+            </div>
+          )}
         </div>
       </section>
 
