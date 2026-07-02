@@ -69,7 +69,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/80 p-2 sm:p-6 backdrop-blur-sm">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-zinc-950/80 p-2 sm:p-6 backdrop-blur-sm">
       <div className="relative w-full max-w-6xl h-full max-h-[96vh] flex flex-col overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/95 backdrop-blur-xl dark:bg-slate-900 shadow-2xl">
         <button
           type="button"
