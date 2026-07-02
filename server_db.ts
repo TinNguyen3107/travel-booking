@@ -1472,11 +1472,14 @@ class RelationalDatabase {
   }
 
   public async getPostReactions(postId: number): Promise<PostReactionTable[]> {
-    const [rows] = await pool.query<PostReactionRow[]>(
-      'SELECT * FROM post_reactions WHERE post_id = ?',
+    const [rows] = await pool.query<any[]>(
+      `SELECT pr.*, u.fullname 
+       FROM post_reactions pr 
+       LEFT JOIN users u ON pr.user_email = u.email 
+       WHERE pr.post_id = ?`,
       [postId]
     );
-    return rows.map(normalizePostReaction);
+    return rows.map(r => ({ ...normalizePostReaction(r), fullname: r.fullname }));
   }
 
   // ─── Notifications ──────────────────────────────────────────────

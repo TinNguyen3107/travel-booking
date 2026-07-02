@@ -54,6 +54,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
   const [activeComments, setActiveComments] = useState<number | null>(null);
   const [commentsData, setCommentsData] = useState<Record<number, PostCommentTable[]>>({});
   const [reactionsData, setReactionsData] = useState<Record<number, PostReactionTable[]>>({});
+  const [viewReactions, setViewReactions] = useState<number | null>(null);
   // comment input per post
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
 
@@ -343,19 +344,19 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
 
                       {/* Reaction trigger */}
                       <div className="group relative flex items-center">
-                        {/* Invisible bridge */}
-                        <div className="absolute bottom-full left-0 h-4 w-full" />
-                        <div className="absolute bottom-full left-0 mb-2 hidden items-center gap-4 rounded-full border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-5 py-3 shadow-xl group-hover:flex z-50">
-                          {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
-                            <button
-                              key={reaction}
-                              onClick={() => toggleReaction(post.id, reaction)}
-                              className="transform transition-transform hover:scale-125 hover:-translate-y-2 origin-bottom"
-                              title={reactionLabels[reaction]}
-                            >
-                              {reactionIcons[reaction]}
-                            </button>
-                          ))}
+                        <div className="absolute bottom-full left-0 pb-2 hidden group-hover:block z-50">
+                          <div className="flex items-center gap-4 rounded-full border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-5 py-3 shadow-xl">
+                            {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
+                              <button
+                                key={reaction}
+                                onClick={() => toggleReaction(post.id, reaction)}
+                                className="transform transition-transform hover:scale-125 hover:-translate-y-2 origin-bottom"
+                                title={reactionLabels[reaction]}
+                              >
+                                {reactionIcons[reaction]}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                         <button
                           onClick={() => toggleReaction(post.id, 'like')}
@@ -372,7 +373,10 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
 
                     {/* Reaction summary bar (Facebook-style) */}
                     {reactionTotal > 0 && (
-                      <div className="mt-2 flex items-center gap-1.5">
+                      <button 
+                        onClick={() => setViewReactions(post.id)}
+                        className="mt-2 flex items-center gap-1.5 hover:bg-zinc-50 dark:hover:bg-slate-900/50 rounded p-1 -ml-1 transition-colors"
+                      >
                         <div className="flex -space-x-1">
                           {reactionSummary.slice(0, 3).map(([type]) => (
                             <span key={type} className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm shadow-sm" title={reactionLabels[type]}>
@@ -380,13 +384,13 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                             </span>
                           ))}
                         </div>
-                        <span className="text-xs text-zinc-500 dark:text-slate-400 hover:underline cursor-default">
+                        <span className="text-xs text-zinc-500 dark:text-slate-400 hover:underline">
                           {reactionTotal} người
                           {reactionSummary.length <= 2
                             ? ' · ' + reactionSummary.map(([t, c]) => `${reactionLabels[t]} (${c})`).join(', ')
                             : ''}
                         </span>
-                      </div>
+                      </button>
                     )}
 
                     {/* Media */}
@@ -413,6 +417,14 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                                 <div>
                                   <span className="font-bold text-zinc-900 dark:text-slate-100 text-sm">{comment.fullname}</span>
                                   <div className="mt-0.5 text-sm leading-relaxed text-zinc-800 dark:text-slate-200">{comment.comment}</div>
+                                  <button 
+                                    onClick={() => {
+                                      setCommentInputs(prev => ({ ...prev, [post.id]: `@${comment.fullname} ` }));
+                                    }} 
+                                    className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-slate-200 font-semibold mt-1"
+                                  >
+                                    Trả lời
+                                  </button>
                                 </div>
                               </div>
                             ))}
@@ -457,6 +469,25 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
           <div className="py-12 text-center text-zinc-500 dark:text-slate-400">Chưa có bài viết nào. Hãy là người đầu tiên!</div>
         )}
       </div>
+
+      {viewReactions && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-slate-800 p-4">
+              <h3 className="font-bold text-zinc-900 dark:text-slate-100">Người đã bày tỏ cảm xúc</h3>
+              <button onClick={() => setViewReactions(null)} className="rounded-full p-1 hover:bg-zinc-100 dark:hover:bg-slate-800 text-zinc-500"><X className="h-5 w-5"/></button>
+            </div>
+            <div className="max-h-96 overflow-y-auto p-4 space-y-3">
+              {(reactionsData[viewReactions] || []).map(r => (
+                <div key={r.id} className="flex items-center justify-between">
+                  <span className="font-semibold text-zinc-800 dark:text-slate-200 text-sm">{(r as any).fullname || r.user_email}</span>
+                  <span className="flex items-center gap-2 text-sm text-zinc-500">{smallReactionIcons[r.reaction_type]} {reactionLabels[r.reaction_type]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
