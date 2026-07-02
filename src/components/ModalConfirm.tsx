@@ -57,9 +57,8 @@ export default function ModalConfirm({
               onConfirm();
               onClose();
             }}
-            className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm ${
-              isDanger ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
-            }`}
+            className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm ${isDanger ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
+              }`}
           >
             {confirmText}
           </button>

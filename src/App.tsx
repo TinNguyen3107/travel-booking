@@ -127,7 +127,7 @@ export default function App() {
   const fetchWishlists = async (email: string) => {
     try {
       const res = await fetch(`/api/wishlists?email=${encodeURIComponent(email)}`, {
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Cache-Control': 'no-cache'
         },
@@ -379,7 +379,7 @@ export default function App() {
 
   if (isAppLoading) {
     return (
-      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white dark:bg-slate-900 transition-colors duration-300">
+      <div className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-white dark:bg-slate-900 transition-colors duration-300">
         <div className="relative flex h-32 w-32 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-900/20">
           <PlaneTakeoff className="h-14 w-14 text-emerald-600 animate-bounce" />
           <div className="absolute inset-0 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin"></div>

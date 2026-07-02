@@ -38,8 +38,8 @@ export default function ModalBooking({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [schedules, setSchedules] = useState<TourScheduleTable[]>([]);
-  const validSchedules = schedules.filter(s => 
-    s.start_date >= experience.booking_open_date && 
+  const validSchedules = schedules.filter(s =>
+    s.start_date >= experience.booking_open_date &&
     (!experience.booking_close_date || s.start_date <= experience.booking_close_date)
   );
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | ''>('');
@@ -137,7 +137,7 @@ export default function ModalBooking({
     try {
       const res = await fetch('/api/promotions/apply', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
