@@ -57,18 +57,19 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm overflow-y-auto py-10">
-      <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-2xl my-auto">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/80 p-2 sm:p-6 backdrop-blur-sm">
+      <div className="relative w-full max-w-6xl h-full max-h-[96vh] flex flex-col overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/95 backdrop-blur-xl dark:bg-slate-900 shadow-2xl">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 rounded-full bg-white/80 backdrop-blur-lg dark:bg-slate-800/80 p-2 text-zinc-600 dark:text-slate-300 shadow-sm backdrop-blur-md hover:bg-white dark:hover:bg-slate-800 hover:text-zinc-950 dark:hover:text"
+          className="absolute right-4 top-4 z-20 rounded-full bg-white/80 backdrop-blur-lg dark:bg-slate-800/80 p-2 text-zinc-600 dark:text-slate-300 shadow-sm backdrop-blur-md hover:bg-white dark:hover:bg-slate-800 hover:text-zinc-950 dark:hover:text"
           aria-label="Đóng"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <div className="relative h-64 sm:h-80 w-full bg-zinc-950 overflow-hidden">
+        <div className="flex-1 overflow-y-auto w-full">
+          <div className="relative h-64 sm:h-[400px] w-full bg-zinc-950 overflow-hidden shrink-0">
           {/* Blurred background */}
           <div
             className="absolute inset-0 bg-cover bg-center blur-2xl opacity-50 scale-110"
@@ -86,7 +87,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
           </div>
         </div>
 
-        <div className="p-6 sm:p-8">
+        <div className="p-6 sm:p-10 max-w-5xl mx-auto">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-100 dark:border-slate-800 pb-5">
             <div>
               <h2 className={`text-2xl sm:text-3xl font-black leading-tight text-zinc-950 dark:text-slate-50 ${highlightClass('title')}`}>
@@ -160,7 +161,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
             <div className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4">
               <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Trạng thái</div>
               <div className={`mt-2 inline-flex rounded-full border px-2.5 py-1 text-xs font-black ${isOpen ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
-                {isOpen ? 'Đang mở bán' : 'Đã đóng nhận đặt'}
+                {isOpen ? (schedules.length > 0 ? `Đang mở bán (Còn ${schedules.reduce((acc, s) => acc + s.remaining_slots, 0)} chỗ)` : 'Đang mở bán') : 'Đã đóng nhận đặt'}
               </div>
             </div>
           </div>
@@ -314,6 +315,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
               <CalendarCheck className="h-4 w-4" />
               {isOpen ? 'Đặt tour ngay' : 'Tour đã đóng'}
             </button>
+          </div>
           </div>
         </div>
       </div>

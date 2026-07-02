@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { AlertCircle, Lock, LogIn, Mail, User, X } from 'lucide-react';
+import { AlertCircle, Lock, LogIn, Mail, User, X, Eye, EyeOff } from 'lucide-react';
 
 interface ModalLoginProps {
   onClose: () => void;
@@ -22,6 +22,8 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const validateForm = () => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = fullname.trim();
@@ -181,13 +183,20 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
               <span className="relative block">
                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
+                  className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-10 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
                   placeholder={isForgotPassword ? 'Mật khẩu mới (tối thiểu 6 ký tự)' : 'Tối thiểu 6 ký tự'}
                   autoComplete={isRegisterMode || isForgotPassword ? 'new-password' : 'current-password'}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:text-slate-500 dark:hover:text-slate-300"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </span>
             </label>
 
@@ -197,13 +206,20 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                 <span className="relative block">
                   <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
                   <input
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
-                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
+                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-10 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
                     placeholder="Nhập lại mật khẩu mới"
                     autoComplete="new-password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:text-slate-500 dark:hover:text-slate-300"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </span>
               </label>
             )}
