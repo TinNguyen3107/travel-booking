@@ -14,8 +14,16 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1476514525535-07fb3b4a
 export default function ModalExperienceDetail({ experience, onClose, onBook }: ModalExperienceDetailProps) {
   const isOpen = isExperienceOpen(experience);
   const [schedules, setSchedules] = useState<TourScheduleTable[]>([]);
+  const [availability, setAvailability] = useState<{ totalRemaining: number, dailyRemaining: number, isAvailable: boolean } | null>(null);
 
   useEffect(() => {
+    fetch(`/api/experiences/${experience.id}/availability?date=${new Date().toISOString().split('T')[0]}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) setAvailability(data);
+      })
+      .catch(console.error);
+
     fetch(`/api/schedules?experience_id=${experience.id}`)
       .then(res => res.json())
       .then(data => {
@@ -163,11 +171,15 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
               <div className={`mt-2 inline-flex rounded-full border px-2.5 py-1 text-xs font-black ${isOpen ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
                 {isOpen ? 'Đang mở bán' : 'Đã đóng nhận đặt'}
               </div>
-              {schedules.length > 0 && (
+              {schedules.length > 0 ? (
                 <div className="mt-2 text-sm font-bold text-zinc-700 dark:text-slate-200">
                   Còn <span className="text-emerald-700">{schedules.reduce((acc, s) => acc + s.remaining_slots, 0)}</span> chỗ trống
                 </div>
-              )}
+              ) : availability ? (
+                <div className="mt-2 text-sm font-bold text-zinc-700 dark:text-slate-200">
+                  Còn <span className="text-emerald-700">{availability.totalRemaining}</span> chỗ trống (toàn tour)
+                </div>
+              ) : null}
             </div>
           </div>
 
