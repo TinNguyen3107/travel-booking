@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Send, ThumbsUp, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Heart, Send, ThumbsUp, Image as ImageIcon, Trash2, X } from 'lucide-react';
 import { PostTable, PostCommentTable, PostReactionTable } from '../types';
 
 interface CommunityFeedProps {
