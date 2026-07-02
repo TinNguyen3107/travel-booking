@@ -456,7 +456,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                   </div>
                 </div>
 
-                {currentUser?.role === 'admin' && (
+                {(currentUser?.role === 'admin' || currentUser?.email === post.user_email) && (
                   <button onClick={() => deletePost(post.id)} className="ml-4 shrink-0 text-zinc-400 dark:text-slate-500 hover:text-rose-500">
                     <Trash2 className="h-5 w-5" />
                   </button>
