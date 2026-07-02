@@ -20,7 +20,8 @@ import {
   Star,
   UserPlus,
   Users,
-  Heart
+  Heart,
+  PlaneTakeoff
 } from 'lucide-react';
 
 import AdminPanel from './components/AdminPanel';
@@ -83,15 +84,20 @@ export default function App() {
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [promotions, setPromotions] = useState<any[]>([]);
   const [visibleCount, setVisibleCount] = useState(4);
+  const [isAppLoading, setIsAppLoading] = useState(true);
 
   useEffect(() => {
     setVisibleCount(4);
   }, [searchTerm, selectedCategory, minPrice, maxPrice]);
 
   useEffect(() => {
-    fetchExperiences();
-    fetchReviews();
-    fetchPromotions();
+    Promise.all([
+      fetchExperiences(),
+      fetchReviews(),
+      fetchPromotions()
+    ]).finally(() => {
+      setTimeout(() => setIsAppLoading(false), 800);
+    });
   }, []);
 
   const fetchPromotions = async () => {
@@ -370,6 +376,23 @@ export default function App() {
       setHostLoading(false);
     }
   };
+
+  if (isAppLoading) {
+    return (
+      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white dark:bg-slate-900 transition-colors duration-300">
+        <div className="relative flex h-32 w-32 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-900/20">
+          <PlaneTakeoff className="h-14 w-14 text-emerald-600 animate-bounce" />
+          <div className="absolute inset-0 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin"></div>
+        </div>
+        <h2 className="mt-8 text-2xl font-black text-zinc-800 dark:text-slate-100">
+          Khám phá thế giới cùng <span className="text-emerald-600">VietTour</span>
+        </h2>
+        <p className="mt-3 text-sm font-semibold text-zinc-500 dark:text-slate-400 animate-pulse">
+          Đang chuẩn bị hành trình...
+        </p>
+      </div>
+    );
+  }
 
   if (user?.role === 'admin' || user?.role === 'host') {
     return (
