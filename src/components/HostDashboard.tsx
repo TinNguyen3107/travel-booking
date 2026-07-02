@@ -226,9 +226,10 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
   const fetchJson = async <T,>(url: string, options?: RequestInit): Promise<T> => {
     const headers = {
       ...options?.headers,
-      'Authorization': `Bearer ${localStorage.getItem('token')}`
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Cache-Control': 'no-cache'
     };
-    const res = await fetch(url, { ...options, headers });
+    const res = await fetch(url, { ...options, headers, cache: 'no-store' });
     const data = await res.json();
 
     if (!res.ok) {

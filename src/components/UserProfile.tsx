@@ -18,7 +18,8 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
 
   useEffect(() => {
     fetch('/api/users/profile', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+      cache: 'no-store'
     })
       .then(res => res.json())
       .then(data => {
@@ -35,7 +36,8 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
       .finally(() => setLoading(false));
 
     fetch('/api/users/history', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+      cache: 'no-store'
     })
       .then(res => res.json())
       .then(data => {
@@ -43,7 +45,8 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
       });
 
     fetch('/api/wishlists/details', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+      cache: 'no-store'
     })
       .then(res => res.json())
       .then(data => {

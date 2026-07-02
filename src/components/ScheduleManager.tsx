@@ -26,7 +26,7 @@ export default function ScheduleManager({ experienceId, experienceTitle, onClose
   const fetchSchedules = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/schedules?experience_id=${experienceId}`);
+      const res = await fetch(`/api/schedules?experience_id=${experienceId}`, { cache: 'no-store' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Lỗi tải lịch khởi hành');
       setSchedules(data);

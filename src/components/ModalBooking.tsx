@@ -49,7 +49,7 @@ export default function ModalBooking({
     if (schedules.length > 0) return;
     const fetchAvailability = async () => {
       try {
-        const res = await fetch(`/api/experiences/${experience.id}/availability?date=${bookingDate}`);
+        const res = await fetch(`/api/experiences/${experience.id}/availability?date=${bookingDate}`, { cache: 'no-store' });
         const data = await res.json();
         if (!data.error) setAvailability(data);
       } catch (e) {
@@ -60,7 +60,7 @@ export default function ModalBooking({
   }, [experience.id, bookingDate, schedules.length]);
 
   useEffect(() => {
-    fetch(`/api/schedules?experience_id=${experience.id}`)
+    fetch(`/api/schedules?experience_id=${experience.id}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (!data.error) setSchedules(data);

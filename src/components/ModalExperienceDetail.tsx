@@ -21,14 +21,14 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
   const [availability, setAvailability] = useState<{ totalRemaining: number, dailyRemaining: number, isAvailable: boolean } | null>(null);
 
   useEffect(() => {
-    fetch(`/api/experiences/${experience.id}/availability?date=${new Date().toISOString().split('T')[0]}`)
+    fetch(`/api/experiences/${experience.id}/availability?date=${new Date().toISOString().split('T')[0]}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (!data.error) setAvailability(data);
       })
       .catch(console.error);
 
-    fetch(`/api/schedules?experience_id=${experience.id}`)
+    fetch(`/api/schedules?experience_id=${experience.id}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (!data.error) setSchedules(data);

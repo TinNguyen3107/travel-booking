@@ -101,7 +101,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
 
   const fetchPosts = async () => {
     try {
-      const res = await fetch('/api/posts');
+      const res = await fetch('/api/posts', { cache: 'no-store' });
       const data = await res.json();
       setPosts(data);
     } catch (e) {
@@ -152,7 +152,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
 
   const fetchComments = async (postId: number) => {
     try {
-      const res = await fetch(`/api/posts/${postId}/comments`);
+      const res = await fetch(`/api/posts/${postId}/comments`, { cache: 'no-store' });
       const data = await res.json();
       setCommentsData(prev => ({ ...prev, [postId]: data }));
     } catch (e) { console.error(e); }
@@ -160,7 +160,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
 
   const fetchReactions = async (postId: number) => {
     try {
-      const res = await fetch(`/api/posts/${postId}/reactions`);
+      const res = await fetch(`/api/posts/${postId}/reactions`, { cache: 'no-store' });
       const data = await res.json();
       setReactionsData(prev => ({ ...prev, [postId]: data }));
     } catch (e) { console.error(e); }

@@ -96,7 +96,7 @@ export default function App() {
 
   const fetchPromotions = async () => {
     try {
-      const res = await fetch('/api/promotions');
+      const res = await fetch('/api/promotions', { cache: 'no-store' });
       const data = await res.json();
       setPromotions(data || []);
     } catch (e) {
@@ -121,7 +121,11 @@ export default function App() {
   const fetchWishlists = async (email: string) => {
     try {
       const res = await fetch(`/api/wishlists?email=${encodeURIComponent(email)}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Cache-Control': 'no-cache'
+        },
+        cache: 'no-store'
       });
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
@@ -153,8 +157,8 @@ export default function App() {
         body: JSON.stringify({ user_email: user.email, experience_id: experienceId })
       });
       const data = await res.json();
-      if (data.added) setWishlists([...wishlists, experienceId]);
-      else setWishlists(wishlists.filter(id => id !== experienceId));
+      if (data.added) setWishlists(prev => [...prev, experienceId]);
+      else setWishlists(prev => prev.filter(id => id !== experienceId));
     } catch (e) { console.error(e); }
   };
 
@@ -187,7 +191,7 @@ export default function App() {
 
   const fetchExperiences = async () => {
     try {
-      const res = await fetch('/api/experiences');
+      const res = await fetch('/api/experiences', { cache: 'no-store' });
       const data = await res.json();
       setExperiences(data || []);
     } catch (err) {
@@ -197,7 +201,7 @@ export default function App() {
 
   const fetchReviews = async () => {
     try {
-      const res = await fetch('/api/reviews');
+      const res = await fetch('/api/reviews', { cache: 'no-store' });
       const data = await res.json();
       setReviews(data || []);
     } catch (err) {
@@ -221,6 +225,10 @@ export default function App() {
     }
     setShowLoginModal(false);
     setActiveSection(loggedUser.role === 'admin' || loggedUser.role === 'host' ? 'dashboard' : 'hero');
+    // Re-fetch data after login to ensure fresh content
+    fetchExperiences();
+    fetchReviews();
+    fetchPromotions();
   };
 
   const handleLogout = () => {

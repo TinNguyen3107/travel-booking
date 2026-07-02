@@ -101,6 +101,15 @@ const upload = multer({ storage, fileFilter });
 
 export const app = express();
 app.use(express.json());
+
+// Prevent browser caching for all API responses
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
+});
+
 app.use('/uploads', express.static(uploadDir));
 
 // Khởi tạo DB khi chạy trên Vercel hoặc local

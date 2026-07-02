@@ -56,7 +56,11 @@ export default function Header({
   const fetchNotifications = async () => {
     try {
       const res = await fetch('/api/notifications', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Cache-Control': 'no-cache'
+        },
+        cache: 'no-store'
       });
       if (res.ok) {
         setNotifications(await res.json());
