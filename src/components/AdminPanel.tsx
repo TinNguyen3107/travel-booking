@@ -115,6 +115,11 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
   const [confirmConfig, setConfirmConfig] = useState<ConfirmConfig | null>(null);
   const [rejectTourId, setRejectTourId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [visibleCount, setVisibleCount] = useState(4);
+
+  useEffect(() => {
+    setVisibleCount(4);
+  }, [searchTerm, selectedCategory]);
 
   const isHost = currentUser?.role === 'host';
   const tabs = isHost 
@@ -567,7 +572,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {filteredExperiences.map((experience) => (
+          {filteredExperiences.slice(0, visibleCount).map((experience) => (
             <article key={experience.id} className="flex overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm">
               <div className="flex w-full flex-col">
                 <div className="relative">
@@ -635,6 +640,17 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
             </div>
           )}
         </div>
+
+        {visibleCount < filteredExperiences.length && (
+          <div className="mt-8 flex justify-center">
+            <button
+              onClick={() => setVisibleCount((prev) => prev + 4)}
+              className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-6 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 shadow-sm hover:bg-zinc-50 dark:hover:bg-slate-900/50"
+            >
+              Xem thêm
+            </button>
+          </div>
+        )}
 
         {viewExperienceDetail && (
           <ModalExperienceDetail
