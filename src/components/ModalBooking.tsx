@@ -38,6 +38,10 @@ export default function ModalBooking({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [schedules, setSchedules] = useState<TourScheduleTable[]>([]);
+  const validSchedules = schedules.filter(s => 
+    s.start_date >= experience.booking_open_date && 
+    (!experience.booking_close_date || s.start_date <= experience.booking_close_date)
+  );
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | ''>('');
   const [availability, setAvailability] = useState<{ totalRemaining: number, dailyRemaining: number, isAvailable: boolean } | null>(null);
 
@@ -93,9 +97,9 @@ export default function ModalBooking({
   };
 
   const validate = () => {
-    if (schedules.length > 0) {
+    if (validSchedules.length > 0) {
       if (!selectedScheduleId) return 'Vui lòng chọn lịch trình';
-      const sched = schedules.find(s => s.id === selectedScheduleId);
+      const sched = validSchedules.find(s => s.id === selectedScheduleId);
       if (sched && sched.remaining_slots < guests) return `Lịch trình này chỉ còn ${sched.remaining_slots} chỗ`;
     } else {
       if (!isBookableWindow) return 'Tour này đã hết thời gian nhận đặt';
@@ -174,8 +178,8 @@ export default function ModalBooking({
         body: JSON.stringify({
           user_email: userEmail,
           experience_id: experience.id,
-          schedule_id: schedules.length > 0 ? selectedScheduleId : undefined,
-          booking_date: schedules.length > 0 ? schedules.find(s => s.id === selectedScheduleId)?.start_date : bookingDate,
+          schedule_id: validSchedules.length > 0 ? selectedScheduleId : undefined,
+          booking_date: validSchedules.length > 0 ? validSchedules.find(s => s.id === selectedScheduleId)?.start_date : bookingDate,
           guests,
           adults,
           children,
@@ -259,14 +263,14 @@ export default function ModalBooking({
                   <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Ngày đi</span>
                   <span className="relative block">
                     <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
-                    {schedules.length > 0 ? (
+                    {validSchedules.length > 0 ? (
                       <select
                         value={selectedScheduleId}
                         onChange={(e) => setSelectedScheduleId(Number(e.target.value) || '')}
                         className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
                       >
                         <option value="">-- Chọn lịch trình --</option>
-                        {schedules.filter(s => s.remaining_slots >= guests).map(s => (
+                        {validSchedules.filter(s => s.remaining_slots >= guests).map(s => (
                           <option key={s.id} value={s.id}>
                             {formatDateVi(s.start_date)} - {formatDateVi(s.end_date)} (Còn {s.remaining_slots} chỗ)
                           </option>
@@ -283,7 +287,7 @@ export default function ModalBooking({
                       />
                     )}
                   </span>
-                  {schedules.length === 0 && availability && (
+                  {validSchedules.length === 0 && availability && (
                     <div className="mt-2 grid gap-1 text-xs font-bold text-zinc-500 dark:text-slate-400">
                       <span className={availability.dailyRemaining > 0 ? 'text-emerald-600' : 'text-rose-500'}>
                         • Còn {availability.dailyRemaining} chỗ trong ngày này
@@ -440,18 +444,18 @@ export default function ModalBooking({
                   disabled={
                     loading ||
                     !isBookableWindow ||
-                    (schedules.length === 0 && availability && (!availability.isAvailable || guests > availability.dailyRemaining || guests > availability.totalRemaining))
+                    (validSchedules.length === 0 && availability && (!availability.isAvailable || guests > availability.dailyRemaining || guests > availability.totalRemaining))
                   }
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-400 sm:w-2/3"
                 >
                   {loading ? (
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  ) : (!isBookableWindow && schedules.length === 0) ? (
+                  ) : (!isBookableWindow && validSchedules.length === 0) ? (
                     <>
                       <BadgeCheck className="h-4 w-4" />
                       Tour đã đóng
                     </>
-                  ) : (schedules.length === 0 && availability && !availability.isAvailable) ? (
+                  ) : (validSchedules.length === 0 && availability && !availability.isAvailable) ? (
                     <>
                       <X className="h-4 w-4" />
                       Hết chỗ

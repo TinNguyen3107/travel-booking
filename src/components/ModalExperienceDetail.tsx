@@ -14,6 +14,10 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1476514525535-07fb3b4a
 export default function ModalExperienceDetail({ experience, onClose, onBook }: ModalExperienceDetailProps) {
   const isOpen = isExperienceOpen(experience);
   const [schedules, setSchedules] = useState<TourScheduleTable[]>([]);
+  const validSchedules = schedules.filter(s => 
+    s.start_date >= experience.booking_open_date && 
+    (!experience.booking_close_date || s.start_date <= experience.booking_close_date)
+  );
   const [availability, setAvailability] = useState<{ totalRemaining: number, dailyRemaining: number, isAvailable: boolean } | null>(null);
 
   useEffect(() => {
@@ -171,9 +175,9 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
               <div className={`mt-2 inline-flex rounded-full border px-2.5 py-1 text-xs font-black ${isOpen ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
                 {isOpen ? 'Đang mở bán' : 'Đã đóng nhận đặt'}
               </div>
-              {schedules.length > 0 ? (
+              {validSchedules.length > 0 ? (
                 <div className="mt-2 text-sm font-bold text-zinc-700 dark:text-slate-200">
-                  Còn <span className="text-emerald-700">{schedules.reduce((acc, s) => acc + s.remaining_slots, 0)}</span> chỗ trống
+                  Còn <span className="text-emerald-700">{validSchedules.reduce((acc, s) => acc + s.remaining_slots, 0)}</span> chỗ trống
                 </div>
               ) : availability ? (
                 <div className="mt-2 text-sm font-bold text-zinc-700 dark:text-slate-200">
@@ -253,11 +257,11 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
             </div>
           )}
 
-          {schedules.length > 0 && (
+          {validSchedules.length > 0 && (
             <div className="mt-6">
               <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Lịch khởi hành sắp tới</h3>
               <div className="grid gap-3 sm:grid-cols-2">
-                {schedules.filter(s => s.remaining_slots > 0).slice(0, 4).map(schedule => (
+                {validSchedules.filter(s => s.remaining_slots > 0).slice(0, 4).map(schedule => (
                   <div key={schedule.id} className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
                     <Calendar className="h-5 w-5 text-emerald-600" />
                     <div>
