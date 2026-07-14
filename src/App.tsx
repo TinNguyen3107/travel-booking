@@ -796,7 +796,7 @@ export default function App() {
       </section>
 
       <section id="host-register" className="px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="mx-auto max-w-3xl">
           <div>
             <SectionHeader
               eyebrow="Cộng đồng"
@@ -830,21 +830,6 @@ export default function App() {
                 Gửi đăng ký host
               </button>
             </form>
-          </div>
-
-          <div className="rounded-2xl">
-            <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 p-5 bg-white dark:bg-slate-800">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Chuyến đi của tôi</p>
-                  <h3 className="mt-1 text-xl font-black text-zinc-950 dark:text-slate-50">Đơn đã đặt</h3>
-                </div>
-                <Calendar className="h-6 w-6 text-emerald-600" />
-              </div>
-              <div className="mt-5 rounded-xl border border-dashed border-zinc-300 dark:border-slate-600 p-6 text-sm font-semibold text-zinc-500 dark:text-slate-400">
-                {user ? 'Truy cập trang cá nhân của bạn ở góc trên bên phải để xem đơn đã đặt.' : 'Đăng nhập để xem hồ sơ và các đơn tour đã đặt.'}
-              </div>
-            </div>
           </div>
         </div>
       </section>
