@@ -24,7 +24,7 @@ export default function ModalConfirm({
   onClose
 }: ModalConfirmProps) {
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
       <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-2xl animate-in zoom-in-95 duration-200">
         <button
           type="button"

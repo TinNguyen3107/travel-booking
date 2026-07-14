@@ -192,26 +192,79 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
               <h3 className="text-sm font-black uppercase text-amber-800 mb-3 flex items-center gap-2">
                 <AlertCircle className="h-4 w-4" /> Chi tiết cập nhật (So sánh với bản cũ)
               </h3>
-              <div className="text-xs text-amber-900 bg-white/80 backdrop-blur-lg dark:bg-slate-800/60 p-3 rounded-lg border border-amber-100 whitespace-pre-wrap max-h-60 overflow-y-auto font-mono">
-                {(() => {
-                  try {
-                    const oldState = JSON.parse(experience.previous_state);
-                    const changes: string[] = [];
-                    const ignoreKeys = ['id', 'status', 'previous_state'];
-                    Object.keys(experience).forEach(key => {
-                      if (ignoreKeys.includes(key)) return;
-                      const oldVal = (oldState as any)[key];
-                      const newVal = (experience as any)[key];
-                      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
-                        changes.push(`- ${key}:\n  Cũ: ${JSON.stringify(oldVal)}\n  Mới: ${JSON.stringify(newVal)}`);
-                      }
-                    });
-                    if (changes.length === 0) return 'Không có thay đổi dữ liệu nào đáng kể.';
-                    return changes.join('\n\n');
-                  } catch (e) {
-                    return 'Không thể đọc được dữ liệu phiên bản cũ.';
-                  }
-                })()}
+              <div className="text-sm text-amber-900 bg-white/80 backdrop-blur-lg dark:bg-slate-800/60 p-4 rounded-lg border border-amber-100 max-h-60 overflow-y-auto">
+                <ul className="list-disc pl-5 space-y-2">
+                  {(() => {
+                    try {
+                      const oldState = JSON.parse(experience.previous_state);
+                      const changes: React.ReactNode[] = [];
+                      const ignoreKeys = ['id', 'status', 'previous_state'];
+                      
+                      const fieldLabels: Record<string, string> = {
+                        title: 'Tên tour',
+                        description: 'Mô tả',
+                        price: 'Giá tour',
+                        location: 'Địa điểm',
+                        duration: 'Thời lượng',
+                        category: 'Danh mục',
+                        max_guests: 'Số khách tối đa',
+                        daily_capacity: 'Sức chứa mỗi ngày',
+                        daily_capacity_max: 'Sức chứa tối đa mỗi ngày',
+                        booking_open_date: 'Ngày bắt đầu nhận đặt chỗ',
+                        booking_close_date: 'Ngày kết thúc nhận đặt chỗ',
+                        registration_open_date: 'Ngày bắt đầu đăng ký',
+                        registration_close_date: 'Ngày kết thúc đăng ký',
+                        allow_children: 'Cho phép trẻ em',
+                        min_age: 'Độ tuổi tối thiểu',
+                        child_max_age: 'Độ tuổi trẻ em tối đa',
+                        child_price: 'Phần trăm giảm giá cho trẻ em',
+                        rooms: 'Số phòng',
+                        beds: 'Số giường',
+                        amenities: 'Tiện ích',
+                        image: 'Ảnh đại diện',
+                        images: 'Thư viện ảnh',
+                        is_active: 'Trạng thái hoạt động',
+                      };
+
+                      const formatValue = (key: string, val: any) => {
+                        if (val === null || val === undefined || val === '') return 'Trống';
+                        if (typeof val === 'boolean') return val ? 'Có' : 'Không';
+                        if (key === 'price') return formatVnd(Number(val) || 0);
+                        if (key.includes('date') && val) {
+                          try {
+                            const dateStr = formatDateVi(val);
+                            if(dateStr) return dateStr;
+                          } catch(e) {}
+                        }
+                        if (key === 'amenities' || key === 'images') {
+                          try {
+                            const parsed = JSON.parse(val);
+                            if (Array.isArray(parsed)) return parsed.length > 0 ? parsed.join(', ') : 'Trống';
+                          } catch(e) {}
+                        }
+                        return String(val);
+                      };
+
+                      Object.keys(experience).forEach(key => {
+                        if (ignoreKeys.includes(key)) return;
+                        const oldVal = (oldState as any)[key];
+                        const newVal = (experience as any)[key];
+                        if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+                          const label = fieldLabels[key] || key;
+                          changes.push(
+                            <li key={key}>
+                              Thay đổi <strong>{label}</strong> từ <span className="line-through opacity-70">{formatValue(key, oldVal)}</span> thành <span className="font-semibold text-emerald-700">{formatValue(key, newVal)}</span>
+                            </li>
+                          );
+                        }
+                      });
+                      if (changes.length === 0) return <li>Không có thay đổi dữ liệu nào đáng kể.</li>;
+                      return changes;
+                    } catch (e) {
+                      return <li>Không thể đọc được dữ liệu phiên bản cũ.</li>;
+                    }
+                  })()}
+                </ul>
               </div>
             </div>
           )}
