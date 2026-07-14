@@ -33,7 +33,7 @@ export default function Footer({ onNavigate }: FooterProps) {
         </div>
 
         <div>
-          <h3 className="text-sm font-black uppercase tracking-widest text-white">Điều hướng</h3>
+          <h3 className="text-sm font-black uppercase tracking-widest text-white">Sản phẩm</h3>
           <div className="mt-4 grid gap-2 text-sm">
             {[
               ['about', 'Về chúng tôi'],
@@ -59,7 +59,7 @@ export default function Footer({ onNavigate }: FooterProps) {
           <div className="mt-4 space-y-3 text-sm text-zinc-400 dark:text-slate-500">
             <p className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-emerald-500" />
-              tin310704@gmail.com
+              viettour@gmail.com
             </p>
             <p className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-emerald-500" />
