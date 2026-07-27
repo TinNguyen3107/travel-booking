@@ -205,9 +205,12 @@ class RelationalDatabase {
     `);
 
     try { await pool.query("ALTER TABLE users MODIFY COLUMN role ENUM('user', 'admin', 'host') NOT NULL DEFAULT 'user'"); } catch (e: any) { console.error('ALTER TABLE role error:', e.message); }
-    try { await pool.query("ALTER TABLE users ADD COLUMN avatar LONGTEXT NULL"); } catch (e: any) { console.error('ALTER TABLE avatar error:', e.message); }
-    try { await pool.query("ALTER TABLE users ADD COLUMN phone VARCHAR(50) NULL"); } catch (e: any) { console.error('ALTER TABLE phone error:', e.message); }
-    try { await pool.query("ALTER TABLE users ADD COLUMN address VARCHAR(500) NULL"); } catch (e: any) { console.error('ALTER TABLE address error:', e.message); }
+    try { await pool.query("ALTER TABLE users ADD COLUMN avatar LONGTEXT NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE users MODIFY COLUMN avatar LONGTEXT NULL"); } catch (e: any) { console.error('ALTER TABLE modify avatar error:', e.message); }
+    try { await pool.query("ALTER TABLE users ADD COLUMN phone VARCHAR(50) NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE users MODIFY COLUMN phone VARCHAR(50) NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE users ADD COLUMN address VARCHAR(500) NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE users MODIFY COLUMN address VARCHAR(500) NULL"); } catch (e: any) { }
 
     await pool.query(`
       INSERT INTO users (email, password, role, fullname)
