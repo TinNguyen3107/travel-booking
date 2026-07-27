@@ -462,6 +462,8 @@ class RelationalDatabase {
         INDEX idx_post_status (status)
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
+    
+    try { await pool.query("ALTER TABLE posts MODIFY COLUMN media_url LONGTEXT"); } catch (e: any) { }
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS post_comments (

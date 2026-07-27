@@ -289,7 +289,15 @@ app.use(async (req, res, next) => {
       if (!req.file) {
         return res.status(400).json({ error: 'Không có file được tải lên' });
       }
-      const fileUrl = `/uploads/${req.file.filename}`;
+      const filePath = req.file.path;
+      const fileBuffer = fs.readFileSync(filePath);
+      const base64Image = fileBuffer.toString('base64');
+      const mimeType = req.file.mimetype;
+      const fileUrl = `data:${mimeType};base64,${base64Image}`;
+      
+      // Dọn dẹp file tạm ở thư mục uploads
+      try { fs.unlinkSync(filePath); } catch (e) {}
+
       res.json({ url: fileUrl });
     } catch (e: any) { handleError(res, e); }
   });
@@ -306,13 +314,6 @@ app.use(async (req, res, next) => {
     return true;
   };
 
-  app.post('/api/upload', authenticateToken, upload.single('file'), (req, res) => {
-    if (!req.file) {
-      res.status(400).json({ error: 'Vui lòng chọn file' });
-      return;
-    }
-    res.json({ url: `/uploads/${req.file.filename}` });
-  });
 
   app.get('/api/wishlists', authenticateToken, async (req, res) => {
     try {
