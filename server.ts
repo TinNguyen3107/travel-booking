@@ -1266,26 +1266,6 @@ app.use(async (req, res, next) => {
         return;
       }
 
-      const role = (req as any).user.role;
-      if (role === 'user') {
-        const bookings = await db.getBookings(user_email);
-        const userBookings = bookings.filter(b => b.status === 'confirmed' && b.schedule_id);
-        const today = new Date().toISOString().split('T')[0];
-        
-        let hasCompletedTour = false;
-        for (const b of userBookings) {
-          const schedule = await db.findScheduleById(b.schedule_id!);
-          if (schedule && schedule.end_date < today) {
-            hasCompletedTour = true;
-            break;
-          }
-        }
-        
-        if (!hasCompletedTour) {
-          res.status(403).json({ error: 'Bạn chỉ có thể bình luận sau khi đã tham gia hoàn tất ít nhất một tour.' });
-          return;
-        }
-      }
 
       const newComment = await db.addPostComment({
         post_id,
