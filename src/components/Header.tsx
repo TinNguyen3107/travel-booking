@@ -18,7 +18,7 @@ import {
 import { useState, useEffect } from 'react';
 import logoImg from '@/logo/logo.png';
 
-type CurrentUser = { email: string; fullname: string; role: 'user' | 'admin' | 'host' };
+type CurrentUser = { email: string; fullname: string; avatar?: string; role: 'user' | 'admin' | 'host' };
 
 interface HeaderProps {
   user: CurrentUser | null;
@@ -226,7 +226,11 @@ export default function Header({
               </div>
 
               <button type="button" onClick={onOpenProfile} className="flex items-center gap-2 rounded-full border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800">
-                {user.role === 'admin' && <ShieldCheck className="h-4 w-4 text-emerald-600" />}
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.fullname} className="h-6 w-6 rounded-full object-cover" />
+                ) : (
+                  user.role === 'admin' ? <ShieldCheck className="h-4 w-4 text-emerald-600" /> : <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">{user.fullname.charAt(0).toUpperCase()}</div>
+                )}
                 <span className="max-w-40 truncate">{user.fullname || user.email}</span>
               </button>
               <button

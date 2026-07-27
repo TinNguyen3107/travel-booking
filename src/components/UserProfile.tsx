@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { User, Calendar, History, Shield, Save, XCircle, Heart, MapPin, Clock, Star, X } from 'lucide-react';
 import { BookingTable, formatVnd, ExperienceTable } from '../types';
 
-export default function UserProfile({ user, onClose }: { user: { email: string, fullname: string }, onClose: () => void }) {
+export default function UserProfile({ user, onClose, onProfileUpdated }: { user: { email: string, fullname: string }, onClose: () => void, onProfileUpdated?: (updatedUser: any) => void }) {
   const [activeTab, setActiveTab] = useState<'info' | 'history' | 'cancelled' | 'wishlists'>('info');
   const [bookings, setBookings] = useState<BookingTable[]>([]);
   const [wishlistDetails, setWishlistDetails] = useState<ExperienceTable[]>([]);
@@ -72,6 +72,10 @@ export default function UserProfile({ user, onClose }: { user: { email: string, 
         })
       });
       if (res.ok) {
+        const data = await res.json();
+        if (data.user && onProfileUpdated) {
+          onProfileUpdated(data.user);
+        }
         alert('Cập nhật hồ sơ thành công!');
       } else {
         alert('Có lỗi xảy ra khi cập nhật.');

@@ -137,6 +137,7 @@ export interface PostTable {
   id: number;
   user_email: string;
   fullname: string;
+  user_avatar?: string;
   role: 'user' | 'admin' | 'host';
   content: string;
   media_url?: string;
@@ -153,6 +154,7 @@ export interface PostCommentTable {
   post_id: number;
   user_email: string;
   fullname: string;
+  user_avatar?: string;
   comment: string;
   parent_id?: number;
   created_at: string;

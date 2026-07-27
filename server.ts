@@ -358,13 +358,19 @@ app.use(async (req, res, next) => {
       const payload: any = {};
       if (req.body.fullname !== undefined) payload.fullname = cleanText(req.body.fullname);
       if (req.body.password !== undefined) payload.password = cleanText(req.body.password);
-      if (req.body.avatar !== undefined) payload.avatar = cleanText(req.body.avatar);
+      if (req.body.avatar !== undefined) payload.avatar = req.body.avatar;
       if (req.body.phone !== undefined) payload.phone = cleanText(req.body.phone);
       if (req.body.address !== undefined) payload.address = cleanText(req.body.address);
       
       const success = await db.updateUserProfile(email, payload);
       if (success) {
-        res.json({ success: true });
+        const updatedUser = await db.findUser(email);
+        if (updatedUser) {
+          const { password, ...userWithoutPassword } = updatedUser;
+          res.json({ success: true, user: userWithoutPassword });
+        } else {
+          res.json({ success: true });
+        }
       } else {
         res.status(400).json({ error: 'Không thể cập nhật hồ sơ' });
       }

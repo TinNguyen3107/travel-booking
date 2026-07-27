@@ -40,7 +40,7 @@ import UserProfile from './components/UserProfile';
 import { useDarkMode } from './hooks/useDarkMode';
 import { ExperienceTable, formatDateVi, formatVnd, isExperienceOpen, ReviewTable } from './types';
 
-type CurrentUser = { email: string; fullname: string; role: 'user' | 'admin' | 'host' };
+type CurrentUser = { email: string; fullname: string; avatar?: string; role: 'user' | 'admin' | 'host' };
 
 const HALONG_IMAGE =
   'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1200&auto=format&fit=crop';
@@ -901,6 +901,12 @@ export default function App() {
         <UserProfile
           user={{ email: user.email, fullname: user.fullname }}
           onClose={() => setShowUserProfile(false)}
+          onProfileUpdated={(updatedUser) => {
+            const newUser = { ...user, fullname: updatedUser.fullname, avatar: updatedUser.avatar };
+            setUser(newUser);
+            localStorage.setItem('currentUser', JSON.stringify(newUser));
+            window.location.reload(); // Tải lại trang để cập nhật tên và avatar mới ở mọi nơi
+          }}
         />
       )}
 

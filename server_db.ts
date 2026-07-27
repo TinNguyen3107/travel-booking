@@ -162,6 +162,7 @@ const normalizePost = (row: PostRow): PostTable => ({
   likes_count: toNumber(row.likes_count),
   comments_count: toNumber(row.comments_count),
   experience_id: toNumber(row.experience_id),
+  user_avatar: row.user_avatar,
   created_at: toDateTimeString(row.created_at)
 });
 
@@ -170,6 +171,7 @@ const normalizePostComment = (row: PostCommentRow): PostCommentTable => ({
   id: toNumber(row.id),
   post_id: toNumber(row.post_id),
   parent_id: row.parent_id ? toNumber(row.parent_id) : undefined,
+  user_avatar: row.user_avatar,
   created_at: toDateTimeString(row.created_at)
 });
 
@@ -203,6 +205,9 @@ class RelationalDatabase {
     `);
 
     try { await pool.query("ALTER TABLE users MODIFY COLUMN role ENUM('user', 'admin', 'host') NOT NULL DEFAULT 'user'"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE users ADD COLUMN avatar LONGTEXT NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE users ADD COLUMN phone VARCHAR(50) NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE users ADD COLUMN address VARCHAR(500) NULL"); } catch (e: any) { }
 
     await pool.query(`
       INSERT INTO users (email, password, role, fullname)
@@ -631,6 +636,12 @@ class RelationalDatabase {
       `UPDATE users SET ${setClause} WHERE LOWER(email) = LOWER(?)`,
       [...values, email.trim()]
     );
+
+    // Propagate fullname changes to posts and comments
+    if (payload.fullname) {
+      await pool.query('UPDATE posts SET fullname = ? WHERE LOWER(user_email) = LOWER(?)', [payload.fullname, email.trim()]);
+      await pool.query('UPDATE post_comments SET fullname = ? WHERE LOWER(user_email) = LOWER(?)', [payload.fullname, email.trim()]);
+    }
 
     return result.affectedRows > 0;
   }
@@ -1424,8 +1435,10 @@ class RelationalDatabase {
     const [rows] = await pool.query<PostRow[]>(`
       SELECT p.*,
         (SELECT COUNT(*) FROM post_reactions WHERE post_id = p.id) as likes_count,
-        (SELECT COUNT(*) FROM post_comments WHERE post_id = p.id) as comments_count
+        (SELECT COUNT(*) FROM post_comments WHERE post_id = p.id) as comments_count,
+        u.avatar as user_avatar
       FROM posts p
+      LEFT JOIN users u ON LOWER(p.user_email) = LOWER(u.email)
       WHERE p.status = 'active'
       ORDER BY p.created_at DESC
     `);
@@ -1460,7 +1473,11 @@ class RelationalDatabase {
 
   public async getPostComments(postId: number): Promise<PostCommentTable[]> {
     const [rows] = await pool.query<PostCommentRow[]>(
-      'SELECT * FROM post_comments WHERE post_id = ? ORDER BY created_at ASC',
+      `SELECT pc.*, u.avatar as user_avatar 
+       FROM post_comments pc
+       LEFT JOIN users u ON LOWER(pc.user_email) = LOWER(u.email)
+       WHERE pc.post_id = ? 
+       ORDER BY pc.created_at ASC`,
       [postId]
     );
     return rows.map(normalizePostComment);

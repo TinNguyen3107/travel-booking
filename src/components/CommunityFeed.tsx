@@ -414,8 +414,12 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
               <div key={post.id} className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 p-5 shadow-sm">
                 <div className="flex items-start justify-between">
                   <div className="flex gap-3 w-full">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-700">
-                      {post.fullname.charAt(0).toUpperCase()}
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-700 overflow-hidden">
+                      {post.user_avatar ? (
+                        <img src={post.user_avatar} alt={post.fullname} className="h-full w-full object-cover" />
+                      ) : (
+                        post.fullname.charAt(0).toUpperCase()
+                      )}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -686,8 +690,12 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
 
                 const renderComment = (comment: PostCommentTable, isReply: boolean = false): React.ReactNode => (
                   <div key={comment.id} className={`flex gap-3 ${isReply ? 'mt-4' : ''}`}>
-                    <div className={`flex shrink-0 items-center justify-center rounded-full bg-zinc-100 dark:bg-slate-800 font-bold text-zinc-600 dark:text-slate-300 ${isReply ? 'h-8 w-8 text-xs' : 'h-10 w-10 text-sm'}`}>
-                      {comment.fullname.charAt(0).toUpperCase()}
+                    <div className={`flex shrink-0 items-center justify-center rounded-full bg-zinc-100 dark:bg-slate-800 font-bold text-zinc-600 dark:text-slate-300 overflow-hidden ${isReply ? 'h-8 w-8 text-xs' : 'h-10 w-10 text-sm'}`}>
+                      {comment.user_avatar ? (
+                        <img src={comment.user_avatar} alt={comment.fullname} className="h-full w-full object-cover" />
+                      ) : (
+                        comment.fullname.charAt(0).toUpperCase()
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="inline-block rounded-2xl bg-zinc-100 dark:bg-slate-800 px-4 py-2.5 max-w-full">
@@ -802,8 +810,12 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                 </div>
               )}
               <form onSubmit={(e) => submitComment(e, commentModalPostId)} className="flex items-end gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700 mt-1">
-                  {currentUser?.fullname?.charAt(0).toUpperCase() || '?'}
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700 mt-1 overflow-hidden">
+                  {currentUser?.avatar ? (
+                    <img src={currentUser.avatar} alt={currentUser.fullname} className="h-full w-full object-cover" />
+                  ) : (
+                    currentUser?.fullname?.charAt(0).toUpperCase() || '?'
+                  )}
                 </div>
                 <div className="flex-1 relative">
                   <textarea
