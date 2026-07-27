@@ -81,8 +81,8 @@ export default function UserProfile({ user, onClose, onProfileUpdated }: { user:
         const data = await res.json();
         alert(data.error || 'Có lỗi xảy ra khi cập nhật.');
       }
-    } catch (e: any) {
-      alert(`Lỗi kết nối: ${e.message}`);
+    } catch {
+      alert('Lỗi kết nối mạng, vui lòng kiểm tra lại.');
     } finally {
       setSaving(false);
     }

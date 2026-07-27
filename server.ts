@@ -65,8 +65,7 @@ const handleError = (res: express.Response, e: any) => {
     res.status(400).json({ error: msg });
   } else {
     console.error(e);
-    // TRẢ VỀ TOÀN BỘ LỖI ĐỂ TÌM NGUYÊN NHÂN TRÊN VERCEL
-    res.status(500).json({ error: `[Lỗi Hệ Thống]: ${msg}`, stack: e.stack });
+    res.status(500).json({ error: 'Đã xảy ra lỗi hệ thống, vui lòng thử lại sau.' });
   }
 };
 
