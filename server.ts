@@ -1197,7 +1197,7 @@ app.use(async (req, res, next) => {
 
   app.post('/api/posts', authenticateToken, async (req, res) => {
     try {
-      const { content, media_url, media_type } = req.body;
+      const { content, media_url, media_type, experience_id } = req.body;
       const user_email = (req as any).user.email;
       const fullname = (req as any).user.fullname || cleanText(req.body.fullname);
       const role = (req as any).user.role;
@@ -1233,7 +1233,8 @@ app.use(async (req, res, next) => {
         role,
         content: cleanText(content),
         media_url: media_url ? cleanText(media_url) : undefined,
-        media_type: media_type as any
+        media_type: media_type as any,
+        experience_id: experience_id ? Number(experience_id) : undefined
       });
       res.status(201).json(post);
     } catch (e: any) { handleError(res, e); }
@@ -1313,6 +1314,32 @@ app.use(async (req, res, next) => {
       }
       const success = await db.togglePostReaction({
         post_id,
+        user_email,
+        reaction_type: reaction_type as any
+      });
+      res.json({ success });
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.get('/api/comments/:id/reactions', async (req, res) => {
+    try {
+      const commentId = Number(req.params.id);
+      res.json(await db.getCommentReactions(commentId));
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.post('/api/comments/:id/reactions', authenticateToken, async (req, res) => {
+    try {
+      const comment_id = Number(req.params.id);
+      const { reaction_type } = req.body;
+      const user_email = (req as any).user.email;
+      
+      if (!reaction_type) {
+        res.status(400).json({ error: 'Missing reaction fields' });
+        return;
+      }
+      const success = await db.toggleCommentReaction({
+        comment_id,
         user_email,
         reaction_type: reaction_type as any
       });

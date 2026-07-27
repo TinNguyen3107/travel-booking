@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Send, ThumbsUp, Image as ImageIcon, Trash2, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, Send, ThumbsUp, Image as ImageIcon, Trash2, X, ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 import { PostTable, PostCommentTable, PostReactionTable } from '../types';
+import CustomSelect from './CustomSelect';
 
 interface CommunityFeedProps {
   currentUser: any;
   onLogin: () => void;
+  limit?: number;
+  onViewAll?: () => void;
+  experiences?: any[];
 }
 
 const reactionIcons: Record<string, React.ReactNode> = {
@@ -44,7 +48,7 @@ const reactionLabels: Record<string, string> = {
   angry: 'Phẫn nộ'
 };
 
-export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedProps) {
+export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, experiences = [] }: CommunityFeedProps) {
   const [posts, setPosts] = useState<PostTable[]>([]);
   const [loading, setLoading] = useState(true);
   const [postContent, setPostContent] = useState('');
@@ -59,7 +63,12 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
   const [activeComments, setActiveComments] = useState<number | null>(null);
   const [commentsData, setCommentsData] = useState<Record<number, PostCommentTable[]>>({});
   const [reactionsData, setReactionsData] = useState<Record<number, PostReactionTable[]>>({});
+  const [commentReactionsData, setCommentReactionsData] = useState<Record<number, any[]>>({});
   const [viewReactions, setViewReactions] = useState<number | null>(null);
+  const [viewCommentReactions, setViewCommentReactions] = useState<number | null>(null);
+  const [selectedExperienceFilter, setSelectedExperienceFilter] = useState<string>('all');
+  const [postExperienceId, setPostExperienceId] = useState<string>('none');
+
   // comment input per post
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
 
@@ -143,12 +152,14 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
           role: currentUser.role,
           content: postContent,
           media_url: mediaUrls.length > 0 ? JSON.stringify(mediaUrls) : undefined,
-          media_type: mediaUrls.length > 0 ? mediaType : undefined
+          media_type: mediaUrls.length > 0 ? mediaType : undefined,
+          experience_id: postExperienceId && postExperienceId !== 'none' ? Number(postExperienceId) : undefined
         })
       });
       if (res.ok) {
         setPostContent('');
         setMediaUrls([]);
+        setPostExperienceId('none');
         fetchPosts();
       } else {
         const err = await res.json();
@@ -166,6 +177,19 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
       const res = await fetch(`/api/posts/${postId}/comments`, { cache: 'no-store' });
       const data = await res.json();
       setCommentsData(prev => ({ ...prev, [postId]: data }));
+
+      // Fetch reactions for each comment
+      data.forEach((comment: any) => {
+        fetchCommentReactions(comment.id);
+      });
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchCommentReactions = async (commentId: number) => {
+    try {
+      const res = await fetch(`/api/comments/${commentId}/reactions`, { cache: 'no-store' });
+      const data = await res.json();
+      setCommentReactionsData(prev => ({ ...prev, [commentId]: data }));
     } catch (e) { console.error(e); }
   };
 
@@ -231,6 +255,23 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
     } catch (e) { console.error(e); }
   };
 
+  const toggleCommentReaction = async (commentId: number, reactionType: string, postId: number) => {
+    if (!currentUser) return onLogin();
+    try {
+      const res = await fetch(`/api/comments/${commentId}/reactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ user_email: currentUser.email, reaction_type: reactionType })
+      });
+      if (res.ok) {
+        fetchCommentReactions(commentId);
+      }
+    } catch (e) { console.error(e); }
+  };
+
   const deletePost = async (postId: number) => {
     if (!window.confirm('Xóa bài viết này?')) return;
     try {
@@ -265,6 +306,22 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
         <h2 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-slate-100">Cộng đồng Travel</h2>
         <p className="mt-2 text-sm text-zinc-500 dark:text-slate-400">Chia sẻ khoảnh khắc và trải nghiệm của bạn cùng những người đam mê du lịch.</p>
       </div>
+
+      {!limit && (
+        <div className="mb-8 flex justify-end">
+          <div className="w-64">
+            <CustomSelect
+              value={selectedExperienceFilter}
+              onChange={setSelectedExperienceFilter}
+              options={[
+                { value: 'all', label: 'Tất cả bài viết' },
+                ...experiences.map(exp => ({ value: String(exp.id), label: exp.title }))
+              ]}
+              className="w-full"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Create post */}
       <div className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm">
@@ -303,7 +360,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
             <hr className="my-4 border-zinc-100 dark:border-slate-800" />
 
             <div className="flex items-center justify-between">
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 items-center">
                 <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" multiple onChange={handleFileUpload} />
                 <button
                   type="button"
@@ -313,6 +370,16 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                 >
                   <ImageIcon className="h-4 w-4 text-emerald-500" /> Ảnh / Video
                 </button>
+                <div className="w-48">
+                  <CustomSelect
+                    value={postExperienceId || 'none'}
+                    onChange={setPostExperienceId}
+                    options={[
+                      { value: 'none', label: 'Bài viết chung' },
+                      ...experiences.map(exp => ({ value: String(exp.id), label: exp.title }))
+                    ]}
+                  />
+                </div>
               </div>
 
               <button
@@ -329,230 +396,295 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
 
       {/* Posts */}
       <div className="space-y-6">
-        {posts.map(post => {
-          const postReactions = reactionsData[post.id] || [];
-          const myReaction = currentUser ? postReactions.find(r => r.user_email === currentUser.email)?.reaction_type : null;
-          const { sorted: reactionSummary, total: reactionTotal } = getReactionSummary(postReactions);
+        {(() => {
+          let filtered = posts;
+          if (selectedExperienceFilter !== 'all') {
+            filtered = posts.filter(p => String(p.experience_id) === selectedExperienceFilter);
+          }
+          const displayedPosts = limit ? filtered.slice(0, limit) : filtered;
+          return displayedPosts.map(post => {
+            const postReactions = reactionsData[post.id] || [];
+            const myReaction = currentUser ? postReactions.find(r => r.user_email === currentUser.email)?.reaction_type : null;
+            const { sorted: reactionSummary, total: reactionTotal } = getReactionSummary(postReactions);
 
-          return (
-            <div key={post.id} className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 p-5 shadow-sm">
-              <div className="flex items-start justify-between">
-                <div className="flex gap-3 w-full">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-700">
-                    {post.fullname.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-zinc-900 dark:text-slate-100">{post.fullname}</span>
-                      {post.role === 'host' && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">Host</span>}
-                      {post.role === 'admin' && <span className="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] font-medium text-white">Quản trị viên</span>}
+            return (
+              <div key={post.id} className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 p-5 shadow-sm">
+                <div className="flex items-start justify-between">
+                  <div className="flex gap-3 w-full">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-700">
+                      {post.fullname.charAt(0).toUpperCase()}
                     </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-zinc-900 dark:text-slate-100">{post.fullname}</span>
+                        {post.role === 'host' && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">Host</span>}
+                        {post.role === 'admin' && <span className="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] font-medium text-white">Quản trị viên</span>}
+                      </div>
 
-                    <div className="mt-1 text-[15px] leading-relaxed text-zinc-800 dark:text-slate-200 whitespace-pre-wrap">{post.content}</div>
+                      <div className="mt-1 text-[15px] leading-relaxed text-zinc-800 dark:text-slate-200 whitespace-pre-wrap">{post.content}</div>
 
-                    {/* Action row */}
-                    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-zinc-500 dark:text-slate-400">
-                      <button onClick={() => toggleComments(post.id)} className="hover:text-zinc-800 dark:hover:text-slate-200 hover:underline">
-                        Gửi trả lời {post.comments_count > 0 && `(${post.comments_count})`}
-                      </button>
-                      <span>•</span>
-
-                      {/* Reaction trigger */}
-                      <div className="group relative flex items-center">
-                        <div className="absolute bottom-full left-0 pb-2 hidden group-hover:block z-50">
-                          <div className="flex items-center gap-4 rounded-full border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-5 py-3 shadow-xl">
-                            {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
-                              <button
-                                key={reaction}
-                                onClick={() => toggleReaction(post.id, reaction)}
-                                className="transform transition-transform hover:scale-125 hover:-translate-y-2 origin-bottom"
-                                title={reactionLabels[reaction]}
-                              >
-                                {reactionIcons[reaction]}
-                              </button>
-                            ))}
-                          </div>
+                      {post.experience_id && experiences.find(e => e.id === post.experience_id) && (
+                        <div className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                          <MapPin className="h-3.5 w-3.5" />
+                          Đang nói về: {experiences.find(e => e.id === post.experience_id)?.title}
                         </div>
-                        <button
-                          onClick={() => toggleReaction(post.id, 'like')}
-                          className={`flex items-center gap-1 hover:text-blue-600 ${myReaction ? 'text-blue-600' : ''}`}
-                        >
-                          {myReaction ? smallReactionIcons[myReaction] : <ThumbsUp className="h-3.5 w-3.5" />}
-                          {myReaction ? reactionLabels[myReaction] : 'Hữu ích'}
+                      )}
+
+                      {/* Action row */}
+                      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-zinc-500 dark:text-slate-400">
+                        <button onClick={() => toggleComments(post.id)} className="hover:text-zinc-800 dark:hover:text-slate-200 hover:underline">
+                          Bình luận {post.comments_count > 0 && `(${post.comments_count})`}
                         </button>
-                      </div>
+                        <span>•</span>
 
-                      <span>•</span>
-                      <span className="text-zinc-400 dark:text-slate-500">{new Date(post.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
-                    </div>
-
-                    {/* Reaction summary bar (Facebook-style) */}
-                    {reactionTotal > 0 && (
-                      <button
-                        onClick={() => setViewReactions(post.id)}
-                        className="mt-2 flex items-center gap-1.5 hover:bg-zinc-50 dark:hover:bg-slate-900/50 rounded p-1 -ml-1 transition-colors"
-                      >
-                        <div className="flex -space-x-1">
-                          {reactionSummary.slice(0, 3).map(([type]) => (
-                            <span key={type} className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm shadow-sm" title={reactionLabels[type]}>
-                              {tinyReactionEmoji[type]}
-                            </span>
-                          ))}
-                        </div>
-                        <span className="text-xs text-zinc-500 dark:text-slate-400 hover:underline">
-                          {reactionTotal} người
-                          {reactionSummary.length <= 2
-                            ? ' · ' + reactionSummary.map(([t, c]) => `${reactionLabels[t]} (${c})`).join(', ')
-                            : ''}
-                        </span>
-                      </button>
-                    )}
-
-                    {/* Media */}
-                    {post.media_url && (
-                      <div className="mt-4 w-full bg-zinc-50 dark:bg-slate-900/50 rounded-xl overflow-hidden border border-zinc-200 dark:border-slate-700">
-                        {(() => {
-                          let urls: string[] = [];
-                          try {
-                            urls = JSON.parse(post.media_url);
-                            if (!Array.isArray(urls)) urls = [post.media_url];
-                          } catch {
-                            urls = [post.media_url];
-                          }
-
-                          if (post.media_type === 'video') {
-                            return <video src={urls[0]} controls className="w-full max-h-96 object-cover" />;
-                          }
-
-                          if (urls.length === 1) {
-                            return (
-                              <img
-                                src={urls[0]}
-                                alt="Post media"
-                                className="w-full max-h-96 object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={() => openLightbox(urls, 0)}
-                              />
-                            );
-                          }
-                          if (urls.length === 2) {
-                            return (
-                              <div className="grid grid-cols-2 gap-1 w-full h-64 sm:h-80">
-                                {urls.map((url, idx) => (
-                                  <img key={idx} src={url} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, idx)} />
-                                ))}
-                              </div>
-                            );
-                          }
-                          if (urls.length === 3) {
-                            return (
-                              <div className="flex flex-col gap-1 w-full h-100">
-                                <div className="flex-1 min-h-0">
-                                  <img src={urls[0]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 0)} />
-                                </div>
-                                <div className="flex-1 min-h-0 grid grid-cols-2 gap-1">
-                                  <img src={urls[1]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 1)} />
-                                  <img src={urls[2]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 2)} />
-                                </div>
-                              </div>
-                            );
-                          }
-                          if (urls.length === 4) {
-                            return (
-                              <div className="grid grid-cols-2 gap-1 w-full h-100">
-                                {urls.map((url, idx) => (
-                                  <img key={idx} src={url} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, idx)} />
-                                ))}
-                              </div>
-                            );
-                          }
-                          // 5 or more
-                          return (
-                            <div className="flex flex-col gap-1 w-full h-112.5">
-                              <div className="flex-1 min-h-0 grid grid-cols-2 gap-1">
-                                <img src={urls[0]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 0)} />
-                                <img src={urls[1]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 1)} />
-                              </div>
-                              <div className="flex-1 min-h-0 grid grid-cols-3 gap-1">
-                                <img src={urls[2]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 2)} />
-                                <img src={urls[3]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 3)} />
-                                <div className="relative w-full h-full cursor-pointer hover:opacity-90 overflow-hidden" onClick={() => openLightbox(urls, 4)}>
-                                  <img src={urls[4]} className="w-full h-full object-cover" />
-                                  {urls.length > 5 && (
-                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-3xl font-bold">
-                                      +{urls.length - 4}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
+                        {/* Reaction trigger */}
+                        <div className="group relative flex items-center">
+                          <div className="absolute bottom-full left-0 pb-2 hidden group-hover:block z-50">
+                            <div className="flex items-center gap-4 rounded-full border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-5 py-3 shadow-xl">
+                              {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
+                                <button
+                                  key={reaction}
+                                  onClick={() => toggleReaction(post.id, reaction)}
+                                  className="transform transition-transform hover:scale-125 hover:-translate-y-2 origin-bottom"
+                                  title={reactionLabels[reaction]}
+                                >
+                                  {reactionIcons[reaction]}
+                                </button>
+                              ))}
                             </div>
-                          );
-                        })()}
-                      </div>
-                    )}
+                          </div>
+                          <button
+                            onClick={() => toggleReaction(post.id, 'like')}
+                            className={`flex items-center gap-1 hover:text-blue-600 ${myReaction ? 'text-blue-600' : ''}`}
+                          >
+                            {myReaction ? smallReactionIcons[myReaction] : <ThumbsUp className="h-3.5 w-3.5" />}
+                            {myReaction ? reactionLabels[myReaction] : 'Hữu ích'}
+                          </button>
+                        </div>
 
-                    {/* Comments section */}
-                    {activeComments === post.id && (
-                      <div className="mt-5 space-y-5">
-                        {commentsData[post.id]?.length > 0 && (
-                          <div className="space-y-4">
-                            {commentsData[post.id].map(comment => (
-                              <div key={comment.id} className="flex gap-3 pl-4 border-l-2 border-zinc-200 dark:border-slate-700">
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600 dark:text-slate-300">
-                                  {comment.fullname.charAt(0).toUpperCase()}
-                                </div>
-                                <div>
-                                  <span className="font-bold text-zinc-900 dark:text-slate-100 text-sm">{comment.fullname}</span>
-                                  <div className="mt-0.5 text-sm leading-relaxed text-zinc-800 dark:text-slate-200">{comment.comment}</div>
-                                  <button
-                                    onClick={() => {
-                                      setCommentInputs(prev => ({ ...prev, [post.id]: `@${comment.fullname} ` }));
-                                    }}
-                                    className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-slate-200 font-semibold mt-1"
-                                  >
-                                    Trả lời
-                                  </button>
-                                </div>
-                              </div>
+                        <span>•</span>
+                        <span className="text-zinc-400 dark:text-slate-500">{new Date(post.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                      </div>
+
+                      {/* Reaction summary bar (Facebook-style) */}
+                      {reactionTotal > 0 && (
+                        <button
+                          onClick={() => setViewReactions(post.id)}
+                          className="mt-2 flex items-center gap-1.5 hover:bg-zinc-50 dark:hover:bg-slate-900/50 rounded p-1 -ml-1 transition-colors"
+                        >
+                          <div className="flex -space-x-1">
+                            {reactionSummary.slice(0, 3).map(([type]) => (
+                              <span key={type} className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm shadow-sm" title={reactionLabels[type]}>
+                                {tinyReactionEmoji[type]}
+                              </span>
                             ))}
                           </div>
-                        )}
+                          <span className="text-xs text-zinc-500 dark:text-slate-400 hover:underline">
+                            {reactionTotal} người
+                            {reactionSummary.length <= 2
+                              ? ' · ' + reactionSummary.map(([t, c]) => `${reactionLabels[t]} (${c})`).join(', ')
+                              : ''}
+                          </span>
+                        </button>
+                      )}
 
-                        <form onSubmit={(e) => submitComment(e, post.id)} className="flex items-start gap-3 pl-4 border-l-2 border-zinc-200 dark:border-slate-700 pt-2">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
-                            {currentUser?.fullname?.charAt(0).toUpperCase() || '?'}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 rounded-2xl border border-zinc-300 dark:border-slate-600 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-4 py-2 focus-within:border-indigo-500">
-                              <input
-                                type="text"
-                                placeholder="Viết phản hồi..."
-                                value={commentInputs[post.id] || ''}
-                                onChange={(e) => setCommentInputs(prev => ({ ...prev, [post.id]: e.target.value }))}
-                                onClick={() => !currentUser && onLogin()}
-                                className="w-full bg-transparent text-sm outline-none"
-                              />
-                              <button type="submit" disabled={!commentInputs[post.id]?.trim()} className="text-indigo-600 hover:text-indigo-700 disabled:text-zinc-300">
-                                <Send className="h-4 w-4" />
-                              </button>
+                      {/* Media */}
+                      {post.media_url && (
+                        <div className="mt-4 w-full bg-zinc-50 dark:bg-slate-900/50 rounded-xl overflow-hidden border border-zinc-200 dark:border-slate-700">
+                          {(() => {
+                            let urls: string[] = [];
+                            try {
+                              urls = JSON.parse(post.media_url);
+                              if (!Array.isArray(urls)) urls = [post.media_url];
+                            } catch {
+                              urls = [post.media_url];
+                            }
+
+                            if (post.media_type === 'video') {
+                              return <video src={urls[0]} controls className="w-full max-h-96 object-cover" />;
+                            }
+
+                            if (urls.length === 1) {
+                              return (
+                                <img
+                                  src={urls[0]}
+                                  alt="Post media"
+                                  className="w-full max-h-96 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                  onClick={() => openLightbox(urls, 0)}
+                                />
+                              );
+                            }
+                            if (urls.length === 2) {
+                              return (
+                                <div className="grid grid-cols-2 gap-1 w-full h-64 sm:h-80">
+                                  {urls.map((url, idx) => (
+                                    <img key={idx} src={url} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, idx)} />
+                                  ))}
+                                </div>
+                              );
+                            }
+                            if (urls.length === 3) {
+                              return (
+                                <div className="flex flex-col gap-1 w-full h-100">
+                                  <div className="flex-1 min-h-0">
+                                    <img src={urls[0]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 0)} />
+                                  </div>
+                                  <div className="flex-1 min-h-0 grid grid-cols-2 gap-1">
+                                    <img src={urls[1]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 1)} />
+                                    <img src={urls[2]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 2)} />
+                                  </div>
+                                </div>
+                              );
+                            }
+                            if (urls.length === 4) {
+                              return (
+                                <div className="grid grid-cols-2 gap-1 w-full h-100">
+                                  {urls.map((url, idx) => (
+                                    <img key={idx} src={url} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, idx)} />
+                                  ))}
+                                </div>
+                              );
+                            }
+                            // 5 or more
+                            return (
+                              <div className="flex flex-col gap-1 w-full h-112.5">
+                                <div className="flex-1 min-h-0 grid grid-cols-2 gap-1">
+                                  <img src={urls[0]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 0)} />
+                                  <img src={urls[1]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 1)} />
+                                </div>
+                                <div className="flex-1 min-h-0 grid grid-cols-3 gap-1">
+                                  <img src={urls[2]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 2)} />
+                                  <img src={urls[3]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 3)} />
+                                  <div className="relative w-full h-full cursor-pointer hover:opacity-90 overflow-hidden" onClick={() => openLightbox(urls, 4)}>
+                                    <img src={urls[4]} className="w-full h-full object-cover" />
+                                    {urls.length > 5 && (
+                                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-3xl font-bold">
+                                        +{urls.length - 4}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
+
+                      {/* Comments section */}
+                      {activeComments === post.id && (
+                        <div className="mt-5 space-y-5">
+                          {commentsData[post.id]?.length > 0 && (
+                            <div className="space-y-4">
+                              {commentsData[post.id].map(comment => (
+                                <div key={comment.id} className="flex gap-3 pl-4 border-l-2 border-zinc-200 dark:border-slate-700">
+                                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600 dark:text-slate-300">
+                                    {comment.fullname.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <span className="font-bold text-zinc-900 dark:text-slate-100 text-sm">{comment.fullname}</span>
+                                    <div className="mt-0.5 text-sm leading-relaxed text-zinc-800 dark:text-slate-200">{comment.comment}</div>
+                                    <div className="mt-1 flex items-center gap-3">
+                                      <button
+                                        onClick={() => {
+                                          setCommentInputs(prev => ({ ...prev, [post.id]: `@${comment.fullname} ` }));
+                                        }}
+                                        className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-slate-200 font-semibold"
+                                      >
+                                        Trả lời
+                                      </button>
+
+                                      {/* Comment Reaction trigger */}
+                                      <div className="group relative flex items-center">
+                                        <div className="absolute bottom-full left-0 pb-2 hidden group-hover:block z-50">
+                                          <div className="flex items-center gap-2 rounded-full border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 shadow-xl">
+                                            {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
+                                              <button
+                                                key={reaction}
+                                                onClick={() => toggleCommentReaction(comment.id, reaction, post.id)}
+                                                className="transform transition-transform hover:scale-125 hover:-translate-y-1 origin-bottom"
+                                                title={reactionLabels[reaction]}
+                                              >
+                                                {smallReactionIcons[reaction]}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        </div>
+                                        <button
+                                          onClick={() => toggleCommentReaction(comment.id, 'like', post.id)}
+                                          className={`text-xs font-semibold hover:text-blue-600 ${currentUser && commentReactionsData[comment.id]?.find(r => r.user_email === currentUser.email)
+                                              ? 'text-blue-600'
+                                              : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-slate-200'
+                                            }`}
+                                        >
+                                          Thích
+                                        </button>
+                                      </div>
+
+                                      {/* Comment Reaction summary */}
+                                      {commentReactionsData[comment.id] && commentReactionsData[comment.id].length > 0 && (
+                                        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-slate-800 rounded-full px-2 py-0.5 shadow-sm text-[10px] text-zinc-500">
+                                          <div className="flex -space-x-1">
+                                            {getReactionSummary(commentReactionsData[comment.id]).sorted.slice(0, 2).map(([type]) => (
+                                              <span key={type} title={reactionLabels[type]}>{tinyReactionEmoji[type]}</span>
+                                            ))}
+                                          </div>
+                                          <span>{commentReactionsData[comment.id].length}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          </div>
-                        </form>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                          )}
 
-                {(currentUser?.role === 'admin' || currentUser?.email === post.user_email) && (
-                  <button onClick={() => deletePost(post.id)} className="ml-4 shrink-0 text-zinc-400 dark:text-slate-500 hover:text-rose-500">
-                    <Trash2 className="h-5 w-5" />
-                  </button>
-                )}
+                          <form onSubmit={(e) => submitComment(e, post.id)} className="flex items-start gap-3 pl-4 border-l-2 border-zinc-200 dark:border-slate-700 pt-2">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
+                              {currentUser?.fullname?.charAt(0).toUpperCase() || '?'}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 rounded-2xl border border-zinc-300 dark:border-slate-600 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-4 py-2 focus-within:border-indigo-500">
+                                <input
+                                  type="text"
+                                  placeholder="Viết phản hồi..."
+                                  value={commentInputs[post.id] || ''}
+                                  onChange={(e) => setCommentInputs(prev => ({ ...prev, [post.id]: e.target.value }))}
+                                  onClick={() => !currentUser && onLogin()}
+                                  className="w-full bg-transparent text-sm outline-none"
+                                />
+                                <button type="submit" disabled={!commentInputs[post.id]?.trim()} className="text-indigo-600 hover:text-indigo-700 disabled:text-zinc-300">
+                                  <Send className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </form>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {(currentUser?.role === 'admin' || currentUser?.email === post.user_email) && (
+                    <button onClick={() => deletePost(post.id)} className="ml-4 shrink-0 text-zinc-400 dark:text-slate-500 hover:text-rose-500">
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          });
+        })()}
         {posts.length === 0 && (
           <div className="py-12 text-center text-zinc-500 dark:text-slate-400">Chưa có bài viết nào. Hãy là người đầu tiên!</div>
+        )}
+        {limit && posts.length > limit && (
+          <div className="text-center mt-6">
+            <button
+              onClick={onViewAll}
+              className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 shadow-sm hover:bg-zinc-50 dark:hover:bg-slate-900/50"
+            >
+              Xem thêm
+            </button>
+          </div>
         )}
       </div>
 

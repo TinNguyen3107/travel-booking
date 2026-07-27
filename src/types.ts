@@ -145,6 +145,7 @@ export interface PostTable {
   created_at: string;
   likes_count?: number;
   comments_count?: number;
+  experience_id?: number;
 }
 
 export interface PostCommentTable {
@@ -159,6 +160,13 @@ export interface PostCommentTable {
 export interface PostReactionTable {
   id: number;
   post_id: number;
+  user_email: string;
+  reaction_type: 'like' | 'love' | 'wow' | 'haha' | 'sad' | 'angry';
+}
+
+export interface CommentReactionTable {
+  id: number;
+  comment_id: number;
   user_email: string;
   reaction_type: 'like' | 'love' | 'wow' | 'haha' | 'sad' | 'angry';
 }

@@ -21,7 +21,8 @@ import {
   UserPlus,
   Users,
   Heart,
-  PlaneTakeoff
+  PlaneTakeoff,
+  ChevronLeft
 } from 'lucide-react';
 
 import AdminPanel from './components/AdminPanel';
@@ -425,6 +426,45 @@ export default function App() {
     );
   }
 
+  if (activeSection === 'community_page') {
+    return (
+      <div className={`min-h-screen bg-zinc-100 dark:bg-slate-900/70 font-sans transition-colors duration-300 text-zinc-900 dark:text-slate-100`}>
+        <Header
+          user={user}
+          onOpenLogin={() => setShowLoginModal(true)}
+          onLogout={handleLogout}
+          onNavigate={(id) => { setActiveSection(id); if(id !== 'community_page') scrollToSection(id); }}
+          onOpenProfile={() => setShowUserProfile(true)}
+          activeSection="community_page"
+          isDark={isDark}
+          onToggleDark={toggleDark}
+        />
+        
+        <main className="px-4 py-8 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <button 
+            onClick={() => { setActiveSection('hero'); setTimeout(() => scrollToSection('community'), 100); }}
+            className="mb-6 flex items-center gap-2 text-sm font-semibold text-zinc-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+          >
+            <ChevronLeft className="h-4 w-4" /> Quay lại trang chủ
+          </button>
+          
+          <CommunityFeed
+            currentUser={user}
+            onLogin={() => setShowLoginModal(true)}
+            experiences={experiences}
+          />
+        </main>
+
+        {showLoginModal && (
+          <ModalLogin
+            onClose={() => setShowLoginModal(false)}
+            onLoginSuccess={handleLoginSuccess}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen font-sans transition-colors duration-300 bg-slate-100 dark:bg-slate-900/70 text-zinc-900 dark:text-slate-100`}>
       <Header
@@ -562,7 +602,7 @@ export default function App() {
                 { value: 'all', label: 'Tất cả danh mục' },
                 ...categories.map(cat => ({ value: cat, label: cat }))
               ]}
-              className="min-w-[160px]"
+              className="min-w-40"
             />
           </div>
 
@@ -840,6 +880,9 @@ export default function App() {
         <CommunityFeed
           currentUser={user}
           onLogin={() => setShowLoginModal(true)}
+          limit={3}
+          onViewAll={() => { window.scrollTo(0,0); setActiveSection('community_page'); }}
+          experiences={experiences}
         />
       </section>
 

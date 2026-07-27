@@ -161,6 +161,7 @@ const normalizePost = (row: PostRow): PostTable => ({
   id: toNumber(row.id),
   likes_count: toNumber(row.likes_count),
   comments_count: toNumber(row.comments_count),
+  experience_id: toNumber(row.experience_id),
   created_at: toDateTimeString(row.created_at)
 });
 
@@ -487,6 +488,19 @@ class RelationalDatabase {
         CONSTRAINT fk_reaction_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS comment_reactions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        comment_id INT NOT NULL,
+        user_email VARCHAR(255) NOT NULL,
+        reaction_type ENUM('like', 'love', 'wow', 'haha', 'sad', 'angry') NOT NULL,
+        UNIQUE KEY unique_user_reaction_comment (comment_id, user_email),
+        CONSTRAINT fk_reaction_comment FOREIGN KEY (comment_id) REFERENCES post_comments(id) ON DELETE CASCADE
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+
+    try { await pool.query("ALTER TABLE posts ADD COLUMN experience_id INT NULL AFTER role"); } catch (e: any) { }
 
     await pool.query(`
       UPDATE experiences
@@ -1414,8 +1428,8 @@ class RelationalDatabase {
 
   public async addPost(post: Omit<PostTable, 'id' | 'status' | 'created_at' | 'likes_count' | 'comments_count'>): Promise<PostTable> {
     const [result] = await pool.query<mysql.ResultSetHeader>(
-      'INSERT INTO posts (user_email, fullname, role, content, media_url, media_type) VALUES (?, ?, ?, ?, ?, ?)',
-      [post.user_email, post.fullname, post.role, post.content, post.media_url || null, post.media_type || null]
+      'INSERT INTO posts (user_email, fullname, role, content, media_url, media_type, experience_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [post.user_email, post.fullname, post.role, post.content, post.media_url || null, post.media_type || null, post.experience_id || null]
     );
     const [rows] = await pool.query<PostRow[]>('SELECT * FROM posts WHERE id = ?', [result.insertId]);
     return normalizePost(rows[0]);
@@ -1482,6 +1496,46 @@ class RelationalDatabase {
       [postId]
     );
     return rows.map(r => ({ ...normalizePostReaction(r), fullname: r.fullname }));
+  }
+
+  public async toggleCommentReaction(reaction: { comment_id: number; user_email: string; reaction_type: 'like' | 'love' | 'wow' | 'haha' | 'sad' | 'angry' }): Promise<boolean> {
+    const [existing] = await pool.query<mysql.RowDataPacket[]>(
+      'SELECT id, reaction_type FROM comment_reactions WHERE comment_id = ? AND user_email = ?',
+      [reaction.comment_id, reaction.user_email]
+    );
+
+    if (existing.length > 0) {
+      if (existing[0].reaction_type === reaction.reaction_type) {
+        // Remove if clicking same reaction
+        await pool.query('DELETE FROM comment_reactions WHERE id = ?', [existing[0].id]);
+        return false;
+      } else {
+        // Update if clicking different reaction
+        await pool.query(
+          'UPDATE comment_reactions SET reaction_type = ? WHERE id = ?',
+          [reaction.reaction_type, existing[0].id]
+        );
+        return true;
+      }
+    } else {
+      // Add new
+      await pool.query(
+        'INSERT INTO comment_reactions (comment_id, user_email, reaction_type) VALUES (?, ?, ?)',
+        [reaction.comment_id, reaction.user_email, reaction.reaction_type]
+      );
+      return true;
+    }
+  }
+
+  public async getCommentReactions(commentId: number): Promise<any[]> {
+    const [rows] = await pool.query<any[]>(
+      `SELECT cr.*, u.fullname 
+       FROM comment_reactions cr 
+       LEFT JOIN users u ON cr.user_email = u.email 
+       WHERE cr.comment_id = ?`,
+      [commentId]
+    );
+    return rows;
   }
 
   // ─── Notifications ──────────────────────────────────────────────
