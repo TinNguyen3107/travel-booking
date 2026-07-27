@@ -169,6 +169,7 @@ const normalizePostComment = (row: PostCommentRow): PostCommentTable => ({
   ...row,
   id: toNumber(row.id),
   post_id: toNumber(row.post_id),
+  parent_id: row.parent_id ? toNumber(row.parent_id) : undefined,
   created_at: toDateTimeString(row.created_at)
 });
 
@@ -473,10 +474,14 @@ class RelationalDatabase {
         user_email VARCHAR(255) NOT NULL,
         fullname VARCHAR(255) NOT NULL,
         comment TEXT NOT NULL,
+        parent_id INT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        CONSTRAINT fk_comment_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+        CONSTRAINT fk_comment_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+        CONSTRAINT fk_comment_parent FOREIGN KEY (parent_id) REFERENCES post_comments(id) ON DELETE CASCADE
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
+    try { await pool.query("ALTER TABLE post_comments ADD COLUMN parent_id INT NULL AFTER comment, ADD CONSTRAINT fk_comment_parent FOREIGN KEY (parent_id) REFERENCES post_comments(id) ON DELETE CASCADE"); } catch (e: any) { }
+
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS post_reactions (
@@ -1445,8 +1450,8 @@ class RelationalDatabase {
 
   public async addPostComment(comment: Omit<PostCommentTable, 'id' | 'created_at'>): Promise<PostCommentTable> {
     const [result] = await pool.query<mysql.ResultSetHeader>(
-      'INSERT INTO post_comments (post_id, user_email, fullname, comment) VALUES (?, ?, ?, ?)',
-      [comment.post_id, comment.user_email, comment.fullname, comment.comment]
+      'INSERT INTO post_comments (post_id, user_email, fullname, comment, parent_id) VALUES (?, ?, ?, ?, ?)',
+      [comment.post_id, comment.user_email, comment.fullname, comment.comment, comment.parent_id || null]
     );
     const [rows] = await pool.query<PostCommentRow[]>('SELECT * FROM post_comments WHERE id = ?', [result.insertId]);
     return normalizePostComment(rows[0]);

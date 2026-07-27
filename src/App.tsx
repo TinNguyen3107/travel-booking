@@ -452,6 +452,7 @@ export default function App() {
             currentUser={user}
             onLogin={() => setShowLoginModal(true)}
             experiences={experiences}
+            hideCreatePost={true}
           />
         </main>
 
@@ -880,7 +881,7 @@ export default function App() {
         <CommunityFeed
           currentUser={user}
           onLogin={() => setShowLoginModal(true)}
-          limit={3}
+          limit={1}
           onViewAll={() => { window.scrollTo(0,0); setActiveSection('community_page'); }}
           experiences={experiences}
         />

@@ -9,6 +9,7 @@ interface CommunityFeedProps {
   limit?: number;
   onViewAll?: () => void;
   experiences?: any[];
+  hideCreatePost?: boolean;
 }
 
 const reactionIcons: Record<string, React.ReactNode> = {
@@ -48,7 +49,7 @@ const reactionLabels: Record<string, string> = {
   angry: 'Phẫn nộ'
 };
 
-export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, experiences = [] }: CommunityFeedProps) {
+export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, experiences = [], hideCreatePost = false }: CommunityFeedProps) {
   const [posts, setPosts] = useState<PostTable[]>([]);
   const [loading, setLoading] = useState(true);
   const [postContent, setPostContent] = useState('');
@@ -68,6 +69,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
   const [viewCommentReactions, setViewCommentReactions] = useState<number | null>(null);
   const [selectedExperienceFilter, setSelectedExperienceFilter] = useState<string>('all');
   const [postExperienceId, setPostExperienceId] = useState<string>('none');
+  const [replyingTo, setReplyingTo] = useState<{ postId: number; commentId: number; fullname: string } | null>(null);
 
   // comment input per post
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
@@ -222,11 +224,13 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
         body: JSON.stringify({
           user_email: currentUser.email,
           fullname: currentUser.fullname,
-          comment: input
+          comment: input,
+          parent_id: replyingTo?.postId === postId ? replyingTo.commentId : undefined
         })
       });
       if (res.ok) {
         setCommentInputs(prev => ({ ...prev, [postId]: '' }));
+        setReplyingTo(null);
         fetchComments(postId);
         fetchPosts();
       }
@@ -320,7 +324,8 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
       )}
 
       {/* Create post */}
-      <div className="mb-8 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm relative z-20">
+      {!hideCreatePost && (
+        <div className="mb-8 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm relative z-20">
         <div className="p-4">
           <form onSubmit={handleCreatePost}>
             <textarea
@@ -389,6 +394,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
           </form>
         </div>
       </div>
+      )}
 
       {/* Posts */}
       <div className="space-y-6">
@@ -662,24 +668,41 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
 
             {/* Comments List */}
             <div className="flex-1 overflow-y-auto p-5 space-y-6">
-              {(!commentsData[commentModalPostId] || commentsData[commentModalPostId].length === 0) ? (
-                <div className="py-8 text-center text-zinc-500">Chưa có bình luận nào. Hãy trở thành người đầu tiên!</div>
-              ) : (
-                commentsData[commentModalPostId].map(comment => (
-                  <div key={comment.id} className="flex gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 dark:bg-slate-800 text-sm font-bold text-zinc-600 dark:text-slate-300">
+              {(() => {
+                const comments = commentsData[commentModalPostId] || [];
+                if (comments.length === 0) {
+                  return <div className="py-8 text-center text-zinc-500">Chưa có bình luận nào. Hãy trở thành người đầu tiên!</div>;
+                }
+
+                const rootComments = comments.filter(c => !c.parent_id);
+                const repliesByParent = comments.reduce((acc, c) => {
+                  if (c.parent_id) {
+                    acc[c.parent_id] = acc[c.parent_id] || [];
+                    acc[c.parent_id].push(c);
+                  }
+                  return acc;
+                }, {} as Record<number, PostCommentTable[]>);
+
+                const renderComment = (comment: PostCommentTable, isReply: boolean = false): React.ReactNode => (
+                  <div key={comment.id} className={`flex gap-3 ${isReply ? 'mt-4' : ''}`}>
+                    <div className={`flex shrink-0 items-center justify-center rounded-full bg-zinc-100 dark:bg-slate-800 font-bold text-zinc-600 dark:text-slate-300 ${isReply ? 'h-8 w-8 text-xs' : 'h-10 w-10 text-sm'}`}>
                       {comment.fullname.charAt(0).toUpperCase()}
                     </div>
-                    <div className="flex-1">
-                      <div className="inline-block rounded-2xl bg-zinc-100 dark:bg-slate-800 px-4 py-2.5">
+                    <div className="flex-1 min-w-0">
+                      <div className="inline-block rounded-2xl bg-zinc-100 dark:bg-slate-800 px-4 py-2.5 max-w-full">
                         <span className="block font-bold text-zinc-900 dark:text-slate-100 text-sm">{comment.fullname}</span>
-                        <span className="block mt-0.5 text-[15px] leading-relaxed text-zinc-800 dark:text-slate-200">{comment.comment}</span>
+                        <span className="block mt-0.5 text-[15px] leading-relaxed text-zinc-800 dark:text-slate-200 break-words">{comment.comment}</span>
                       </div>
 
                       <div className="mt-1.5 ml-2 flex items-center gap-3">
                         <button
                           onClick={() => {
-                            setCommentInputs(prev => ({ ...prev, [commentModalPostId]: `@${comment.fullname} ` }));
+                            setReplyingTo({ postId: commentModalPostId, commentId: isReply && comment.parent_id ? comment.parent_id : comment.id, fullname: comment.fullname });
+                            const input = commentInputs[commentModalPostId] || '';
+                            const mention = `@${comment.fullname} `;
+                            if (!input.includes(mention)) {
+                              setCommentInputs(prev => ({ ...prev, [commentModalPostId]: mention + input }));
+                            }
                             document.getElementById('comment-input')?.focus();
                           }}
                           className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-slate-200 font-semibold transition-colors"
@@ -726,14 +749,31 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                           </div>
                         )}
                       </div>
+
+                      {/* Replies */}
+                      {repliesByParent[comment.id] && repliesByParent[comment.id].length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {repliesByParent[comment.id].map(reply => renderComment(reply, true))}
+                        </div>
+                      )}
                     </div>
                   </div>
-                ))
-              )}
+                );
+
+                return rootComments.map(c => renderComment(c, false));
+              })()}
             </div>
 
             {/* Comment Input Box */}
             <div className="border-t border-zinc-200 dark:border-slate-800 p-4 shrink-0 bg-zinc-50 dark:bg-slate-900/80">
+              {replyingTo?.postId === commentModalPostId && (
+                <div className="mb-2 flex items-center justify-between text-xs text-zinc-500 dark:text-slate-400 bg-zinc-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg w-max max-w-full">
+                  <span className="truncate">Đang trả lời <strong>{replyingTo.fullname}</strong></span>
+                  <button onClick={() => setReplyingTo(null)} className="ml-2 hover:text-zinc-800 dark:hover:text-slate-200">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
               <form onSubmit={(e) => submitComment(e, commentModalPostId)} className="flex items-end gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700 mt-1">
                   {currentUser?.fullname?.charAt(0).toUpperCase() || '?'}

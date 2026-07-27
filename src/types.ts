@@ -154,6 +154,7 @@ export interface PostCommentTable {
   user_email: string;
   fullname: string;
   comment: string;
+  parent_id?: number;
   created_at: string;
 }
 

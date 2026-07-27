@@ -1275,7 +1275,7 @@ app.use(async (req, res, next) => {
   app.post('/api/posts/:id/comments', authenticateToken, async (req, res) => {
     try {
       const post_id = Number(req.params.id);
-      const { comment } = req.body;
+      const { comment, parent_id } = req.body;
       const user_email = (req as any).user.email;
       const fullname = (req as any).user.fullname || cleanText(req.body.fullname);
       
@@ -1289,7 +1289,8 @@ app.use(async (req, res, next) => {
         post_id,
         user_email,
         fullname,
-        comment: cleanText(comment)
+        comment: cleanText(comment),
+        parent_id: parent_id ? Number(parent_id) : undefined
       });
       res.status(201).json(newComment);
     } catch (e: any) { handleError(res, e); }
