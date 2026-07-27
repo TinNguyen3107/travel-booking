@@ -50,7 +50,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
   const [postContent, setPostContent] = useState('');
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
-  const [lightbox, setLightbox] = useState<{urls: string[], index: number} | null>(null);
+  const [lightbox, setLightbox] = useState<{ urls: string[], index: number } | null>(null);
 
   const openLightbox = (urls: string[], index: number) => {
     setLightbox({ urls, index });
@@ -388,7 +388,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
 
                     {/* Reaction summary bar (Facebook-style) */}
                     {reactionTotal > 0 && (
-                      <button 
+                      <button
                         onClick={() => setViewReactions(post.id)}
                         className="mt-2 flex items-center gap-1.5 hover:bg-zinc-50 dark:hover:bg-slate-900/50 rounded p-1 -ml-1 transition-colors"
                       >
@@ -426,11 +426,11 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
 
                           if (urls.length === 1) {
                             return (
-                              <img 
-                                src={urls[0]} 
-                                alt="Post media" 
-                                className="w-full max-h-96 object-cover cursor-pointer hover:opacity-90 transition-opacity" 
-                                onClick={() => openLightbox(urls, 0)} 
+                              <img
+                                src={urls[0]}
+                                alt="Post media"
+                                className="w-full max-h-96 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => openLightbox(urls, 0)}
                               />
                             );
                           }
@@ -445,7 +445,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                           }
                           if (urls.length === 3) {
                             return (
-                              <div className="flex flex-col gap-1 w-full h-[400px]">
+                              <div className="flex flex-col gap-1 w-full h-100">
                                 <div className="flex-1 min-h-0">
                                   <img src={urls[0]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 0)} />
                                 </div>
@@ -458,7 +458,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                           }
                           if (urls.length === 4) {
                             return (
-                              <div className="grid grid-cols-2 gap-1 w-full h-[400px]">
+                              <div className="grid grid-cols-2 gap-1 w-full h-100">
                                 {urls.map((url, idx) => (
                                   <img key={idx} src={url} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, idx)} />
                                 ))}
@@ -467,7 +467,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                           }
                           // 5 or more
                           return (
-                            <div className="flex flex-col gap-1 w-full h-[450px]">
+                            <div className="flex flex-col gap-1 w-full h-112.5">
                               <div className="flex-1 min-h-0 grid grid-cols-2 gap-1">
                                 <img src={urls[0]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 0)} />
                                 <img src={urls[1]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 1)} />
@@ -503,10 +503,10 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
                                 <div>
                                   <span className="font-bold text-zinc-900 dark:text-slate-100 text-sm">{comment.fullname}</span>
                                   <div className="mt-0.5 text-sm leading-relaxed text-zinc-800 dark:text-slate-200">{comment.comment}</div>
-                                  <button 
+                                  <button
                                     onClick={() => {
                                       setCommentInputs(prev => ({ ...prev, [post.id]: `@${comment.fullname} ` }));
-                                    }} 
+                                    }}
                                     className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-slate-200 font-semibold mt-1"
                                   >
                                     Trả lời
@@ -557,15 +557,15 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
       </div>
 
       {lightbox && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md">
-          <button 
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md">
+          <button
             className="absolute top-4 right-4 text-white hover:text-zinc-300 p-2"
             onClick={() => setLightbox(null)}
           >
             <X className="h-8 w-8" />
           </button>
-          
-          <button 
+
+          <button
             className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-zinc-300 p-2 disabled:opacity-30"
             onClick={() => setLightbox({ ...lightbox, index: lightbox.index - 1 })}
             disabled={lightbox.index === 0}
@@ -573,13 +573,13 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
             <ChevronLeft className="h-12 w-12" />
           </button>
 
-          <img 
-            src={lightbox.urls[lightbox.index]} 
-            className="max-h-[90vh] max-w-[90vw] object-contain" 
-            alt="Expanded view" 
+          <img
+            src={lightbox.urls[lightbox.index]}
+            className="max-h-[90vh] max-w-[90vw] object-contain"
+            alt="Expanded view"
           />
 
-          <button 
+          <button
             className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-zinc-300 p-2 disabled:opacity-30"
             onClick={() => setLightbox({ ...lightbox, index: lightbox.index + 1 })}
             disabled={lightbox.index === lightbox.urls.length - 1}
@@ -594,7 +594,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
           <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
             <div className="flex items-center justify-between border-b border-zinc-200 dark:border-slate-800 p-4">
               <h3 className="font-bold text-zinc-900 dark:text-slate-100">Người đã bày tỏ cảm xúc</h3>
-              <button onClick={() => setViewReactions(null)} className="rounded-full p-1 hover:bg-zinc-100 dark:hover:bg-slate-800 text-zinc-500"><X className="h-5 w-5"/></button>
+              <button onClick={() => setViewReactions(null)} className="rounded-full p-1 hover:bg-zinc-100 dark:hover:bg-slate-800 text-zinc-500"><X className="h-5 w-5" /></button>
             </div>
             <div className="max-h-96 overflow-y-auto p-4 space-y-3">
               {(reactionsData[viewReactions] || []).map(r => (

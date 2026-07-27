@@ -100,7 +100,8 @@ const fileFilter = (req: express.Request, file: Express.Multer.File, cb: multer.
 const upload = multer({ storage, fileFilter });
 
 export const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Prevent browser caching for all API responses
 app.use('/api', (req, res, next) => {
