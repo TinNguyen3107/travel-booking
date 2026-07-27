@@ -480,7 +480,8 @@ class RelationalDatabase {
         CONSTRAINT fk_comment_parent FOREIGN KEY (parent_id) REFERENCES post_comments(id) ON DELETE CASCADE
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
-    try { await pool.query("ALTER TABLE post_comments ADD COLUMN parent_id INT NULL AFTER comment, ADD CONSTRAINT fk_comment_parent FOREIGN KEY (parent_id) REFERENCES post_comments(id) ON DELETE CASCADE"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE post_comments ADD COLUMN parent_id INT NULL AFTER comment"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE post_comments ADD CONSTRAINT fk_comment_parent FOREIGN KEY (parent_id) REFERENCES post_comments(id) ON DELETE CASCADE"); } catch (e: any) { }
 
 
     await pool.query(`
