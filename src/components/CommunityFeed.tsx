@@ -104,6 +104,9 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
       const res = await fetch('/api/posts', { cache: 'no-store' });
       const data = await res.json();
       setPosts(data);
+      data.forEach((post: any) => {
+        fetchReactions(post.id);
+      });
     } catch (e) {
       console.error(e);
     } finally {
