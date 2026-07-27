@@ -34,6 +34,7 @@ import ModalBooking from './components/ModalBooking';
 import ModalConfirm, { ConfirmConfig } from './components/ModalConfirm';
 import ModalExperienceDetail from './components/ModalExperienceDetail';
 import ModalLogin from './components/ModalLogin';
+import CustomSelect from './components/CustomSelect';
 import UserProfile from './components/UserProfile';
 import { useDarkMode } from './hooks/useDarkMode';
 import { ExperienceTable, formatDateVi, formatVnd, isExperienceOpen, ReviewTable } from './types';
@@ -554,16 +555,15 @@ export default function App() {
               placeholder="Đến giá..."
               className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 w-32"
             />
-            <select
+            <CustomSelect
               value={selectedCategory}
-              onChange={(event) => setSelectedCategory(event.target.value)}
-              className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
-            >
-              <option value="all">Tất cả danh mục</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
+              onChange={(val) => setSelectedCategory(val)}
+              options={[
+                { value: 'all', label: 'Tất cả danh mục' },
+                ...categories.map(cat => ({ value: cat, label: cat }))
+              ]}
+              className="min-w-[160px]"
+            />
           </div>
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -681,15 +681,13 @@ export default function App() {
             />
 
             <form onSubmit={submitReview} className="mt-6 space-y-4 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-5">
-              <select
-                value={reviewExperienceId ?? ''}
-                onChange={(event) => setReviewExperienceId(Number(event.target.value))}
-                className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
-              >
-                {experiences.map((experience) => (
-                  <option key={experience.id} value={experience.id}>{experience.title}</option>
-                ))}
-              </select>
+              <CustomSelect
+                value={String(reviewExperienceId ?? '')}
+                onChange={(val) => setReviewExperienceId(Number(val))}
+                options={experiences.map(exp => ({ value: String(exp.id), label: exp.title }))}
+                placeholder="Chọn tour cần đánh giá"
+                className="w-full"
+              />
 
               <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map((value) => (
