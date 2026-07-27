@@ -70,6 +70,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
   const [selectedExperienceFilter, setSelectedExperienceFilter] = useState<string>('all');
   const [postExperienceId, setPostExperienceId] = useState<string>('none');
   const [replyingTo, setReplyingTo] = useState<{ postId: number; commentId: number; fullname: string } | null>(null);
+  const [expandedReplies, setExpandedReplies] = useState<Record<number, boolean>>({});
 
   // comment input per post
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
@@ -753,7 +754,33 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                       {/* Replies */}
                       {repliesByParent[comment.id] && repliesByParent[comment.id].length > 0 && (
                         <div className="mt-2 space-y-1">
-                          {repliesByParent[comment.id].map(reply => renderComment(reply, true))}
+                          {(() => {
+                            const replies = repliesByParent[comment.id];
+                            const isExpanded = expandedReplies[comment.id];
+                            const visibleReplies = isExpanded ? replies : replies.slice(0, 2);
+                            const hiddenCount = replies.length - 2;
+                            return (
+                              <>
+                                {visibleReplies.map(reply => renderComment(reply, true))}
+                                {!isExpanded && hiddenCount > 0 && (
+                                  <button
+                                    onClick={() => setExpandedReplies(prev => ({ ...prev, [comment.id]: true }))}
+                                    className="mt-2 ml-11 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline transition-colors"
+                                  >
+                                    Hiển thị thêm {hiddenCount} phản hồi
+                                  </button>
+                                )}
+                                {isExpanded && hiddenCount > 0 && (
+                                  <button
+                                    onClick={() => setExpandedReplies(prev => ({ ...prev, [comment.id]: false }))}
+                                    className="mt-2 ml-11 text-xs font-semibold text-zinc-500 dark:text-slate-400 hover:text-zinc-800 dark:hover:text-slate-200 hover:underline transition-colors"
+                                  >
+                                    Ẩn bớt phản hồi
+                                  </button>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>
