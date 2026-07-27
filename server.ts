@@ -1197,7 +1197,7 @@ app.use(async (req, res, next) => {
     try {
       const { content, media_url, media_type } = req.body;
       const user_email = (req as any).user.email;
-      const fullname = (req as any).user.fullname;
+      const fullname = (req as any).user.fullname || cleanText(req.body.fullname);
       const role = (req as any).user.role;
       
       if (!content) {
@@ -1259,7 +1259,7 @@ app.use(async (req, res, next) => {
       const post_id = Number(req.params.id);
       const { comment } = req.body;
       const user_email = (req as any).user.email;
-      const fullname = (req as any).user.fullname;
+      const fullname = (req as any).user.fullname || cleanText(req.body.fullname);
       
       if (!comment) {
         res.status(400).json({ error: 'Missing comment fields' });
@@ -1382,60 +1382,6 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
-  // ─── Phase 7: Community Feed ───────────────────────────────────────────────
-  
-  app.get('/api/posts', async (req, res) => {
-    try {
-      res.json(await db.getPosts());
-    } catch (e: any) { handleError(res, e); }
-  });
-
-  app.post('/api/posts', authenticateToken, async (req, res) => {
-    try {
-      const { user_email, fullname, role, content, media_url, media_type } = req.body;
-      if (!user_email || !fullname || !content) {
-        res.status(400).json({ error: 'Thiếu thông tin bắt buộc' });
-        return;
-      }
-      res.status(201).json(await db.addPost({ user_email, fullname, role: role || 'user', content, media_url, media_type }));
-    } catch (e: any) { handleError(res, e); }
-  });
-
-  app.put('/api/posts/:id/status', authenticateToken, async (req, res) => {
-    try {
-      const id = Number(req.params.id);
-      const { status } = req.body;
-      await db.updatePostStatus(id, status);
-      res.json({ success: true });
-    } catch (e: any) { handleError(res, e); }
-  });
-
-  app.get('/api/posts/:id/comments', async (req, res) => {
-    try {
-      res.json(await db.getPostComments(Number(req.params.id)));
-    } catch (e: any) { handleError(res, e); }
-  });
-
-  app.post('/api/posts/:id/comments', authenticateToken, async (req, res) => {
-    try {
-      const { user_email, fullname, comment } = req.body;
-      res.status(201).json(await db.addPostComment({ post_id: Number(req.params.id), user_email, fullname, comment }));
-    } catch (e: any) { handleError(res, e); }
-  });
-
-  app.get('/api/posts/:id/reactions', async (req, res) => {
-    try {
-      res.json(await db.getPostReactions(Number(req.params.id)));
-    } catch (e: any) { handleError(res, e); }
-  });
-
-  app.post('/api/posts/:id/reactions', authenticateToken, async (req, res) => {
-    try {
-      const { user_email, reaction_type } = req.body;
-      await db.togglePostReaction({ post_id: Number(req.params.id), user_email, reaction_type });
-      res.json({ success: true });
-    } catch (e: any) { handleError(res, e); }
-  });
 
 
   // ─── Notifications API ──────────────────────────────────────────────
