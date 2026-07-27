@@ -326,74 +326,74 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
       {/* Create post */}
       {!hideCreatePost && (
         <div className="mb-8 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm relative z-20">
-        <div className="p-4">
-          <form onSubmit={handleCreatePost}>
-            <textarea
-              className="w-full resize-none bg-transparent text-lg outline-none placeholder:text-zinc-400 dark:text-slate-500"
-              rows={3}
-              placeholder={currentUser ? `${currentUser.fullname} ơi, bạn đang nghĩ gì?` : 'Đăng nhập để chia sẻ trải nghiệm của bạn...'}
-              value={postContent}
-              onChange={(e) => setPostContent(e.target.value)}
-              onClick={() => !currentUser && onLogin()}
-            />
+          <div className="p-4">
+            <form onSubmit={handleCreatePost}>
+              <textarea
+                className="w-full resize-none bg-transparent text-lg outline-none placeholder:text-zinc-400 dark:text-slate-500"
+                rows={3}
+                placeholder={currentUser ? `${currentUser.fullname} ơi, bạn đang nghĩ gì?` : 'Đăng nhập để chia sẻ trải nghiệm của bạn...'}
+                value={postContent}
+                onChange={(e) => setPostContent(e.target.value)}
+                onClick={() => !currentUser && onLogin()}
+              />
 
-            {mediaUrls.length > 0 && (
-              <div className="relative mt-2 rounded-xl bg-zinc-100 dark:bg-slate-800 p-2">
-                <div className="flex gap-2 overflow-x-auto">
-                  {mediaUrls.map((url, idx) => (
-                    mediaType === 'image' ? (
-                      <img key={idx} src={url} alt="Preview" className="h-32 rounded-lg object-cover shrink-0" />
-                    ) : (
-                      <video key={idx} src={url} controls className="h-32 rounded-lg object-cover shrink-0" />
-                    )
-                  ))}
+              {mediaUrls.length > 0 && (
+                <div className="relative mt-2 rounded-xl bg-zinc-100 dark:bg-slate-800 p-2">
+                  <div className="flex gap-2 overflow-x-auto">
+                    {mediaUrls.map((url, idx) => (
+                      mediaType === 'image' ? (
+                        <img key={idx} src={url} alt="Preview" className="h-32 rounded-lg object-cover shrink-0" />
+                      ) : (
+                        <video key={idx} src={url} controls className="h-32 rounded-lg object-cover shrink-0" />
+                      )
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setMediaUrls([])}
+                    className="absolute right-4 top-4 z-10 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
+              )}
+
+              <hr className="my-4 border-zinc-100 dark:border-slate-800" />
+
+              <div className="flex items-center justify-between">
+                <div className="flex flex-wrap gap-2 items-center">
+                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" multiple onChange={handleFileUpload} />
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={() => { if (!currentUser) return onLogin(); fileInputRef.current?.click(); }}
+                    className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800 disabled:opacity-50"
+                  >
+                    <ImageIcon className="h-4 w-4 text-emerald-500" /> Ảnh / Video
+                  </button>
+                  <div className="w-48">
+                    <CustomSelect
+                      value={postExperienceId || 'none'}
+                      onChange={setPostExperienceId}
+                      options={[
+                        { value: 'none', label: 'Bài viết chung' },
+                        ...experiences.map(exp => ({ value: String(exp.id), label: exp.title }))
+                      ]}
+                    />
+                  </div>
+                </div>
+
                 <button
-                  type="button"
-                  onClick={() => setMediaUrls([])}
-                  className="absolute right-4 top-4 z-10 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
+                  type="submit"
+                  disabled={submitting || !postContent.trim()}
+                  className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2 text-sm font-bold text-white hover:bg-indigo-700 disabled:opacity-50"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  Đăng bài <Send className="h-4 w-4" />
                 </button>
               </div>
-            )}
-
-            <hr className="my-4 border-zinc-100 dark:border-slate-800" />
-
-            <div className="flex items-center justify-between">
-              <div className="flex flex-wrap gap-2 items-center">
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" multiple onChange={handleFileUpload} />
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => { if (!currentUser) return onLogin(); fileInputRef.current?.click(); }}
-                  className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800 disabled:opacity-50"
-                >
-                  <ImageIcon className="h-4 w-4 text-emerald-500" /> Ảnh / Video
-                </button>
-                <div className="w-48">
-                  <CustomSelect
-                    value={postExperienceId || 'none'}
-                    onChange={setPostExperienceId}
-                    options={[
-                      { value: 'none', label: 'Bài viết chung' },
-                      ...experiences.map(exp => ({ value: String(exp.id), label: exp.title }))
-                    ]}
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={submitting || !postContent.trim()}
-                className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2 text-sm font-bold text-white hover:bg-indigo-700 disabled:opacity-50"
-              >
-                Đăng bài <Send className="h-4 w-4" />
-              </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
-      </div>
       )}
 
       {/* Posts */}
@@ -691,7 +691,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                     <div className="flex-1 min-w-0">
                       <div className="inline-block rounded-2xl bg-zinc-100 dark:bg-slate-800 px-4 py-2.5 max-w-full">
                         <span className="block font-bold text-zinc-900 dark:text-slate-100 text-sm">{comment.fullname}</span>
-                        <span className="block mt-0.5 text-[15px] leading-relaxed text-zinc-800 dark:text-slate-200 break-words">{comment.comment}</span>
+                        <span className="block mt-0.5 text-[15px] leading-relaxed text-zinc-800 dark:text-slate-200 wrap-break-word">{comment.comment}</span>
                       </div>
 
                       <div className="mt-1.5 ml-2 flex items-center gap-3">
@@ -729,8 +729,8 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                           <button
                             onClick={() => toggleCommentReaction(comment.id, 'like', commentModalPostId)}
                             className={`text-xs font-semibold hover:text-blue-600 transition-colors ${currentUser && commentReactionsData[comment.id]?.find(r => r.user_email === currentUser.email)
-                                ? 'text-blue-600'
-                                : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-slate-200'
+                              ? 'text-blue-600'
+                              : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-slate-200'
                               }`}
                           >
                             Thích
