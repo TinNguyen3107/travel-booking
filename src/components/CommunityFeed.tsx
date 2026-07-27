@@ -60,7 +60,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
     setLightbox({ urls, index });
   };
   const [submitting, setSubmitting] = useState(false);
-  const [activeComments, setActiveComments] = useState<number | null>(null);
+  const [commentModalPostId, setCommentModalPostId] = useState<number | null>(null);
   const [commentsData, setCommentsData] = useState<Record<number, PostCommentTable[]>>({});
   const [reactionsData, setReactionsData] = useState<Record<number, PostReactionTable[]>>({});
   const [commentReactionsData, setCommentReactionsData] = useState<Record<number, any[]>>({});
@@ -201,13 +201,9 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
     } catch (e) { console.error(e); }
   };
 
-  const toggleComments = (postId: number) => {
-    if (activeComments === postId) {
-      setActiveComments(null);
-    } else {
-      setActiveComments(postId);
-      fetchComments(postId);
-    }
+  const openCommentModal = (postId: number) => {
+    setCommentModalPostId(postId);
+    fetchComments(postId);
   };
 
   const submitComment = async (e: React.FormEvent, postId: number) => {
@@ -324,7 +320,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
       )}
 
       {/* Create post */}
-      <div className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm">
+      <div className="mb-8 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm relative z-20">
         <div className="p-4">
           <form onSubmit={handleCreatePost}>
             <textarea
@@ -431,8 +427,8 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                       )}
 
                       {/* Action row */}
-                      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-zinc-500 dark:text-slate-400">
-                        <button onClick={() => toggleComments(post.id)} className="hover:text-zinc-800 dark:hover:text-slate-200 hover:underline">
+                      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-zinc-500 dark:text-slate-400 relative z-10">
+                        <button onClick={() => openCommentModal(post.id)} className="hover:text-zinc-800 dark:hover:text-slate-200 hover:underline">
                           Bình luận {post.comments_count > 0 && `(${post.comments_count})`}
                         </button>
                         <span>•</span>
@@ -570,96 +566,6 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                         </div>
                       )}
 
-                      {/* Comments section */}
-                      {activeComments === post.id && (
-                        <div className="mt-5 space-y-5">
-                          {commentsData[post.id]?.length > 0 && (
-                            <div className="space-y-4">
-                              {commentsData[post.id].map(comment => (
-                                <div key={comment.id} className="flex gap-3 pl-4 border-l-2 border-zinc-200 dark:border-slate-700">
-                                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600 dark:text-slate-300">
-                                    {comment.fullname.charAt(0).toUpperCase()}
-                                  </div>
-                                  <div>
-                                    <span className="font-bold text-zinc-900 dark:text-slate-100 text-sm">{comment.fullname}</span>
-                                    <div className="mt-0.5 text-sm leading-relaxed text-zinc-800 dark:text-slate-200">{comment.comment}</div>
-                                    <div className="mt-1 flex items-center gap-3">
-                                      <button
-                                        onClick={() => {
-                                          setCommentInputs(prev => ({ ...prev, [post.id]: `@${comment.fullname} ` }));
-                                        }}
-                                        className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-slate-200 font-semibold"
-                                      >
-                                        Trả lời
-                                      </button>
-
-                                      {/* Comment Reaction trigger */}
-                                      <div className="group relative flex items-center">
-                                        <div className="absolute bottom-full left-0 pb-2 hidden group-hover:block z-50">
-                                          <div className="flex items-center gap-2 rounded-full border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 shadow-xl">
-                                            {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
-                                              <button
-                                                key={reaction}
-                                                onClick={() => toggleCommentReaction(comment.id, reaction, post.id)}
-                                                className="transform transition-transform hover:scale-125 hover:-translate-y-1 origin-bottom"
-                                                title={reactionLabels[reaction]}
-                                              >
-                                                {smallReactionIcons[reaction]}
-                                              </button>
-                                            ))}
-                                          </div>
-                                        </div>
-                                        <button
-                                          onClick={() => toggleCommentReaction(comment.id, 'like', post.id)}
-                                          className={`text-xs font-semibold hover:text-blue-600 ${currentUser && commentReactionsData[comment.id]?.find(r => r.user_email === currentUser.email)
-                                              ? 'text-blue-600'
-                                              : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-slate-200'
-                                            }`}
-                                        >
-                                          Thích
-                                        </button>
-                                      </div>
-
-                                      {/* Comment Reaction summary */}
-                                      {commentReactionsData[comment.id] && commentReactionsData[comment.id].length > 0 && (
-                                        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-slate-800 rounded-full px-2 py-0.5 shadow-sm text-[10px] text-zinc-500">
-                                          <div className="flex -space-x-1">
-                                            {getReactionSummary(commentReactionsData[comment.id]).sorted.slice(0, 2).map(([type]) => (
-                                              <span key={type} title={reactionLabels[type]}>{tinyReactionEmoji[type]}</span>
-                                            ))}
-                                          </div>
-                                          <span>{commentReactionsData[comment.id].length}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          <form onSubmit={(e) => submitComment(e, post.id)} className="flex items-start gap-3 pl-4 border-l-2 border-zinc-200 dark:border-slate-700 pt-2">
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
-                              {currentUser?.fullname?.charAt(0).toUpperCase() || '?'}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 rounded-2xl border border-zinc-300 dark:border-slate-600 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-4 py-2 focus-within:border-indigo-500">
-                                <input
-                                  type="text"
-                                  placeholder="Viết phản hồi..."
-                                  value={commentInputs[post.id] || ''}
-                                  onChange={(e) => setCommentInputs(prev => ({ ...prev, [post.id]: e.target.value }))}
-                                  onClick={() => !currentUser && onLogin()}
-                                  className="w-full bg-transparent text-sm outline-none"
-                                />
-                                <button type="submit" disabled={!commentInputs[post.id]?.trim()} className="text-indigo-600 hover:text-indigo-700 disabled:text-zinc-300">
-                                  <Send className="h-4 w-4" />
-                                </button>
-                              </div>
-                            </div>
-                          </form>
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -735,6 +641,135 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                   <span className="flex items-center gap-2 text-sm text-zinc-500">{smallReactionIcons[r.reaction_type]} {reactionLabels[r.reaction_type]}</span>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {commentModalPostId && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="flex flex-col w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-slate-800 p-4 shrink-0">
+              <h3 className="font-bold text-xl text-zinc-900 dark:text-slate-100">Bình luận</h3>
+              <button
+                onClick={() => setCommentModalPostId(null)}
+                className="rounded-full p-2 hover:bg-zinc-100 dark:hover:bg-slate-800 text-zinc-500 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Comments List */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-6">
+              {(!commentsData[commentModalPostId] || commentsData[commentModalPostId].length === 0) ? (
+                <div className="py-8 text-center text-zinc-500">Chưa có bình luận nào. Hãy trở thành người đầu tiên!</div>
+              ) : (
+                commentsData[commentModalPostId].map(comment => (
+                  <div key={comment.id} className="flex gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 dark:bg-slate-800 text-sm font-bold text-zinc-600 dark:text-slate-300">
+                      {comment.fullname.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1">
+                      <div className="inline-block rounded-2xl bg-zinc-100 dark:bg-slate-800 px-4 py-2.5">
+                        <span className="block font-bold text-zinc-900 dark:text-slate-100 text-sm">{comment.fullname}</span>
+                        <span className="block mt-0.5 text-[15px] leading-relaxed text-zinc-800 dark:text-slate-200">{comment.comment}</span>
+                      </div>
+
+                      <div className="mt-1.5 ml-2 flex items-center gap-3">
+                        <button
+                          onClick={() => {
+                            setCommentInputs(prev => ({ ...prev, [commentModalPostId]: `@${comment.fullname} ` }));
+                            document.getElementById('comment-input')?.focus();
+                          }}
+                          className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-slate-200 font-semibold transition-colors"
+                        >
+                          Trả lời
+                        </button>
+
+                        {/* Comment Reaction trigger */}
+                        <div className="group relative flex items-center">
+                          <div className="absolute bottom-full left-0 pb-2 hidden group-hover:block z-50">
+                            <div className="flex items-center gap-2 rounded-full border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 shadow-xl">
+                              {['like', 'love', 'haha', 'wow', 'sad', 'angry'].map(reaction => (
+                                <button
+                                  key={reaction}
+                                  onClick={() => toggleCommentReaction(comment.id, reaction, commentModalPostId)}
+                                  className="transform transition-transform hover:scale-125 hover:-translate-y-1 origin-bottom"
+                                  title={reactionLabels[reaction]}
+                                >
+                                  {smallReactionIcons[reaction]}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => toggleCommentReaction(comment.id, 'like', commentModalPostId)}
+                            className={`text-xs font-semibold hover:text-blue-600 transition-colors ${currentUser && commentReactionsData[comment.id]?.find(r => r.user_email === currentUser.email)
+                                ? 'text-blue-600'
+                                : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-slate-200'
+                              }`}
+                          >
+                            Thích
+                          </button>
+                        </div>
+
+                        {/* Comment Reaction summary */}
+                        {commentReactionsData[comment.id] && commentReactionsData[comment.id].length > 0 && (
+                          <div className="flex items-center gap-1 bg-white dark:bg-slate-700 rounded-full px-2 py-0.5 shadow-sm border border-zinc-100 dark:border-slate-600 text-[10px] text-zinc-500">
+                            <div className="flex -space-x-1">
+                              {getReactionSummary(commentReactionsData[comment.id]).sorted.slice(0, 2).map(([type]) => (
+                                <span key={type} title={reactionLabels[type]}>{tinyReactionEmoji[type]}</span>
+                              ))}
+                            </div>
+                            <span>{commentReactionsData[comment.id].length}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Comment Input Box */}
+            <div className="border-t border-zinc-200 dark:border-slate-800 p-4 shrink-0 bg-zinc-50 dark:bg-slate-900/80">
+              <form onSubmit={(e) => submitComment(e, commentModalPostId)} className="flex items-end gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700 mt-1">
+                  {currentUser?.fullname?.charAt(0).toUpperCase() || '?'}
+                </div>
+                <div className="flex-1 relative">
+                  <textarea
+                    id="comment-input"
+                    rows={1}
+                    placeholder="Viết phản hồi của bạn..."
+                    value={commentInputs[commentModalPostId] || ''}
+                    onChange={(e) => {
+                      setCommentInputs(prev => ({ ...prev, [commentModalPostId]: e.target.value }));
+                      e.target.style.height = 'auto';
+                      e.target.style.height = e.target.scrollHeight + 'px';
+                    }}
+                    onClick={() => !currentUser && onLogin()}
+                    className="w-full rounded-2xl border border-zinc-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 pr-12 text-[15px] outline-none focus:border-indigo-500 dark:focus:border-indigo-400 transition-colors resize-none overflow-hidden min-h-11.5 max-h-37.5"
+                    style={{ lineHeight: '1.4' }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (commentInputs[commentModalPostId]?.trim()) {
+                          submitComment(e as any, commentModalPostId);
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!commentInputs[commentModalPostId]?.trim()}
+                    className="absolute right-3 bottom-3 text-indigo-600 hover:text-indigo-700 disabled:text-zinc-300 transition-colors"
+                  >
+                    <Send className="h-5 w-5" />
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
