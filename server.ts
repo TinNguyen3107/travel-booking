@@ -1237,10 +1237,25 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
-  app.put('/api/posts/:id/status', authenticateToken, requireAdmin, async (req, res) => {
+  app.put('/api/posts/:id/status', authenticateToken, async (req, res) => {
     try {
       const id = Number(req.params.id);
       const { status } = req.body;
+      const user = (req as any).user;
+
+      const posts = await db.getPosts();
+      const post = posts.find(p => p.id === id);
+
+      if (!post) {
+        res.status(404).json({ error: 'Post not found' });
+        return;
+      }
+
+      if (user.role !== 'admin' && user.email !== post.user_email) {
+        res.status(403).json({ error: 'Không có quyền thực hiện thao tác này' });
+        return;
+      }
+
       const success = await db.updatePostStatus(id, status as any);
       if (success) res.json({ success: true });
       else res.status(404).json({ error: 'Post not found' });
