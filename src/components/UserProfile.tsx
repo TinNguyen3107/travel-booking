@@ -78,10 +78,11 @@ export default function UserProfile({ user, onClose, onProfileUpdated }: { user:
         }
         alert('Cập nhật hồ sơ thành công!');
       } else {
-        alert('Có lỗi xảy ra khi cập nhật.');
+        const data = await res.json();
+        alert(data.error || 'Có lỗi xảy ra khi cập nhật.');
       }
-    } catch {
-      alert('Lỗi kết nối.');
+    } catch (e: any) {
+      alert(`Lỗi kết nối: ${e.message}`);
     } finally {
       setSaving(false);
     }
