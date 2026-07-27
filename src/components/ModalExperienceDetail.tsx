@@ -14,8 +14,8 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1476514525535-07fb3b4a
 export default function ModalExperienceDetail({ experience, onClose, onBook }: ModalExperienceDetailProps) {
   const isOpen = isExperienceOpen(experience);
   const [schedules, setSchedules] = useState<TourScheduleTable[]>([]);
-  const validSchedules = schedules.filter(s => 
-    s.start_date >= experience.booking_open_date && 
+  const validSchedules = schedules.filter(s =>
+    s.start_date >= experience.booking_open_date &&
     (!experience.booking_close_date || s.start_date <= experience.booking_close_date)
   );
   const [availability, setAvailability] = useState<{ totalRemaining: number, dailyRemaining: number, isAvailable: boolean } | null>(null);
@@ -81,315 +81,315 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
         </button>
 
         <div className="flex-1 overflow-y-auto w-full">
-          <div className="relative h-64 sm:h-[400px] w-full bg-zinc-950 overflow-hidden shrink-0">
-          {/* Blurred background */}
-          <div
-            className="absolute inset-0 bg-cover bg-center blur-2xl opacity-50 scale-110"
-            style={{ backgroundImage: `url(${experience.image || FALLBACK_IMAGE})` }}
-          />
-          {/* Main image */}
-          <img
-            src={experience.image || FALLBACK_IMAGE}
-            alt={experience.title}
-            onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
-            className="relative h-full w-full object-contain"
-          />
-          <div className="absolute bottom-4 left-4 rounded-full bg-white/80 backdrop-blur-lg dark:bg-slate-800/95 px-3 py-1.5 text-xs font-black text-emerald-700 shadow-sm">
-            {experience.category}
-          </div>
-        </div>
-
-        <div className="p-6 sm:p-10 max-w-5xl mx-auto">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-100 dark:border-slate-800 pb-5">
-            <div>
-              <h2 className={`text-2xl sm:text-3xl font-black leading-tight text-zinc-950 dark:text-slate-50 ${highlightClass('title')}`}>
-                {experience.title}
-              </h2>
-              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm font-semibold text-zinc-500 dark:text-slate-400">
-                <span className={`inline-flex items-center gap-1.5 ${highlightClass('location')}`}>
-                  <MapPin className="h-4 w-4 text-emerald-600" />
-                  {experience.location}
-                </span>
-                <span className={`inline-flex items-center gap-1.5 ${highlightClass('duration')}`}>
-                  <Clock className="h-4 w-4 text-emerald-600" />
-                  {experience.duration}
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-amber-500">
-                  <Star className="h-4 w-4 fill-current" />
-                  {Number(experience.rating || 0).toFixed(1)} ({experience.reviews_count} đánh giá)
-                </span>
-              </div>
-            </div>
-            <div className={`flex items-center gap-2 ${highlightClass('price')}`}>
-              <span className="text-xs font-bold uppercase text-zinc-400 dark:text-slate-500">Giá tour</span>
-              <span className="text-2xl font-black text-emerald-700">
-                {formatVnd(experience.price)}
-              </span>
+          <div className="relative h-64 sm:h-100 w-full bg-zinc-950 overflow-hidden shrink-0">
+            {/* Blurred background */}
+            <div
+              className="absolute inset-0 bg-cover bg-center blur-2xl opacity-50 scale-110"
+              style={{ backgroundImage: `url(${experience.image || FALLBACK_IMAGE})` }}
+            />
+            {/* Main image */}
+            <img
+              src={experience.image || FALLBACK_IMAGE}
+              alt={experience.title}
+              onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
+              className="relative h-full w-full object-contain"
+            />
+            <div className="absolute bottom-4 left-4 rounded-full bg-white/80 backdrop-blur-lg dark:bg-slate-800/95 px-3 py-1.5 text-xs font-black text-emerald-700 shadow-sm">
+              {experience.category}
             </div>
           </div>
 
-          {experience.host_email && (
-            <div className="mt-6 border-b border-zinc-100 dark:border-slate-800 pb-5">
-              <h3 className="text-sm font-bold uppercase text-zinc-500 dark:text-slate-400 mb-3">Thông tin Host</h3>
-              <HostProfileWidget email={experience.host_email} />
-            </div>
-          )}
-
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className={`rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass(['max_guests', 'daily_capacity_max', 'daily_capacity'])}`}>
-              <div className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">
-                <Users className="h-4 w-4 text-emerald-600" />
-                Sức chứa
-              </div>
-              <div className="mt-2 text-base font-black text-zinc-950 dark:text-slate-50">
-                {Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests ?? 50)} khách/ngày
-              </div>
-              <div className="text-xs text-zinc-500 dark:text-slate-400">
-                (Tổng {Number(experience.max_guests || 50)} khách tối đa trong 1 tour)
-              </div>
-            </div>
-            <div className={`rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass(['booking_open_date', 'booking_close_date'])}`}>
-              <div className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">
-                <CalendarCheck className="h-4 w-4 text-emerald-600" />
-                Nhận đặt
-              </div>
-              <div className="mt-2 text-sm font-black text-zinc-950 dark:text-slate-50">
-                {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
-              </div>
-            </div>
-            <div className={`rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass(['allow_children', 'min_age', 'child_max_age', 'child_price'])}`}>
-              <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Chính sách trẻ em</div>
-              {experience.allow_children ? (
-                <div className="mt-2 text-xs font-bold text-zinc-700 dark:text-slate-200">
-                  <span className="block">• Tuổi tham gia: từ {experience.min_age || 0} tuổi</span>
-                  <span className="block">• Trẻ em ({experience.min_age || 0}-{experience.child_max_age || 12} tuổi): Giảm {experience.child_price || 0}%</span>
+          <div className="p-6 sm:p-10 max-w-5xl mx-auto">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-100 dark:border-slate-800 pb-5">
+              <div>
+                <h2 className={`text-2xl sm:text-3xl font-black leading-tight text-zinc-950 dark:text-slate-50 ${highlightClass('title')}`}>
+                  {experience.title}
+                </h2>
+                <div className="mt-3 flex flex-wrap items-center gap-4 text-sm font-semibold text-zinc-500 dark:text-slate-400">
+                  <span className={`inline-flex items-center gap-1.5 ${highlightClass('location')}`}>
+                    <MapPin className="h-4 w-4 text-emerald-600" />
+                    {experience.location}
+                  </span>
+                  <span className={`inline-flex items-center gap-1.5 ${highlightClass('duration')}`}>
+                    <Clock className="h-4 w-4 text-emerald-600" />
+                    {experience.duration}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-amber-500">
+                    <Star className="h-4 w-4 fill-current" />
+                    {Number(experience.rating || 0).toFixed(1)} ({experience.reviews_count} đánh giá)
+                  </span>
                 </div>
-              ) : (
-                <div className="mt-2 text-xs font-bold text-rose-600">
-                  Không áp dụng cho trẻ em.
-                </div>
-              )}
-            </div>
-            <div className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4">
-              <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Trạng thái</div>
-              <div className={`mt-2 inline-flex rounded-full border px-2.5 py-1 text-xs font-black ${isOpen ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
-                {isOpen ? 'Đang mở bán' : 'Đã đóng nhận đặt'}
               </div>
-              {validSchedules.length > 0 ? (
-                <div className="mt-2 text-sm font-bold text-zinc-700 dark:text-slate-200">
-                  Còn <span className="text-emerald-700">{validSchedules.reduce((acc, s) => acc + s.remaining_slots, 0)}</span> chỗ trống
-                </div>
-              ) : availability ? (
-                <div className="mt-2 text-sm font-bold text-zinc-700 dark:text-slate-200">
-                  Còn <span className="text-emerald-700">{availability.totalRemaining}</span> chỗ trống (toàn tour)
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          {experience.status === 'pending_update' && experience.previous_state && (
-            <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <h3 className="text-sm font-black uppercase text-amber-800 mb-3 flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" /> Chi tiết cập nhật (So sánh với bản cũ)
-              </h3>
-              <div className="text-sm text-amber-900 bg-white/80 backdrop-blur-lg dark:bg-slate-800/60 p-4 rounded-lg border border-amber-100 max-h-60 overflow-y-auto">
-                <ul className="list-disc pl-5 space-y-2">
-                  {(() => {
-                    try {
-                      const oldState = JSON.parse(experience.previous_state);
-                      const changes: React.ReactNode[] = [];
-                      const ignoreKeys = ['id', 'status', 'previous_state'];
-                      
-                      const fieldLabels: Record<string, string> = {
-                        title: 'Tên tour',
-                        description: 'Mô tả',
-                        price: 'Giá tour',
-                        location: 'Địa điểm',
-                        duration: 'Thời lượng',
-                        category: 'Danh mục',
-                        max_guests: 'Số khách tối đa',
-                        daily_capacity: 'Sức chứa mỗi ngày',
-                        daily_capacity_max: 'Sức chứa tối đa mỗi ngày',
-                        booking_open_date: 'Ngày bắt đầu nhận đặt chỗ',
-                        booking_close_date: 'Ngày kết thúc nhận đặt chỗ',
-                        registration_open_date: 'Ngày bắt đầu đăng ký',
-                        registration_close_date: 'Ngày kết thúc đăng ký',
-                        allow_children: 'Cho phép trẻ em',
-                        min_age: 'Độ tuổi tối thiểu',
-                        child_max_age: 'Độ tuổi trẻ em tối đa',
-                        child_price: 'Phần trăm giảm giá cho trẻ em',
-                        rooms: 'Số phòng',
-                        beds: 'Số giường',
-                        amenities: 'Tiện ích',
-                        image: 'Ảnh đại diện',
-                        images: 'Thư viện ảnh',
-                        is_active: 'Trạng thái hoạt động',
-                      };
-
-                      const formatValue = (key: string, val: any) => {
-                        if (val === null || val === undefined || val === '') return 'Trống';
-                        if (typeof val === 'boolean') return val ? 'Có' : 'Không';
-                        if (key === 'price') return formatVnd(Number(val) || 0);
-                        if (key.includes('date') && val) {
-                          try {
-                            const dateStr = formatDateVi(val);
-                            if(dateStr) return dateStr;
-                          } catch(e) {}
-                        }
-                        if (key === 'amenities' || key === 'images') {
-                          try {
-                            const parsed = JSON.parse(val);
-                            if (Array.isArray(parsed)) return parsed.length > 0 ? parsed.join(', ') : 'Trống';
-                          } catch(e) {}
-                        }
-                        return String(val);
-                      };
-
-                      Object.keys(experience).forEach(key => {
-                        if (ignoreKeys.includes(key)) return;
-                        const oldVal = (oldState as any)[key];
-                        const newVal = (experience as any)[key];
-                        if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
-                          const label = fieldLabels[key] || key;
-                          changes.push(
-                            <li key={key}>
-                              Thay đổi <strong>{label}</strong> từ <span className="line-through opacity-70">{formatValue(key, oldVal)}</span> thành <span className="font-semibold text-emerald-700">{formatValue(key, newVal)}</span>
-                            </li>
-                          );
-                        }
-                      });
-                      if (changes.length === 0) return <li>Không có thay đổi dữ liệu nào đáng kể.</li>;
-                      return changes;
-                    } catch (e) {
-                      return <li>Không thể đọc được dữ liệu phiên bản cũ.</li>;
-                    }
-                  })()}
-                </ul>
+              <div className={`flex items-center gap-2 ${highlightClass('price')}`}>
+                <span className="text-xs font-bold uppercase text-zinc-400 dark:text-slate-500">Giá tour</span>
+                <span className="text-2xl font-black text-emerald-700">
+                  {formatVnd(experience.price)}
+                </span>
               </div>
             </div>
-          )}
 
-          {(experience.rooms || experience.beds) ? (
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              {experience.rooms ? (
-                <div className={`flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass('rooms')}`}>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                    <Home className="h-5 w-5" />
+            {experience.host_email && (
+              <div className="mt-6 border-b border-zinc-100 dark:border-slate-800 pb-5">
+                <h3 className="text-sm font-bold uppercase text-zinc-500 dark:text-slate-400 mb-3">Thông tin Host</h3>
+                <HostProfileWidget email={experience.host_email} />
+              </div>
+            )}
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className={`rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass(['max_guests', 'daily_capacity_max', 'daily_capacity'])}`}>
+                <div className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">
+                  <Users className="h-4 w-4 text-emerald-600" />
+                  Sức chứa
+                </div>
+                <div className="mt-2 text-base font-black text-zinc-950 dark:text-slate-50">
+                  {Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests ?? 50)} khách/ngày
+                </div>
+                <div className="text-xs text-zinc-500 dark:text-slate-400">
+                  (Tổng {Number(experience.max_guests || 50)} khách tối đa trong 1 tour)
+                </div>
+              </div>
+              <div className={`rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass(['booking_open_date', 'booking_close_date'])}`}>
+                <div className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">
+                  <CalendarCheck className="h-4 w-4 text-emerald-600" />
+                  Nhận đặt
+                </div>
+                <div className="mt-2 text-sm font-black text-zinc-950 dark:text-slate-50">
+                  {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
+                </div>
+              </div>
+              <div className={`rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass(['allow_children', 'min_age', 'child_max_age', 'child_price'])}`}>
+                <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Chính sách trẻ em</div>
+                {experience.allow_children ? (
+                  <div className="mt-2 text-xs font-bold text-zinc-700 dark:text-slate-200">
+                    <span className="block">• Tuổi tham gia: từ {experience.min_age || 0} tuổi</span>
+                    <span className="block">• Trẻ em ({experience.min_age || 0}-{experience.child_max_age || 12} tuổi): Giảm {experience.child_price || 0}%</span>
                   </div>
-                  <div>
-                    <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Số phòng</div>
-                    <div className="text-base font-black text-zinc-950 dark:text-slate-50">{experience.rooms} phòng</div>
+                ) : (
+                  <div className="mt-2 text-xs font-bold text-rose-600">
+                    Không áp dụng cho trẻ em.
                   </div>
+                )}
+              </div>
+              <div className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4">
+                <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Trạng thái</div>
+                <div className={`mt-2 inline-flex rounded-full border px-2.5 py-1 text-xs font-black ${isOpen ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
+                  {isOpen ? 'Đang mở bán' : 'Đã đóng nhận đặt'}
                 </div>
-              ) : null}
-              {experience.beds ? (
-                <div className={`flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass('beds')}`}>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                    <Bed className="h-5 w-5" />
+                {validSchedules.length > 0 ? (
+                  <div className="mt-2 text-sm font-bold text-zinc-700 dark:text-slate-200">
+                    Còn <span className="text-emerald-700">{validSchedules.reduce((acc, s) => acc + s.remaining_slots, 0)}</span> chỗ trống
                   </div>
-                  <div>
-                    <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Số giường</div>
-                    <div className="text-base font-black text-zinc-950 dark:text-slate-50">{experience.beds} giường</div>
+                ) : availability ? (
+                  <div className="mt-2 text-sm font-bold text-zinc-700 dark:text-slate-200">
+                    Còn <span className="text-emerald-700">{availability.totalRemaining}</span> chỗ trống (toàn tour)
                   </div>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-
-          {parsedAmenities.length > 0 && (
-            <div className={`mt-6 ${highlightClass('amenities')}`}>
-              <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Tiện ích</h3>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {parsedAmenities.map((amenity, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-slate-200">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    {amenity}
-                  </div>
-                ))}
+                ) : null}
               </div>
             </div>
-          )}
 
-          {validSchedules.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Lịch khởi hành sắp tới</h3>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {validSchedules.filter(s => s.remaining_slots > 0).slice(0, 4).map(schedule => (
-                  <div key={schedule.id} className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
-                    <Calendar className="h-5 w-5 text-emerald-600" />
+            {experience.status === 'pending_update' && experience.previous_state && (
+              <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <h3 className="text-sm font-black uppercase text-amber-800 mb-3 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" /> Chi tiết cập nhật (So sánh với bản cũ)
+                </h3>
+                <div className="text-sm text-amber-900 bg-white/80 backdrop-blur-lg dark:bg-slate-800/60 p-4 rounded-lg border border-amber-100 max-h-60 overflow-y-auto">
+                  <ul className="list-disc pl-5 space-y-2">
+                    {(() => {
+                      try {
+                        const oldState = JSON.parse(experience.previous_state);
+                        const changes: React.ReactNode[] = [];
+                        const ignoreKeys = ['id', 'status', 'previous_state'];
+
+                        const fieldLabels: Record<string, string> = {
+                          title: 'Tên tour',
+                          description: 'Mô tả',
+                          price: 'Giá tour',
+                          location: 'Địa điểm',
+                          duration: 'Thời lượng',
+                          category: 'Danh mục',
+                          max_guests: 'Số khách tối đa',
+                          daily_capacity: 'Sức chứa mỗi ngày',
+                          daily_capacity_max: 'Sức chứa tối đa mỗi ngày',
+                          booking_open_date: 'Ngày bắt đầu nhận đặt chỗ',
+                          booking_close_date: 'Ngày kết thúc nhận đặt chỗ',
+                          registration_open_date: 'Ngày bắt đầu đăng ký',
+                          registration_close_date: 'Ngày kết thúc đăng ký',
+                          allow_children: 'Cho phép trẻ em',
+                          min_age: 'Độ tuổi tối thiểu',
+                          child_max_age: 'Độ tuổi trẻ em tối đa',
+                          child_price: 'Phần trăm giảm giá cho trẻ em',
+                          rooms: 'Số phòng',
+                          beds: 'Số giường',
+                          amenities: 'Tiện ích',
+                          image: 'Ảnh đại diện',
+                          images: 'Thư viện ảnh',
+                          is_active: 'Trạng thái hoạt động',
+                        };
+
+                        const formatValue = (key: string, val: any) => {
+                          if (val === null || val === undefined || val === '') return 'Trống';
+                          if (typeof val === 'boolean') return val ? 'Có' : 'Không';
+                          if (key === 'price') return formatVnd(Number(val) || 0);
+                          if (key.includes('date') && val) {
+                            try {
+                              const dateStr = formatDateVi(val);
+                              if (dateStr) return dateStr;
+                            } catch (e) { }
+                          }
+                          if (key === 'amenities' || key === 'images') {
+                            try {
+                              const parsed = JSON.parse(val);
+                              if (Array.isArray(parsed)) return parsed.length > 0 ? parsed.join(', ') : 'Trống';
+                            } catch (e) { }
+                          }
+                          return String(val);
+                        };
+
+                        Object.keys(experience).forEach(key => {
+                          if (ignoreKeys.includes(key)) return;
+                          const oldVal = (oldState as any)[key];
+                          const newVal = (experience as any)[key];
+                          if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+                            const label = fieldLabels[key] || key;
+                            changes.push(
+                              <li key={key}>
+                                Thay đổi <strong>{label}</strong> từ <span className="line-through opacity-70">{formatValue(key, oldVal)}</span> thành <span className="font-semibold text-emerald-700">{formatValue(key, newVal)}</span>
+                              </li>
+                            );
+                          }
+                        });
+                        if (changes.length === 0) return <li>Không có thay đổi dữ liệu nào đáng kể.</li>;
+                        return changes;
+                      } catch (e) {
+                        return <li>Không thể đọc được dữ liệu phiên bản cũ.</li>;
+                      }
+                    })()}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {(experience.rooms || experience.beds) ? (
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {experience.rooms ? (
+                  <div className={`flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass('rooms')}`}>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                      <Home className="h-5 w-5" />
+                    </div>
                     <div>
-                      <div className="text-sm font-bold text-emerald-900">
-                        {formatDateVi(schedule.start_date)} - {formatDateVi(schedule.end_date)}
-                      </div>
-                      <div className="text-xs font-semibold text-emerald-700">
-                        Còn {schedule.remaining_slots} chỗ
-                      </div>
+                      <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Số phòng</div>
+                      <div className="text-base font-black text-zinc-950 dark:text-slate-50">{experience.rooms} phòng</div>
                     </div>
                   </div>
-                ))}
+                ) : null}
+                {experience.beds ? (
+                  <div className={`flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 ${highlightClass('beds')}`}>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                      <Bed className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Số giường</div>
+                      <div className="text-base font-black text-zinc-950 dark:text-slate-50">{experience.beds} giường</div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {parsedAmenities.length > 0 && (
+              <div className={`mt-6 ${highlightClass('amenities')}`}>
+                <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Tiện ích</h3>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {parsedAmenities.map((amenity, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-slate-200">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      {amenity}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {validSchedules.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Lịch khởi hành sắp tới</h3>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {validSchedules.filter(s => s.remaining_slots > 0).slice(0, 4).map(schedule => (
+                    <div key={schedule.id} className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
+                      <Calendar className="h-5 w-5 text-emerald-600" />
+                      <div>
+                        <div className="text-sm font-bold text-emerald-900">
+                          {formatDateVi(schedule.start_date)} - {formatDateVi(schedule.end_date)}
+                        </div>
+                        <div className="text-xs font-semibold text-emerald-700">
+                          Còn {schedule.remaining_slots} chỗ
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {parsedImages.length > 0 && (
+              <div className={`mt-6 ${highlightClass('images')}`}>
+                <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Thư viện ảnh</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {parsedImages.map((img, idx) => (
+                    <img key={idx} src={img} alt={`${experience.title} ${idx}`} className="h-32 w-full object-cover rounded-xl border border-zinc-200 dark:border-slate-700" />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className={`mt-6 ${highlightClass('description')}`}>
+              <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Mô tả trải nghiệm</h3>
+              <div className="text-zinc-600 dark:text-slate-300 leading-relaxed space-y-3 whitespace-pre-wrap">
+                {experience.description || 'Chưa có mô tả cho tour này.'}
               </div>
             </div>
-          )}
 
-          {parsedImages.length > 0 && (
-            <div className={`mt-6 ${highlightClass('images')}`}>
-              <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Thư viện ảnh</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {parsedImages.map((img, idx) => (
-                  <img key={idx} src={img} alt={`${experience.title} ${idx}`} className="h-32 w-full object-cover rounded-xl border border-zinc-200 dark:border-slate-700" />
-                ))}
+            {experience.host_email && (
+              <HostProfileWidget email={experience.host_email} />
+            )}
+
+            <div className="mt-6">
+              <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Bản đồ khu vực</h3>
+              <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-slate-700">
+                <iframe
+                  title="Bản đồ khu vực"
+                  width="100%"
+                  height="250"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  allowFullScreen
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(experience.location)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                />
               </div>
             </div>
-          )}
 
-          <div className={`mt-6 ${highlightClass('description')}`}>
-            <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Mô tả trải nghiệm</h3>
-            <div className="text-zinc-600 dark:text-slate-300 leading-relaxed space-y-3 whitespace-pre-wrap">
-              {experience.description || 'Chưa có mô tả cho tour này.'}
+            <div className="mt-8 flex justify-end gap-3 border-t border-zinc-100 dark:border-slate-800 pt-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-xl border border-zinc-200 dark:border-slate-700 px-5 py-2.5 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-900/50"
+              >
+                Đóng
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isOpen) return;
+                  onClose();
+                  onBook();
+                }}
+                disabled={!isOpen}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-black text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
+              >
+                <CalendarCheck className="h-4 w-4" />
+                {isOpen ? 'Đặt tour ngay' : 'Tour đã đóng'}
+              </button>
             </div>
-          </div>
-
-          {experience.host_email && (
-            <HostProfileWidget email={experience.host_email} />
-          )}
-
-          <div className="mt-6">
-            <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Bản đồ khu vực</h3>
-            <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-slate-700">
-              <iframe
-                title="Bản đồ khu vực"
-                width="100%"
-                height="250"
-                style={{ border: 0 }}
-                loading="lazy"
-                allowFullScreen
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(experience.location)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
-              />
-            </div>
-          </div>
-
-          <div className="mt-8 flex justify-end gap-3 border-t border-zinc-100 dark:border-slate-800 pt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl border border-zinc-200 dark:border-slate-700 px-5 py-2.5 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-900/50"
-            >
-              Đóng
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (!isOpen) return;
-                onClose();
-                onBook();
-              }}
-              disabled={!isOpen}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-black text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
-            >
-              <CalendarCheck className="h-4 w-4" />
-              {isOpen ? 'Đặt tour ngay' : 'Tour đã đóng'}
-            </button>
-          </div>
           </div>
         </div>
       </div>

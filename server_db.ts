@@ -204,10 +204,10 @@ class RelationalDatabase {
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
 
-    try { await pool.query("ALTER TABLE users MODIFY COLUMN role ENUM('user', 'admin', 'host') NOT NULL DEFAULT 'user'"); } catch (e: any) { }
-    try { await pool.query("ALTER TABLE users ADD COLUMN avatar LONGTEXT NULL"); } catch (e: any) { }
-    try { await pool.query("ALTER TABLE users ADD COLUMN phone VARCHAR(50) NULL"); } catch (e: any) { }
-    try { await pool.query("ALTER TABLE users ADD COLUMN address VARCHAR(500) NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE users MODIFY COLUMN role ENUM('user', 'admin', 'host') NOT NULL DEFAULT 'user'"); } catch (e: any) { console.error('ALTER TABLE role error:', e.message); }
+    try { await pool.query("ALTER TABLE users ADD COLUMN avatar LONGTEXT NULL"); } catch (e: any) { console.error('ALTER TABLE avatar error:', e.message); }
+    try { await pool.query("ALTER TABLE users ADD COLUMN phone VARCHAR(50) NULL"); } catch (e: any) { console.error('ALTER TABLE phone error:', e.message); }
+    try { await pool.query("ALTER TABLE users ADD COLUMN address VARCHAR(500) NULL"); } catch (e: any) { console.error('ALTER TABLE address error:', e.message); }
 
     await pool.query(`
       INSERT INTO users (email, password, role, fullname)
