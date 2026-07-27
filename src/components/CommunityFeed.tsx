@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Send, ThumbsUp, Image as ImageIcon, Trash2, X } from 'lucide-react';
+import { Heart, Send, ThumbsUp, Image as ImageIcon, Trash2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PostTable, PostCommentTable, PostReactionTable } from '../types';
 
 interface CommunityFeedProps {
@@ -48,8 +48,13 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
   const [posts, setPosts] = useState<PostTable[]>([]);
   const [loading, setLoading] = useState(true);
   const [postContent, setPostContent] = useState('');
-  const [mediaUrl, setMediaUrl] = useState('');
+  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
+  const [lightbox, setLightbox] = useState<{urls: string[], index: number} | null>(null);
+
+  const openLightbox = (urls: string[], index: number) => {
+    setLightbox({ urls, index });
+  };
   const [submitting, setSubmitting] = useState(false);
   const [activeComments, setActiveComments] = useState<number | null>(null);
   const [commentsData, setCommentsData] = useState<Record<number, PostCommentTable[]>>({});
@@ -61,35 +66,38 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     if (!currentUser) { onLogin(); return; }
 
-    const isVideo = file.type.startsWith('video/');
-    if (!file.type.startsWith('image/') && !isVideo) {
+    const isVideo = files[0].type.startsWith('video/');
+    if (!files.every(file => file.type.startsWith('image/') || file.type.startsWith('video/'))) {
       alert('Vui lòng chọn file hình ảnh hoặc video.');
       return;
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     setSubmitting(true);
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-        body: formData
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setMediaUrl(data.url);
-        setMediaType(isVideo ? 'video' : 'image');
-      } else {
-        const err = await res.json();
-        alert(err.error || 'Lỗi tải lên file');
+      const uploadedUrls: string[] = [];
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+          body: formData
+        });
+        if (res.ok) {
+          const data = await res.json();
+          uploadedUrls.push(data.url);
+        } else {
+          const err = await res.json();
+          alert(err.error || 'Lỗi tải lên file');
+        }
       }
+      setMediaUrls(prev => [...prev, ...uploadedUrls]);
+      setMediaType(isVideo ? 'video' : 'image');
     } catch (err) {
       console.error(err);
       alert('Lỗi tải lên file');
@@ -134,13 +142,13 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
           fullname: currentUser.fullname,
           role: currentUser.role,
           content: postContent,
-          media_url: mediaUrl || undefined,
-          media_type: mediaUrl ? mediaType : undefined
+          media_url: mediaUrls.length > 0 ? JSON.stringify(mediaUrls) : undefined,
+          media_type: mediaUrls.length > 0 ? mediaType : undefined
         })
       });
       if (res.ok) {
         setPostContent('');
-        setMediaUrl('');
+        setMediaUrls([]);
         fetchPosts();
       } else {
         const err = await res.json();
@@ -271,17 +279,21 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
               onClick={() => !currentUser && onLogin()}
             />
 
-            {mediaUrl && (
+            {mediaUrls.length > 0 && (
               <div className="relative mt-2 rounded-xl bg-zinc-100 dark:bg-slate-800 p-2">
-                {mediaType === 'image' ? (
-                  <img src={mediaUrl} alt="Preview" className="max-h-64 rounded-lg object-contain" />
-                ) : (
-                  <video src={mediaUrl} controls className="max-h-64 rounded-lg object-contain" />
-                )}
+                <div className="flex gap-2 overflow-x-auto">
+                  {mediaUrls.map((url, idx) => (
+                    mediaType === 'image' ? (
+                      <img key={idx} src={url} alt="Preview" className="h-32 rounded-lg object-cover shrink-0" />
+                    ) : (
+                      <video key={idx} src={url} controls className="h-32 rounded-lg object-cover shrink-0" />
+                    )
+                  ))}
+                </div>
                 <button
                   type="button"
-                  onClick={() => setMediaUrl('')}
-                  className="absolute right-4 top-4 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
+                  onClick={() => setMediaUrls([])}
+                  className="absolute right-4 top-4 z-10 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -292,7 +304,7 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
 
             <div className="flex items-center justify-between">
               <div className="flex gap-2">
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={handleFileUpload} />
+                <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" multiple onChange={handleFileUpload} />
                 <button
                   type="button"
                   disabled={submitting}
@@ -398,12 +410,83 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
 
                     {/* Media */}
                     {post.media_url && (
-                      <div className="mt-4 bg-zinc-50 dark:bg-slate-900/50 rounded-xl overflow-hidden border border-zinc-200 dark:border-slate-700 inline-block">
-                        {post.media_type === 'image' ? (
-                          <img src={post.media_url} alt="Post media" className="max-h-64 object-cover" />
-                        ) : (
-                          <video src={post.media_url} controls className="max-h-64 object-cover" />
-                        )}
+                      <div className="mt-4 w-full bg-zinc-50 dark:bg-slate-900/50 rounded-xl overflow-hidden border border-zinc-200 dark:border-slate-700">
+                        {(() => {
+                          let urls: string[] = [];
+                          try {
+                            urls = JSON.parse(post.media_url);
+                            if (!Array.isArray(urls)) urls = [post.media_url];
+                          } catch {
+                            urls = [post.media_url];
+                          }
+
+                          if (post.media_type === 'video') {
+                            return <video src={urls[0]} controls className="w-full max-h-96 object-cover" />;
+                          }
+
+                          if (urls.length === 1) {
+                            return (
+                              <img 
+                                src={urls[0]} 
+                                alt="Post media" 
+                                className="w-full max-h-96 object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+                                onClick={() => openLightbox(urls, 0)} 
+                              />
+                            );
+                          }
+                          if (urls.length === 2) {
+                            return (
+                              <div className="grid grid-cols-2 gap-1 w-full h-64 sm:h-80">
+                                {urls.map((url, idx) => (
+                                  <img key={idx} src={url} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, idx)} />
+                                ))}
+                              </div>
+                            );
+                          }
+                          if (urls.length === 3) {
+                            return (
+                              <div className="flex flex-col gap-1 w-full h-[400px]">
+                                <div className="flex-1 min-h-0">
+                                  <img src={urls[0]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 0)} />
+                                </div>
+                                <div className="flex-1 min-h-0 grid grid-cols-2 gap-1">
+                                  <img src={urls[1]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 1)} />
+                                  <img src={urls[2]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 2)} />
+                                </div>
+                              </div>
+                            );
+                          }
+                          if (urls.length === 4) {
+                            return (
+                              <div className="grid grid-cols-2 gap-1 w-full h-[400px]">
+                                {urls.map((url, idx) => (
+                                  <img key={idx} src={url} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, idx)} />
+                                ))}
+                              </div>
+                            );
+                          }
+                          // 5 or more
+                          return (
+                            <div className="flex flex-col gap-1 w-full h-[450px]">
+                              <div className="flex-1 min-h-0 grid grid-cols-2 gap-1">
+                                <img src={urls[0]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 0)} />
+                                <img src={urls[1]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 1)} />
+                              </div>
+                              <div className="flex-1 min-h-0 grid grid-cols-3 gap-1">
+                                <img src={urls[2]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 2)} />
+                                <img src={urls[3]} className="w-full h-full object-cover cursor-pointer hover:opacity-90" onClick={() => openLightbox(urls, 3)} />
+                                <div className="relative w-full h-full cursor-pointer hover:opacity-90 overflow-hidden" onClick={() => openLightbox(urls, 4)}>
+                                  <img src={urls[4]} className="w-full h-full object-cover" />
+                                  {urls.length > 5 && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-3xl font-bold">
+                                      +{urls.length - 4}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
 
@@ -472,6 +555,39 @@ export default function CommunityFeed({ currentUser, onLogin }: CommunityFeedPro
           <div className="py-12 text-center text-zinc-500 dark:text-slate-400">Chưa có bài viết nào. Hãy là người đầu tiên!</div>
         )}
       </div>
+
+      {lightbox && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md">
+          <button 
+            className="absolute top-4 right-4 text-white hover:text-zinc-300 p-2"
+            onClick={() => setLightbox(null)}
+          >
+            <X className="h-8 w-8" />
+          </button>
+          
+          <button 
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-zinc-300 p-2 disabled:opacity-30"
+            onClick={() => setLightbox({ ...lightbox, index: lightbox.index - 1 })}
+            disabled={lightbox.index === 0}
+          >
+            <ChevronLeft className="h-12 w-12" />
+          </button>
+
+          <img 
+            src={lightbox.urls[lightbox.index]} 
+            className="max-h-[90vh] max-w-[90vw] object-contain" 
+            alt="Expanded view" 
+          />
+
+          <button 
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-zinc-300 p-2 disabled:opacity-30"
+            onClick={() => setLightbox({ ...lightbox, index: lightbox.index + 1 })}
+            disabled={lightbox.index === lightbox.urls.length - 1}
+          >
+            <ChevronRight className="h-12 w-12" />
+          </button>
+        </div>
+      )}
 
       {viewReactions && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
