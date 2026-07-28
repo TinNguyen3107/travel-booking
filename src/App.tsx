@@ -225,7 +225,7 @@ export default function App() {
     }
   };
 
-  const handleLoginSuccess = (loggedUser: CurrentUser & { token?: string }) => {
+  const handleLoginSuccess = async (loggedUser: CurrentUser & { token?: string }) => {
     setUser(loggedUser);
     localStorage.setItem('currentUser', JSON.stringify(loggedUser));
     if (loggedUser.token) {
@@ -234,9 +234,8 @@ export default function App() {
     setShowLoginModal(false);
     setActiveSection(loggedUser.role === 'admin' || loggedUser.role === 'host' ? 'dashboard' : 'hero');
     // Re-fetch data after login to ensure fresh content
-    fetchExperiences();
-    fetchReviews();
-    fetchPromotions();
+    await Promise.all([fetchExperiences(), fetchReviews(), fetchPromotions()]);
+    setIsAppLoading(false);
   };
 
   const handleLogout = () => {
