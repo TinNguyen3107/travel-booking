@@ -658,7 +658,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
       )}
 
       {viewCommentReactions && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-110 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
             <div className="flex items-center justify-between border-b border-zinc-200 dark:border-slate-800 p-4">
               <h3 className="font-bold text-zinc-900 dark:text-slate-100">Người đã bày tỏ cảm xúc</h3>
@@ -767,7 +767,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
 
                         {/* Comment Reaction summary */}
                         {commentReactionsData[comment.id] && commentReactionsData[comment.id].length > 0 && (
-                          <button 
+                          <button
                             onClick={() => setViewCommentReactions(comment.id)}
                             className="flex items-center gap-1 bg-white dark:bg-slate-700 rounded-full px-2 py-0.5 shadow-sm border border-zinc-100 dark:border-slate-600 text-[10px] text-zinc-500 hover:bg-zinc-50 dark:hover:bg-slate-600 transition-colors"
                           >

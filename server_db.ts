@@ -333,8 +333,8 @@ class RelationalDatabase {
         UNIQUE KEY user_exp (user_email, experience_id)
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
-    
-    try { await pool.query('ALTER TABLE wishlists ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP'); } catch (e: any) {}
+
+    try { await pool.query('ALTER TABLE wishlists ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP'); } catch (e: any) { }
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS promotions (
@@ -395,7 +395,7 @@ class RelationalDatabase {
         CONSTRAINT fk_quota_exp FOREIGN KEY (experience_id) REFERENCES experiences(id) ON DELETE CASCADE
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
-    
+
     try {
       await pool.query(`
         INSERT INTO experience_daily_quotas (experience_id, booking_date, max_capacity, booked_count)
@@ -472,7 +472,7 @@ class RelationalDatabase {
         INDEX idx_post_status (status)
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
-    
+
     try { await pool.query("ALTER TABLE posts MODIFY COLUMN media_url LONGTEXT"); } catch (e: any) { }
 
     await pool.query(`
@@ -515,6 +515,31 @@ class RelationalDatabase {
     `);
 
     try { await pool.query("ALTER TABLE posts ADD COLUMN experience_id INT NULL AFTER role"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE post_comments ADD COLUMN user_avatar VARCHAR(500) NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE posts ADD COLUMN user_avatar VARCHAR(500) NULL"); } catch (e: any) { }
+
+    // Phase 8: Payout requests
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS payout_requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        host_email VARCHAR(255) NOT NULL,
+        host_name VARCHAR(255) NOT NULL DEFAULT '',
+        amount DECIMAL(12, 0) NOT NULL,
+        bank_name VARCHAR(255) NOT NULL,
+        bank_account VARCHAR(100) NOT NULL,
+        bank_owner VARCHAR(255) NOT NULL,
+        note TEXT,
+        status ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
+        admin_note TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        processed_at DATETIME NULL,
+        INDEX idx_payout_host (host_email),
+        INDEX idx_payout_status (status)
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+    try { await pool.query("ALTER TABLE payout_requests ADD COLUMN admin_note TEXT NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE payout_requests ADD COLUMN processed_at DATETIME NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE payout_requests ADD COLUMN host_name VARCHAR(255) NOT NULL DEFAULT ''"); } catch (e: any) { }
 
     await pool.query(`
       UPDATE experiences
@@ -885,7 +910,7 @@ class RelationalDatabase {
       if (refreshed) {
         let closeQuery = 'SELECT SUM(guests) as total FROM bookings WHERE experience_id = ? AND status != "cancelled"';
         const closeParams: any[] = [booking.experience_id];
-        
+
         if (refreshed.booking_open_date && refreshed.booking_close_date) {
           closeQuery += ' AND booking_date >= ? AND booking_date <= ?';
           closeParams.push(refreshed.booking_open_date, refreshed.booking_close_date);
@@ -895,10 +920,10 @@ class RelationalDatabase {
           closeQuery += ' AND created_at >= ?';
           closeParams.push(refreshed.registration_open_date + ' 00:00:00');
         }
-        
+
         const [totalAfterRows] = await pool.query<RowDataPacket[]>(closeQuery, closeParams);
         const totalAfterBooked = Number(totalAfterRows[0]?.total || 0);
-        
+
         if (totalAfterBooked >= (refreshed.max_guests || 50)) {
           await pool.query(
             "UPDATE experiences SET status = 'closed' WHERE id = ? AND status = 'active'",
@@ -940,7 +965,7 @@ class RelationalDatabase {
           await pool.query('UPDATE experience_daily_quotas SET booked_count = booked_count + ? WHERE experience_id = ? AND booking_date = ?', [current.guests, current.experience_id, current.booking_date]);
         }
       }
-      
+
       if (status === 'cancelled' && current.status !== 'cancelled' && current.payment_status === 'paid') {
         await pool.query('UPDATE bookings SET refund_status = "pending" WHERE id = ?', [id]);
       }
@@ -1343,12 +1368,12 @@ class RelationalDatabase {
         "SELECT id, user_email, guests FROM bookings WHERE experience_id = ? AND status != 'cancelled' AND schedule_id IS NULL",
         [schedule.experience_id]
       );
-      
+
       let assignedCount = 0;
       for (const b of bookings) {
         await pool.query("UPDATE bookings SET schedule_id = ? WHERE id = ?", [scheduleId, b.id]);
         assignedCount += b.guests;
-        
+
         await this.createNotification(
           b.user_email,
           'Đã có lịch khởi hành tour',
@@ -1356,7 +1381,7 @@ class RelationalDatabase {
           'info'
         );
       }
-      
+
       if (assignedCount > 0) {
         await pool.query("UPDATE tour_schedules SET remaining_slots = max_slots - ? WHERE id = ?", [assignedCount, scheduleId]);
       }

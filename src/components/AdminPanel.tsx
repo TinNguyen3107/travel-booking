@@ -216,6 +216,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
       setHosts(hostData || []);
       setDbCategories(categoryData || []);
       setPromotions(promoData || []);
+
     } catch (err: any) {
       setError(err.message || 'Không thể tải dữ liệu quản trị');
     } finally {

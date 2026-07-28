@@ -19,8 +19,6 @@ import {
   Users,
   Calendar,
   TrendingUp,
-  Bell,
-  X,
   Eye
 } from 'lucide-react';
 import {
@@ -270,7 +268,8 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       try {
         const notiData = await fetchJson<any[]>('/api/notifications');
         setNotifications(notiData || []);
-      } catch { /* ignore if no notifications */ }
+      } catch { /* ignore */ }
+
     } catch (err: any) {
       setError(err.message || 'Không thể tải dữ liệu quản trị');
     } finally {
@@ -339,11 +338,11 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       booking_close_date: experience.booking_close_date || addDaysIso(90),
       rooms: experience.rooms || 0,
       beds: experience.beds || 0,
-      amenities: typeof experience.amenities === 'string' && experience.amenities !== '[]' && experience.amenities !== '' 
-        ? JSON.parse(experience.amenities).join(', ') 
+      amenities: typeof experience.amenities === 'string' && experience.amenities !== '[]' && experience.amenities !== ''
+        ? JSON.parse(experience.amenities).join(', ')
         : '',
-      images: typeof experience.images === 'string' && experience.images !== '[]' && experience.images !== '' 
-        ? JSON.parse(experience.images).join(', ') 
+      images: typeof experience.images === 'string' && experience.images !== '[]' && experience.images !== ''
+        ? JSON.parse(experience.images).join(', ')
         : '',
       allow_children: experience.allow_children ?? true,
       min_age: experience.min_age ?? 0,
@@ -534,7 +533,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
   const submitHostReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!evaluatingBooking) return;
-    
+
     if (hostReviewForm.comment.trim().length < 5) {
       alert('Bình luận cần tối thiểu 5 ký tự');
       return;
@@ -763,34 +762,34 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   </div>
                 </div>
               </div>
-              
+
               <div className="h-72 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={stats.chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
-                    <XAxis 
-                      dataKey="name" 
+                    <XAxis
+                      dataKey="name"
                       axisLine={false}
                       tickLine={false}
                       tick={{ fill: '#71717a', fontSize: 12, fontWeight: 600 }}
                       dy={10}
                     />
-                    <YAxis 
+                    <YAxis
                       tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
                       axisLine={false}
                       tickLine={false}
                       tick={{ fill: '#71717a', fontSize: 12, fontWeight: 600 }}
                       width={60}
                     />
-                    <RechartsTooltip 
+                    <RechartsTooltip
                       formatter={(value: number) => [formatVnd(value), 'Thực nhận']}
                       labelStyle={{ fontWeight: 'bold', color: '#18181b' }}
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="revenue" 
-                      stroke="#059669" 
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#059669"
                       strokeWidth={3}
                       dot={{ r: 4, fill: '#059669', strokeWidth: 2, stroke: '#fff' }}
                       activeDot={{ r: 6, fill: '#059669', strokeWidth: 2, stroke: '#fff' }}
@@ -999,23 +998,22 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                       </td>
                       <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">
                         <div className="text-xs font-semibold">{formatDateVi(item.booking_open_date)} - {formatDateVi(item.booking_close_date)}</div>
-                        <span className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs font-bold ${
-                          item.status === 'closed' ? 'border-red-200 bg-red-50 text-red-700'
-                          : item.status === 'pending_review' || item.status === 'pending_update' ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
-                          : item.status === 'hidden' ? 'border-zinc-200 dark:border-slate-700 bg-zinc-100 dark:bg-slate-800 text-zinc-500 dark:text-slate-400'
-                          : item.status === 'draft' ? 'border-gray-200 bg-gray-100 text-gray-500'
-                          : isExperienceOpen(item) ? 'border-emerald-100 bg-emerald-50 text-emerald-700'
-                          : item.booking_open_date && item.booking_open_date > todayIso() ? 'border-sky-100 bg-sky-50 text-sky-700'
-                          : 'border-red-100 bg-red-50 text-red-700'
-                        }`}>
+                        <span className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs font-bold ${item.status === 'closed' ? 'border-red-200 bg-red-50 text-red-700'
+                            : item.status === 'pending_review' || item.status === 'pending_update' ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
+                              : item.status === 'hidden' ? 'border-zinc-200 dark:border-slate-700 bg-zinc-100 dark:bg-slate-800 text-zinc-500 dark:text-slate-400'
+                                : item.status === 'draft' ? 'border-gray-200 bg-gray-100 text-gray-500'
+                                  : isExperienceOpen(item) ? 'border-emerald-100 bg-emerald-50 text-emerald-700'
+                                    : item.booking_open_date && item.booking_open_date > todayIso() ? 'border-sky-100 bg-sky-50 text-sky-700'
+                                      : 'border-red-100 bg-red-50 text-red-700'
+                          }`}>
                           {item.status === 'closed' ? 'Đã đóng (đủ khách)'
-                          : item.status === 'pending_review' ? 'Chờ Admin duyệt'
-                          : item.status === 'pending_update' ? 'Chờ duyệt cập nhật'
-                          : item.status === 'hidden' ? 'Đã ẩn'
-                          : item.status === 'draft' ? 'Bản nháp'
-                          : isExperienceOpen(item) ? 'Đang mở'
-                          : item.booking_open_date && item.booking_open_date > todayIso() ? 'Chưa mở'
-                          : 'Đã đóng'}
+                            : item.status === 'pending_review' ? 'Chờ Admin duyệt'
+                              : item.status === 'pending_update' ? 'Chờ duyệt cập nhật'
+                                : item.status === 'hidden' ? 'Đã ẩn'
+                                  : item.status === 'draft' ? 'Bản nháp'
+                                    : isExperienceOpen(item) ? 'Đang mở'
+                                      : item.booking_open_date && item.booking_open_date > todayIso() ? 'Chưa mở'
+                                        : 'Đã đóng'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{Number(item.rating || 0).toFixed(1)} ({item.reviews_count})</td>
@@ -1113,7 +1111,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                             Đã hoàn tiền
                           </div>
                         )}
-                        
+
                         {booking.status === 'confirmed' && (
                           <button
                             onClick={() => {
@@ -1176,6 +1174,8 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
             </table>
           </HostTable>
         )}
+
+
 
         {!loading && activeTab === 'profile' && (
           <div className="space-y-4">

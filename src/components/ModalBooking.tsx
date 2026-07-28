@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, BadgeCheck, Calendar, MessageSquare, Phone, User, Users, X, Tag } from 'lucide-react';
+import { AlertCircle, BadgeCheck, Calendar, MessageSquare, Phone, User, Users, X, Tag, Building2, CreditCard, Copy, CheckCircle2, Loader2 } from 'lucide-react';
 import { ExperienceTable, TourScheduleTable, formatDateVi, formatVnd, todayIso } from '../types';
 
 interface ModalBookingProps {
@@ -159,43 +159,25 @@ export default function ModalBooking({
   const handleBookingSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const validationError = validate();
-
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
+    if (validationError) { setError(validationError); return; }
     setError(null);
     setLoading(true);
-
     try {
       const res = await fetch('/api/bookings', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         body: JSON.stringify({
           user_email: userEmail,
           experience_id: experience.id,
           schedule_id: validSchedules.length > 0 ? selectedScheduleId : undefined,
           booking_date: validSchedules.length > 0 ? validSchedules.find(s => s.id === selectedScheduleId)?.start_date : bookingDate,
-          guests,
-          adults,
-          children,
-          contact_name: contactName.trim(),
-          contact_phone: contactPhone.trim(),
-          note: note.trim(),
-          promo_code: promoCode.trim()
+          guests, adults, children,
+          contact_name: contactName.trim(), contact_phone: contactPhone.trim(),
+          note: note.trim(), promo_code: promoCode.trim()
         })
       });
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Đặt tour thất bại, vui lòng thử lại');
-      }
-
-      alert('Đặt tour thành công. Đơn của bạn đang chờ xác nhận.');
+      if (!res.ok) throw new Error(data.error || 'Đặt tour thất bại, vui lòng thử lại');
       onBookingSuccess();
       onClose();
     } catch (err: any) {
@@ -205,6 +187,7 @@ export default function ModalBooking({
     }
   };
 
+  // =================== BOOKING FORM ===================
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
       <div className="relative w-full max-w-2xl max-h-[95vh] overflow-y-auto rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-2xl">
@@ -219,12 +202,10 @@ export default function ModalBooking({
 
         <div className="grid gap-0 md:grid-cols-[220px_1fr]">
           <div className="hidden bg-zinc-950 md:block relative overflow-hidden">
-            {/* Blurred background */}
             <div
               className="absolute inset-0 bg-cover bg-center blur-2xl opacity-50 scale-110"
               style={{ backgroundImage: `url(${experience.image})` }}
             />
-            {/* Main image */}
             <img
               src={experience.image}
               alt={experience.title}
@@ -260,166 +241,151 @@ export default function ModalBooking({
             <form onSubmit={handleBookingSubmit} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Ngày đi</span>
-                  <span className="relative block">
-                    <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
-                    {validSchedules.length > 0 ? (
-                      <select
-                        value={selectedScheduleId}
-                        onChange={(e) => setSelectedScheduleId(Number(e.target.value) || '')}
-                        className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
-                      >
-                        <option value="">-- Chọn lịch trình --</option>
-                        {validSchedules.filter(s => s.remaining_slots >= guests).map(s => (
-                          <option key={s.id} value={s.id}>
-                            {formatDateVi(s.start_date)} - {formatDateVi(s.end_date)} (Còn {s.remaining_slots} chỗ)
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        type="date"
-                        min={minBookingDate}
-                        max={maxBookingDate || undefined}
-                        value={bookingDate}
-                        onChange={(event) => setBookingDate(event.target.value)}
-                        className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
-                      />
-                    )}
-                  </span>
-                  {validSchedules.length === 0 && availability && (
-                    <div className="mt-2 grid gap-1 text-xs font-bold text-zinc-500 dark:text-slate-400">
-                      <span className={availability.dailyRemaining > 0 ? 'text-emerald-600' : 'text-rose-500'}>
-                        • Còn {availability.dailyRemaining} chỗ trong ngày này
-                      </span>
-                      <span className={availability.totalRemaining > 0 ? 'text-blue-600' : 'text-rose-500'}>
-                        • Còn {availability.totalRemaining} chỗ của toàn tour
-                      </span>
-                    </div>
-                  )}
+                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><User className="inline h-3 w-3" /> Tên liên hệ</span>
+                  <input
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    placeholder="Nguyễn Văn A"
+                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                    required
+                  />
                 </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Phone className="inline h-3 w-3" /> Số điện thoại</span>
+                  <input
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    placeholder="0912345678"
+                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                    required
+                  />
+                </label>
+              </div>
 
-                {experience.allow_children ? (
-                  <div className="grid gap-2">
-                    <label className="block">
-                      <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Người lớn</span>
-                      <span className="flex h-10.5 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-1">
-                        <button type="button" onClick={() => setAdultCount(adults - 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">-</button>
-                        <input type="number" min={1} max={maxGuests - children} value={adults} onChange={(event) => setAdultCount(Number(event.target.value))} className="min-w-0 flex-1 bg-transparent text-center text-sm font-black outline-none" />
-                        <button type="button" onClick={() => setAdultCount(adults + 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">+</button>
-                      </span>
-                    </label>
-                    <label className="block">
-                      <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Trẻ em ({experience.min_age} - {experience.child_max_age} tuổi)</span>
-                      <span className="flex h-10.5 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-1">
-                        <button type="button" onClick={() => setChildCount(children - 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">-</button>
-                        <input type="number" min={0} max={maxGuests - adults} value={children} onChange={(event) => setChildCount(Number(event.target.value))} className="min-w-0 flex-1 bg-transparent text-center text-sm font-black outline-none" />
-                        <button type="button" onClick={() => setChildCount(children + 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">+</button>
-                      </span>
-                    </label>
-                  </div>
-                ) : (
+              {validSchedules.length > 0 ? (
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Calendar className="inline h-3 w-3" /> Chọn lịch trình</span>
+                  <select
+                    value={selectedScheduleId}
+                    onChange={(e) => setSelectedScheduleId(Number(e.target.value))}
+                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                    required
+                  >
+                    <option value="">-- Chọn lịch --</option>
+                    {validSchedules.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {formatDateVi(s.start_date)} → {formatDateVi(s.end_date)} ({s.remaining_slots} chỗ còn)
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Calendar className="inline h-3 w-3" /> Ngày đi</span>
+                  <input
+                    type="date"
+                    value={bookingDate}
+                    min={minBookingDate}
+                    max={maxBookingDate || undefined}
+                    onChange={(e) => setBookingDate(e.target.value)}
+                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                    required
+                  />
+                </label>
+              )}
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Users className="inline h-3 w-3" /> Người lớn</span>
+                  <input
+                    type="number" min="1" max={maxGuests}
+                    value={adults}
+                    onChange={(e) => setAdultCount(Number(e.target.value))}
+                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                  />
+                </label>
+                {experience.allow_children !== false && (
                   <label className="block">
-                    <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Số khách</span>
-                    <span className="flex h-10.5 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-1">
-                      <button type="button" onClick={() => setAdultCount(adults - 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">-</button>
-                      <input type="number" min={1} max={maxGuests} value={adults} onChange={(event) => setAdultCount(Number(event.target.value))} className="min-w-0 flex-1 bg-transparent text-center text-sm font-black outline-none" />
-                      <button type="button" onClick={() => setAdultCount(adults + 1)} className="h-8 w-9 rounded-lg bg-white/80 backdrop-blur-lg dark:bg-slate-800 text-sm font-black text-zinc-700 dark:text-slate-200 shadow-sm">+</button>
-                    </span>
+                    <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Users className="inline h-3 w-3" /> Trẻ em {experience.child_max_age ? `(dưới ${experience.child_max_age} tuổi)` : ''}</span>
+                    <input
+                      type="number" min="0" max={maxGuests - adults}
+                      value={children}
+                      onChange={(e) => setChildCount(Number(e.target.value))}
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                    />
                   </label>
                 )}
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">
-                    Người liên hệ
-                  </span>
-                  <span className="relative block">
-                    <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
-                    <input
-                      value={contactName}
-                      onChange={(event) => setContactName(event.target.value)}
-                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
-                      placeholder="Nguyễn Văn A"
-                    />
-                  </span>
-                </label>
-
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">
-                    Số điện thoại
-                  </span>
-                  <span className="relative block">
-                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
-                    <input
-                      value={contactPhone}
-                      onChange={(event) => setContactPhone(event.target.value)}
-                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
-                      placeholder="09xx xxx xxx"
-                    />
-                  </span>
-                </label>
-              </div>
-
               <label className="block">
-                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">
-                  Ghi chú
-                </span>
-                <span className="relative block">
-                  <MessageSquare className="absolute left-3 top-3 h-4 w-4 text-zinc-400 dark:text-slate-500" />
-                  <textarea
-                    value={note}
-                    onChange={(event) => setNote(event.target.value)}
-                    rows={3}
-                    maxLength={300}
-                    className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
-                    placeholder="Yêu cầu đón trả, ăn uống, trẻ em đi cùng..."
+                <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><MessageSquare className="inline h-3 w-3" /> Ghi chú (tuỳ chọn)</span>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows={2}
+                  placeholder="Yêu cầu đặc biệt, dị ứng thực phẩm..."
+                  className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                />
+              </label>
+
+              {/* Promo code */}
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Tag className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
+                  <input
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                    placeholder="Mã khuyến mãi"
+                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 pl-9 pr-3 py-2 text-sm outline-none focus:border-emerald-500"
                   />
-                </span>
-              </label>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!promoCode.trim()) return;
+                    try {
+                      const res = await fetch(`/api/promotions/validate?code=${encodeURIComponent(promoCode.trim())}&experience_id=${experience.id}`);
+                      const data = await res.json();
+                      if (!res.ok || data.error) {
+                        setPromoMessage(data.error || 'Mã không hợp lệ');
+                        setActivePromo(null);
+                      } else {
+                        setPromoMessage('Áp dụng mã thành công!');
+                        setActivePromo(data);
+                      }
+                    } catch {
+                      setPromoMessage('Có lỗi xảy ra');
+                    }
+                  }}
+                  className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
+                >
+                  Áp dụng
+                </button>
+              </div>
+              {promoMessage && (
+                <p className={`text-xs font-semibold ${activePromo ? 'text-emerald-600' : 'text-red-500'}`}>{promoMessage}</p>
+              )}
 
-              <label className="block">
-                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">
-                  Mã giảm giá
-                </span>
-                <span className="relative flex gap-2">
-                  <span className="relative flex-1">
-                    <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
-                    <input
-                      value={promoCode}
-                      onChange={(event) => setPromoCode(event.target.value)}
-                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
-                      placeholder="Nhập mã khuyến mãi"
-                    />
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleApplyPromo}
-                    className="rounded-xl bg-zinc-800 px-4 py-2.5 text-sm font-bold text-white hover:bg-zinc-700"
-                  >
-                    Áp dụng
-                  </button>
-                </span>
-                {promoMessage && (
-                  <div className={`mt-2 text-xs font-bold ${activePromo ? 'text-emerald-600' : 'text-rose-500'}`}>
-                    {promoMessage}
+              {/* Price summary */}
+              <div className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-3 space-y-1 text-sm">
+                <div className="flex justify-between text-zinc-600 dark:text-slate-300">
+                  <span>{adults} người lớn × {formatVnd(adultPrice)}</span>
+                  <span>{formatVnd(adults * adultPrice)}</span>
+                </div>
+                {children > 0 && (
+                  <div className="flex justify-between text-zinc-600 dark:text-slate-300">
+                    <span>{children} trẻ em × {formatVnd(childPrice)}</span>
+                    <span>{formatVnd(children * childPrice)}</span>
                   </div>
                 )}
-              </label>
-
-              <div className="flex flex-col gap-1 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
-                {activePromo && (
-                  <div className="flex items-center justify-between text-sm font-bold text-zinc-500 dark:text-slate-400">
-                    <span>Tạm tính</span>
-                    <span className="line-through">{formatVnd(basePrice)}</span>
+                {discount > 0 && (
+                  <div className="flex justify-between text-emerald-600 font-semibold">
+                    <span>Giảm giá</span>
+                    <span>-{formatVnd(discount)}</span>
                   </div>
                 )}
-                <div className="flex items-center justify-between text-sm font-bold text-emerald-900">
-                  <div className="flex items-center gap-2">
-                    <BadgeCheck className="h-4 w-4" />
-                    <span>Tổng thanh toán</span>
-                  </div>
+                <div className="flex justify-between font-black text-zinc-900 dark:text-slate-50 border-t border-zinc-200 dark:border-slate-700 pt-1 mt-1">
+                  <span>Tổng cộng</span>
                   <span className="text-xl font-black">{formatVnd(finalPrice)}</span>
                 </div>
               </div>
@@ -451,20 +417,11 @@ export default function ModalBooking({
                   {loading ? (
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : (!isBookableWindow && validSchedules.length === 0) ? (
-                    <>
-                      <BadgeCheck className="h-4 w-4" />
-                      Tour đã đóng
-                    </>
+                    <><BadgeCheck className="h-4 w-4" />Tour đã đóng</>
                   ) : (validSchedules.length === 0 && availability && !availability.isAvailable) ? (
-                    <>
-                      <X className="h-4 w-4" />
-                      Hết chỗ
-                    </>
+                    <><X className="h-4 w-4" />Hết chỗ</>
                   ) : (
-                    <>
-                      <BadgeCheck className="h-4 w-4" />
-                      Xác nhận đặt tour
-                    </>
+                    <><BadgeCheck className="h-4 w-4" />Xác nhận đặt tour</>
                   )}
                 </button>
               </div>

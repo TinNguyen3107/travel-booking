@@ -934,6 +934,8 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
+
+
   app.put('/api/bookings/:id/status', authenticateToken, requireHostOrAdmin, async (req, res) => {
     try {
       const id = Number(req.params.id);
@@ -1085,6 +1087,8 @@ app.use(async (req, res, next) => {
       res.json(updated);
     } catch (e: any) { handleError(res, e); }
   });
+
+
 
   app.get('/api/reviews', async (req, res) => {
     try {
