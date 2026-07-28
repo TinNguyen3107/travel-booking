@@ -197,8 +197,6 @@ export default function Header({
                   )}
                 </button>
 
-                  )}
-                </button>
               </div>
 
               {showNotifications && (
