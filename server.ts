@@ -1298,6 +1298,11 @@ app.use(async (req, res, next) => {
         comment: cleanText(comment),
         parent_id: parent_id ? Number(parent_id) : undefined
       });
+      
+      const post = await db.getPostById(post_id);
+      if (post && post.user_email !== user_email) {
+        await db.createNotification(post.user_email, 'Bình luận mới', `${fullname} đã bình luận về bài viết của bạn.`, 'info');
+      }
       res.status(201).json(newComment);
     } catch (e: any) { handleError(res, e); }
   });
@@ -1324,6 +1329,13 @@ app.use(async (req, res, next) => {
         user_email,
         reaction_type: reaction_type as any
       });
+      
+      if (success) {
+        const post = await db.getPostById(post_id);
+        if (post && post.user_email !== user_email) {
+          await db.createNotification(post.user_email, 'Cảm xúc mới', `${(req as any).user.fullname || user_email} đã thả cảm xúc bài viết của bạn.`, 'info');
+        }
+      }
       res.json({ success });
     } catch (e: any) { handleError(res, e); }
   });
@@ -1428,6 +1440,15 @@ app.use(async (req, res, next) => {
       const user = (req as any).user;
       const id = Number(req.params.id);
       await db.markNotificationAsRead(id, user.email);
+      res.json({ success: true });
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.delete('/api/notifications/:id', authenticateToken, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const id = Number(req.params.id);
+      await db.deleteNotification(id, user.email);
       res.json({ success: true });
     } catch (e: any) { handleError(res, e); }
   });

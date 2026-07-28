@@ -1448,6 +1448,12 @@ class RelationalDatabase {
     return rows.map(normalizePost);
   }
 
+  public async getPostById(id: number): Promise<PostTable | null> {
+    const [rows] = await pool.query<PostRow[]>('SELECT * FROM posts WHERE id = ?', [id]);
+    if (rows.length === 0) return null;
+    return normalizePost(rows[0]);
+  }
+
   public async addPost(post: Omit<PostTable, 'id' | 'status' | 'created_at' | 'likes_count' | 'comments_count'>): Promise<PostTable> {
     const [result] = await pool.query<mysql.ResultSetHeader>(
       'INSERT INTO posts (user_email, fullname, role, content, media_url, media_type, experience_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -1584,6 +1590,13 @@ class RelationalDatabase {
   public async markNotificationAsRead(id: number, userEmail: string): Promise<void> {
     await pool.query(
       'UPDATE notifications SET is_read = TRUE WHERE id = ? AND user_email = ?',
+      [id, userEmail]
+    );
+  }
+
+  public async deleteNotification(id: number, userEmail: string): Promise<void> {
+    await pool.query(
+      'DELETE FROM notifications WHERE id = ? AND user_email = ?',
       [id, userEmail]
     );
   }
