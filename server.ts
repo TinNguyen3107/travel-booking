@@ -1301,7 +1301,9 @@ app.use(async (req, res, next) => {
       
       const post = await db.getPostById(post_id);
       if (post && post.user_email !== user_email) {
-        await db.createNotification(post.user_email, 'Bình luận mới', `${fullname} đã bình luận về bài viết của bạn.`, 'info');
+        // fullname might be passed in body, but let's ensure it's not the email
+        const commenterName = fullname.includes('@') ? ((await db.findUser(user_email))?.fullname || fullname) : fullname;
+        await db.createNotification(post.user_email, 'Bình luận mới', `${commenterName} đã bình luận về bài viết của bạn.`, 'info');
       }
       res.status(201).json(newComment);
     } catch (e: any) { handleError(res, e); }
@@ -1333,7 +1335,9 @@ app.use(async (req, res, next) => {
       if (success) {
         const post = await db.getPostById(post_id);
         if (post && post.user_email !== user_email) {
-          await db.createNotification(post.user_email, 'Cảm xúc mới', `${(req as any).user.fullname || user_email} đã thả cảm xúc bài viết của bạn.`, 'info');
+          const reactor = await db.findUser(user_email);
+          const reactorName = reactor?.fullname || user_email;
+          await db.createNotification(post.user_email, 'Cảm xúc mới', `${reactorName} đã thả cảm xúc bài viết của bạn.`, 'info');
         }
       }
       res.json({ success });

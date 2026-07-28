@@ -228,7 +228,7 @@ export default function ModalBooking({
             <img
               src={experience.image}
               alt={experience.title}
-              className="relative h-full min-h-[300px] w-full object-contain"
+              className="relative h-full min-h-75 w-full object-contain"
             />
           </div>
 
