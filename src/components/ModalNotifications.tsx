@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, CheckCircle, Trash2, Bell, Info, AlertTriangle, XCircle } from 'lucide-react';
 
 export interface NotificationItem {
@@ -56,7 +57,7 @@ export default function ModalNotifications({
 
   if (typeof document === 'undefined') return null;
 
-  return React.createPortal(
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 sm:px-6">
       <div
         className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
