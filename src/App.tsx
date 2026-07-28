@@ -38,6 +38,7 @@ import ModalLogin from './components/ModalLogin';
 import CustomSelect from './components/CustomSelect';
 import UserProfile from './components/UserProfile';
 import { useDarkMode } from './hooks/useDarkMode';
+import { useLanguage } from './contexts/LanguageContext';
 import { ExperienceTable, formatDateVi, formatVnd, isExperienceOpen, ReviewTable } from './types';
 
 type CurrentUser = { email: string; fullname: string; avatar?: string; role: 'user' | 'admin' | 'host' };
@@ -50,6 +51,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function App() {
   const { isDark, toggle: toggleDark } = useDarkMode();
+  const { t } = useLanguage();
   const [user, setUser] = useState<CurrentUser | null>(() => {
     const saved = localStorage.getItem('currentUser');
     try { return saved ? JSON.parse(saved) : null; } catch { return null; }
@@ -386,10 +388,10 @@ export default function App() {
           <div className="absolute inset-0 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin"></div>
         </div>
         <h2 className="mt-8 text-2xl font-black text-zinc-800 dark:text-slate-100">
-          Khám phá thế giới cùng <span className="text-emerald-600">VietTour</span>
+          {t('explore_with')} <span className="text-emerald-600">VietTour</span>
         </h2>
         <p className="mt-3 text-sm font-semibold text-zinc-500 dark:text-slate-400 animate-pulse">
-          Đang chuẩn bị hành trình...
+          {t('preparing')}
         </p>
       </div>
     );
@@ -444,7 +446,7 @@ export default function App() {
             onClick={() => { setActiveSection('hero'); setTimeout(() => scrollToSection('community'), 100); }}
             className="mb-6 flex items-center gap-2 text-sm font-semibold text-zinc-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
           >
-            <ChevronLeft className="h-4 w-4" /> Quay lại trang chủ
+            <ChevronLeft className="h-4 w-4" /> {t('back_home')}
           </button>
           
           <CommunityFeed
@@ -494,14 +496,13 @@ export default function App() {
         <div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">
-              Tour địa phương tại Việt Nam
+              {t('hero_eyebrow')}
             </p>
             <h1 className="mt-4 max-w-3xl text-4xl font-black leading-tight tracking-tight text-zinc-950 dark:text-slate-50 sm:text-5xl">
-              Đặt tour rõ giá, rõ lịch trình, có đánh giá thật từ người dùng.
+              {t('hero_title')}
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-600 dark:text-slate-300">
-              Khám phá Vịnh Hạ Long, Hội An, Bát Tràng, Sa Pa và nhiều trải nghiệm bản địa
-              với quy trình đặt tour đơn giản, bình luận minh bạch.
+              {t('hero_desc')}
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <button
@@ -509,14 +510,14 @@ export default function App() {
                 onClick={() => scrollToSection('experiences')}
                 className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-emerald-700"
               >
-                Xem tour
+                {t('hero_cta_tours')}
               </button>
               <button
                 type="button"
                 onClick={() => scrollToSection('host-register')}
                 className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-3 text-sm font-black text-zinc-800 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800"
               >
-                Đăng ký làm host
+                {t('hero_cta_host')}
               </button>
             </div>
           </div>
@@ -540,9 +541,9 @@ export default function App() {
               className="col-span-5 h-32 w-full rounded-2xl object-cover shadow-sm sm:h-44"
             />
             <div className="col-span-5 grid gap-3 sm:grid-cols-3">
-              <HeroStat icon={ShieldCheck} label="Bảo đảm an toàn" />
-              <HeroStat icon={Star} label="Chất lượng" />
-              <HeroStat icon={MessageSquare} label="Đánh giá chân thực" />
+              <HeroStat icon={ShieldCheck} label={t('hero_stat_safe')} />
+              <HeroStat icon={Star} label={t('hero_stat_quality')} />
+              <HeroStat icon={MessageSquare} label={t('hero_stat_review')} />
             </div>
           </div>
         </div>
@@ -551,14 +552,14 @@ export default function App() {
       <section id="about" className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
-            eyebrow="Về chúng tôi"
-            title="Một quy trình đặt tour gọn, dễ kiểm soát"
-            description="Khách xem tour và bình luận trước khi đăng nhập. Người dùng đã đăng nhập được đặt tour, hủy đơn đang chờ và gửi đánh giá."
+            eyebrow={t('about_eyebrow')}
+            title={t('about_title')}
+            description={t('about_desc')}
           />
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <FeatureCard icon={Route} title="Tour rõ thông tin" text="Mỗi tour có địa điểm, thời lượng, giá VNĐ, ảnh và danh mục để người dùng lọc nhanh." />
-            <FeatureCard icon={HeartHandshake} title="Host cộng đồng" text="Kết nối du khách với các host và hướng dẫn viên địa phương đã được xác minh để mang lại trải nghiệm chân thực hơn." />
-            <FeatureCard icon={CheckCircle2} title="Thông tin đặt tour chính xác" text="Email, số điện thoại, ngày khởi hành và số lượng khách được kiểm tra tự động để hạn chế sai sót khi đặt tour." />
+            <FeatureCard icon={Route} title={t('about_f1_title')} text={t('about_f1_text')} />
+            <FeatureCard icon={HeartHandshake} title={t('about_f2_title')} text={t('about_f2_text')} />
+            <FeatureCard icon={CheckCircle2} title={t('about_f3_title')} text={t('about_f3_text')} />
           </div>
         </div>
       </section>
@@ -566,9 +567,9 @@ export default function App() {
       <section id="experiences" className="bg-zinc-50 dark:bg-slate-900/50 px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
-            eyebrow="Trải nghiệm"
-            title="Tour đang mở bán"
-            description="Chi phí tour được niêm yết theo VNĐ và cập nhật trực tiếp trên hệ thống. Tour chưa có đánh giá sẽ hiển thị 0.0 sao."
+            eyebrow={t('exp_eyebrow')}
+            title={t('exp_title')}
+            description={t('exp_desc')}
           />
 
           <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 lg:flex-row lg:items-center">
@@ -577,7 +578,7 @@ export default function App() {
               <input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Tìm theo tên tour, địa điểm hoặc danh mục"
+                placeholder={t('exp_search_placeholder')}
                 className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
               />
             </label>
@@ -585,21 +586,21 @@ export default function App() {
               type="number"
               value={minPrice}
               onChange={(e) => setMinPrice(e.target.value)}
-              placeholder="Giá từ..."
+              placeholder={t('exp_price_from')}
               className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 w-32"
             />
             <input
               type="number"
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
-              placeholder="Đến giá..."
+              placeholder={t('exp_price_to')}
               className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 w-32"
             />
             <CustomSelect
               value={selectedCategory}
               onChange={(val) => setSelectedCategory(val)}
               options={[
-                { value: 'all', label: 'Tất cả danh mục' },
+                { value: 'all', label: t('exp_all_categories') },
                 ...categories.map(cat => ({ value: cat, label: cat }))
               ]}
               className="min-w-40"
@@ -674,7 +675,7 @@ export default function App() {
                           onClick={() => handleViewDetails(experience)}
                           className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-900/50"
                         >
-                          Chi tiết
+                          {t('exp_view_detail')}
                         </button>
                         <button
                           type="button"
@@ -682,7 +683,7 @@ export default function App() {
                           disabled={!isExperienceOpen(experience)}
                           className={`flex-1 rounded-xl px-4 py-2 text-sm font-black text-white ${isExperienceOpen(experience) ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-zinc-400 cursor-not-allowed'}`}
                         >
-                          {isExperienceOpen(experience) ? 'Đặt ngay' : 'Chờ mở lại'}
+                          {isExperienceOpen(experience) ? t('exp_book') : t('exp_not_open')}
                         </button>
                       </div>
                     </div>
@@ -698,14 +699,14 @@ export default function App() {
                 onClick={() => setVisibleCount((prev) => prev + 4)}
                 className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 shadow-sm hover:bg-zinc-50 dark:hover:bg-slate-900/50"
               >
-                Xem thêm
+                {t('exp_show_more')}
               </button>
             </div>
           )}
 
           {filteredExperiences.length === 0 && (
             <div className="col-span-full rounded-2xl border border-dashed border-zinc-300 dark:border-slate-600 bg-white dark:bg-slate-800 p-10 text-center text-sm font-semibold text-zinc-500 dark:text-slate-400">
-              Không tìm thấy tour phù hợp.
+              {t('exp_no_result')}
             </div>
           )}
         </div>
@@ -715,9 +716,9 @@ export default function App() {
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
             <SectionHeader
-              eyebrow="Bình luận"
-              title="Đánh giá từ người dùng"
-              description="Người dùng đã đăng nhập có thể gửi đánh giá bằng số sao và bình luận. Điểm đánh giá trung bình của tour được cập nhật tự động dựa trên phản hồi từ khách hàng."
+              eyebrow={t('review_eyebrow')}
+              title={t('review_title')}
+              description={t('review_desc') ?? ''}
             />
 
             <form onSubmit={submitReview} className="mt-6 space-y-4 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-5">
@@ -725,7 +726,7 @@ export default function App() {
                 value={String(reviewExperienceId ?? '')}
                 onChange={(val) => setReviewExperienceId(Number(val))}
                 options={experiences.map(exp => ({ value: String(exp.id), label: exp.title }))}
-                placeholder="Chọn tour cần đánh giá"
+                placeholder={t('review_select_tour')}
                 className="w-full"
               />
 
@@ -748,7 +749,7 @@ export default function App() {
                 onChange={(event) => setReviewComment(event.target.value)}
                 rows={4}
                 maxLength={500}
-                placeholder={user ? 'Chia sẻ cảm nhận của bạn...' : 'Đăng nhập để gửi bình luận'}
+                placeholder={user ? t('review_comment_placeholder') : t('review_login_required')}
                 className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
               />
 
@@ -772,7 +773,7 @@ export default function App() {
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-black text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-50 dark:bg-slate-900/500"
               >
                 <Send className="h-4 w-4" />
-                {user ? 'Gửi bình luận' : 'Đăng nhập để bình luận'}
+                {user ? (reviewLoading ? t('review_submitting') : t('review_submit')) : t('review_login_required')}
               </button>
             </form>
           </div>
@@ -821,14 +822,14 @@ export default function App() {
       <section id="how-it-works" className="bg-zinc-50 dark:bg-slate-900/50 px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
-            eyebrow="Cách hoạt động"
-            title="Ba bước để hoàn tất đặt tour"
-            description="Quy trình được giữ ngắn để người dùng mới cũng thao tác nhanh."
+            eyebrow={t('how_eyebrow')}
+            title={t('how_title')}
+            description={t('how_desc') ?? ''}
           />
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <StepCard step="1" title="Chọn tour" text="Khám phá các tour theo địa điểm, danh mục và ngân sách phù hợp với nhu cầu của bạn." />
-            <StepCard step="2" title="Đăng nhập và đặt" text="Chọn ngày khởi hành, số lượng khách và hoàn tất thông tin liên hệ để gửi yêu cầu đặt tour." />
-            <StepCard step="3" title="Chờ phản hồi" text="Yêu cầu của bạn sẽ được xem xét và xác nhận trong thời gian sớm nhất qua email hoặc hệ thống." />
+            <StepCard step="1" title={t('how_s1_title')} text={t('how_s1_text')} />
+            <StepCard step="2" title={t('how_s2_title')} text={t('how_s2_text')} />
+            <StepCard step="3" title={t('how_s3_title')} text={t('how_s3_text')} />
           </div>
         </div>
       </section>
@@ -837,23 +838,23 @@ export default function App() {
         <div className="mx-auto max-w-3xl">
           <div>
             <SectionHeader
-              eyebrow="Cộng đồng"
-              title="Đăng ký trở thành host địa phương"
-              description="Gửi thông tin của bạn và chờ duyệt. Host được duyệt có thể được liên hệ để mở tour mới."
+              eyebrow={t('host_eyebrow')}
+              title={t('host_title')}
+              description={t('host_desc')}
             />
 
             <form onSubmit={submitHostApplication} className="mt-6 grid gap-3 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-5">
-              <input value={hostForm.name} onChange={(event) => setHostForm((current) => ({ ...current, name: event.target.value }))} placeholder="Họ tên" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+              <input value={hostForm.name} onChange={(event) => setHostForm((current) => ({ ...current, name: event.target.value }))} placeholder={t('host_name')} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
               <div className="grid gap-3 sm:grid-cols-2">
-                <input value={hostForm.email} onChange={(event) => setHostForm((current) => ({ ...current, email: event.target.value }))} placeholder="Email" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
-                <input value={hostForm.phone} onChange={(event) => setHostForm((current) => ({ ...current, phone: event.target.value }))} placeholder="Số điện thoại" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+                <input value={hostForm.email} onChange={(event) => setHostForm((current) => ({ ...current, email: event.target.value }))} placeholder={t('host_email')} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+                <input value={hostForm.phone} onChange={(event) => setHostForm((current) => ({ ...current, phone: event.target.value }))} placeholder={t('host_phone')} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
               </div>
-              <input value={hostForm.address} onChange={(event) => setHostForm((current) => ({ ...current, address: event.target.value }))} placeholder="Địa chỉ (VD: 123 Nguyễn Văn Cừ, Q.5, TP.HCM)" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+              <input value={hostForm.address} onChange={(event) => setHostForm((current) => ({ ...current, address: event.target.value }))} placeholder={t('host_address')} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
               <div className="grid gap-3 sm:grid-cols-2">
-                <input value={hostForm.id_number} onChange={(event) => setHostForm((current) => ({ ...current, id_number: event.target.value.replace(/\D/g, '').slice(0, 12) }))} placeholder="Số CCCD/Passport (12 số)" maxLength={12} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
-                <input value={hostForm.experience_location} onChange={(event) => setHostForm((current) => ({ ...current, experience_location: event.target.value }))} placeholder="Địa điểm trải nghiệm (VD: Vịnh Hạ Long, Hội An)" className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+                <input value={hostForm.id_number} onChange={(event) => setHostForm((current) => ({ ...current, id_number: event.target.value.replace(/\D/g, '').slice(0, 12) }))} placeholder={t('host_id')} maxLength={12} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+                <input value={hostForm.experience_location} onChange={(event) => setHostForm((current) => ({ ...current, experience_location: event.target.value }))} placeholder={t('host_exp_location')} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
               </div>
-              <textarea value={hostForm.description} onChange={(event) => setHostForm((current) => ({ ...current, description: event.target.value }))} rows={4} placeholder="Bạn muốn tổ chức trải nghiệm gì? Mô tả tối thiểu 20 ký tự." className="resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
+              <textarea value={hostForm.description} onChange={(event) => setHostForm((current) => ({ ...current, description: event.target.value }))} rows={4} placeholder={t('host_exp_desc')} className="resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500" />
               {hostMessage && (
                 <div className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-sm font-semibold text-zinc-700 dark:text-slate-200">
                   {hostMessage}
@@ -865,7 +866,7 @@ export default function App() {
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-black text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-400"
               >
                 <UserPlus className="h-4 w-4" />
-                Gửi đăng ký host
+                {hostLoading ? t('host_submitting') : t('host_submit')}
               </button>
             </form>
           </div>

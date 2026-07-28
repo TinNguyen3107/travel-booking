@@ -5,34 +5,24 @@
 
 import { useState } from 'react';
 import { ChevronDown, HelpCircle } from 'lucide-react';
-
-const faqs = [
-  {
-    question: 'Tôi chưa đăng nhập có đặt tour được không?',
-    answer:
-      'Khách chưa đăng nhập vẫn xem được toàn bộ tour và bình luận, nhưng cần đăng nhập hoặc đăng ký tài khoản trước khi đặt tour và gửi đánh giá.'
-  },
-  {
-    question: 'Số sao đánh giá được tính như thế nào?',
-    answer:
-      'Tour mới mặc định 0 sao. Khi người dùng gửi đánh giá, hệ thống tự tính điểm trung bình và tăng số lượt đánh giá.'
-  },
-  {
-    question: 'Tôi có thể hủy đơn đã đặt không?',
-    answer:
-      'Người dùng có thể hủy đơn khi đơn còn ở trạng thái chờ xử lý. Sau khi được xác nhận, bạn nên liên hệ hỗ trợ để thay đổi lịch.'
-  }
-];
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const { t } = useLanguage();
+
+  const faqs = [
+    { question: t('faq_q1'), answer: t('faq_a1') },
+    { question: t('faq_q2'), answer: t('faq_a2') },
+    { question: t('faq_q3'), answer: t('faq_a3') }
+  ];
 
   return (
     <section id="faq" className="bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 text-center">
-          <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Hỏi đáp</p>
-          <h2 className="mt-2 text-3xl font-black tracking-tight text-zinc-950 dark:text-slate-50">Câu hỏi thường gặp</h2>
+          <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">{t('faq_eyebrow')}</p>
+          <h2 className="mt-2 text-3xl font-black tracking-tight text-zinc-950 dark:text-slate-50">{t('faq_title')}</h2>
         </div>
 
         <div className="space-y-3">

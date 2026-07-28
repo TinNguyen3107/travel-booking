@@ -5,12 +5,15 @@
 
 import { Compass, Mail, MapPin, Phone } from 'lucide-react';
 import logoImg from '@/logo/logo.png';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface FooterProps {
   onNavigate: (sectionId: string) => void;
 }
 
 export default function Footer({ onNavigate }: FooterProps) {
+  const { t } = useLanguage();
+
   return (
     <footer className="border-t border-zinc-200 dark:border-slate-700 bg-zinc-950 px-4 py-10 text-zinc-300 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[1.4fr_1fr_1fr]">
@@ -27,20 +30,19 @@ export default function Footer({ onNavigate }: FooterProps) {
             </span>
           </button>
           <p className="mt-4 max-w-md text-sm leading-6 text-zinc-400 dark:text-slate-500">
-            Nền tảng đặt tour trải nghiệm địa phương tại Việt Nam, tập trung vào lịch trình rõ ràng,
-            host đáng tin cậy và thao tác đặt tour nhanh.
+            {t('footer_desc')}
           </p>
         </div>
 
         <div>
-          <h3 className="text-sm font-black uppercase tracking-widest text-white">Sản phẩm</h3>
+          <h3 className="text-sm font-black uppercase tracking-widest text-white">{t('footer_links')}</h3>
           <div className="mt-4 grid gap-2 text-sm">
             {[
-              ['about', 'Về chúng tôi'],
-              ['experiences', 'Trải nghiệm'],
-              ['how-it-works', 'Cách hoạt động'],
-              ['community', 'Cộng đồng'],
-              ['faq', 'Hỏi đáp']
+              ['about', t('nav_about')],
+              ['experiences', t('nav_experiences')],
+              ['how-it-works', t('nav_how')],
+              ['community', t('nav_community')],
+              ['faq', t('nav_faq')]
             ].map(([id, label]) => (
               <button
                 key={id}
@@ -55,7 +57,7 @@ export default function Footer({ onNavigate }: FooterProps) {
         </div>
 
         <div>
-          <h3 className="text-sm font-black uppercase tracking-widest text-white">Liên hệ</h3>
+          <h3 className="text-sm font-black uppercase tracking-widest text-white">{t('footer_contact')}</h3>
           <div className="mt-4 space-y-3 text-sm text-zinc-400 dark:text-slate-500">
             <p className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-emerald-500" />
@@ -73,7 +75,7 @@ export default function Footer({ onNavigate }: FooterProps) {
         </div>
       </div>
       <div className="mx-auto mt-8 max-w-7xl border-t border-zinc-800 pt-5 text-xs text-zinc-500 dark:text-slate-400">
-        © 2026 VietTour. Bảo lưu mọi quyền.
+        © 2026 VietTour. {t('footer_rights')}
       </div>
     </footer>
   );

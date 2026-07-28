@@ -43,6 +43,7 @@ import {
 import ModalConfirm, { ConfirmConfig } from './ModalConfirm';
 import ModalExperienceDetail from './ModalExperienceDetail';
 import ScheduleManager from './ScheduleManager';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface HostDashboardProps {
   onExperiencesChange: () => void;
@@ -134,12 +135,14 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
     setVisibleCount(4);
   }, [searchTerm, selectedCategory]);
 
+  const { t } = useLanguage();
+
   const tabs = [
-    { id: 'overview', label: 'Tổng quan' },
-    { id: 'experiences', label: 'Quản lý Tour' },
-    { id: 'bookings', label: 'Đơn đặt tour' },
-    { id: 'reviews', label: 'Đánh giá' },
-    { id: 'profile', label: 'Hồ sơ cá nhân' }
+    { id: 'overview', label: t('host_tab_overview') },
+    { id: 'experiences', label: t('host_tab_experiences') },
+    { id: 'bookings', label: t('host_tab_bookings') },
+    { id: 'reviews', label: t('host_tab_reviews') },
+    { id: 'profile', label: t('host_tab_profile') }
   ];
 
   const categories = useMemo(

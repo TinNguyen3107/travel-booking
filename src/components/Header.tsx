@@ -18,6 +18,7 @@ import {
 import { useState, useEffect } from 'react';
 import ModalNotifications from './ModalNotifications';
 import logoImg from '@/logo/logo.png';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type CurrentUser = { email: string; fullname: string; avatar?: string; role: 'user' | 'admin' | 'host' };
 
@@ -100,23 +101,43 @@ export default function Header({
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
+  const { lang, setLang, t } = useLanguage();
+
   const navItems = adminMode
     ? [
-        { id: 'dashboard', label: 'Bảng điều khiển', icon: LayoutDashboard },
-        { id: 'preview', label: 'Tour đang mở bán', icon: Compass }
+        { id: 'dashboard', label: t('nav_dashboard'), icon: LayoutDashboard },
+        { id: 'preview', label: t('nav_preview'), icon: Compass }
       ]
     : [
-        { id: 'about', label: 'Về chúng tôi' },
-        { id: 'experiences', label: 'Trải nghiệm' },
-        { id: 'how-it-works', label: 'Cách hoạt động' },
-        { id: 'community', label: 'Cộng đồng' },
-        { id: 'faq', label: 'Hỏi đáp' }
+        { id: 'about', label: t('nav_about') },
+        { id: 'experiences', label: t('nav_experiences') },
+        { id: 'how-it-works', label: t('nav_how') },
+        { id: 'community', label: t('nav_community') },
+        { id: 'faq', label: t('nav_faq') }
       ];
 
   const handleNavClick = (id: string) => {
     onNavigate(id);
     setMobileMenuOpen(false);
   };
+
+  // Flag SVGs inline for zero dependency
+  const FlagVN = () => (
+    <svg viewBox="0 0 30 20" className="h-4 w-6 rounded-sm shadow-sm" xmlns="http://www.w3.org/2000/svg">
+      <rect width="30" height="20" fill="#DA251D"/>
+      <polygon points="15,3 16.9,8.8 22.9,8.8 18,12.2 19.9,18 15,14.6 10.1,18 12,12.2 7.1,8.8 13.1,8.8" fill="#FFFF00"/>
+    </svg>
+  );
+
+  const FlagUK = () => (
+    <svg viewBox="0 0 60 30" className="h-4 w-6 rounded-sm shadow-sm" xmlns="http://www.w3.org/2000/svg">
+      <rect width="60" height="30" fill="#012169"/>
+      <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6"/>
+      <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" strokeWidth="4"/>
+      <path d="M30,0 V30 M0,15 H60" stroke="#fff" strokeWidth="10"/>
+      <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" strokeWidth="6"/>
+    </svg>
+  );
 
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800/95">
@@ -161,8 +182,8 @@ export default function Header({
           <button
             type="button"
             onClick={onToggleDark}
-            aria-label={isDark ? 'Chuyển giao diện sáng' : 'Chuyển giao diện tối'}
-            title={isDark ? 'Chuyển giao diện sáng' : 'Chuyển giao diện tối'}
+            aria-label={isDark ? t('nav_dark_off') : t('nav_dark_on')}
+            title={isDark ? t('nav_dark_off') : t('nav_dark_on')}
             className={`relative flex h-9 w-16 items-center rounded-full p-1 transition-all duration-300 ${
               isDark
                 ? 'bg-indigo-600 shadow-inner shadow-indigo-900'
@@ -179,6 +200,20 @@ export default function Header({
               {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </span>
           </button>
+
+          {/* Language toggle */}
+          {(!adminMode || user?.role === 'host') && (
+            <button
+              type="button"
+              onClick={() => setLang(lang === 'vi' ? 'en' : 'vi')}
+              title={t('lang_toggle')}
+              aria-label={t('lang_toggle')}
+              className="flex items-center gap-1.5 rounded-full border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-2.5 py-1.5 text-xs font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800 transition-all duration-200 shadow-sm"
+            >
+              {lang === 'vi' ? <FlagUK /> : <FlagVN />}
+              <span className="hidden sm:inline">{lang === 'vi' ? 'EN' : 'VI'}</span>
+            </button>
+          )}
 
           {user ? (
             <>
@@ -223,7 +258,7 @@ export default function Header({
                 className="inline-flex items-center gap-2 rounded-lg border border-red-100 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
               >
                 <LogOut className="h-4 w-4" />
-                Đăng xuất
+                {t('nav_logout')}
               </button>
             </>
           ) : (
@@ -233,7 +268,7 @@ export default function Header({
               className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-emerald-700"
             >
               <LogIn className="h-4 w-4" />
-              Đăng nhập
+              {t('nav_login')}
             </button>
           )}
         </div>
@@ -275,8 +310,19 @@ export default function Header({
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-700 dark:hover:text-white"
             >
               {isDark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-indigo-500" />}
-              {isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
+              {isDark ? t('nav_dark_off') : t('nav_dark_on')}
             </button>
+            {/* Mobile language toggle */}
+            {!adminMode && (
+              <button
+                type="button"
+                onClick={() => setLang(lang === 'vi' ? 'en' : 'vi')}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-700 dark:hover:text-white"
+              >
+                {lang === 'vi' ? <FlagUK /> : <FlagVN />}
+                {t('lang_toggle')}
+              </button>
+            )}
             {user ? (
               <button
                 type="button"
@@ -287,7 +333,7 @@ export default function Header({
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-100 px-3 py-2 text-sm font-semibold text-red-600"
               >
                 <LogOut className="h-4 w-4" />
-                Đăng xuất
+                {t('nav_logout')}
               </button>
             ) : (
               <button
@@ -299,7 +345,7 @@ export default function Header({
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-bold text-white"
               >
                 <LogIn className="h-4 w-4" />
-                Đăng nhập
+                {t('nav_login')}
               </button>
             )}
           </div>
