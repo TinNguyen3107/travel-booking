@@ -16,7 +16,6 @@ import {
   Bell
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { NotificationTable } from '../types';
 import ModalNotifications from './ModalNotifications';
 import logoImg from '@/logo/logo.png';
 

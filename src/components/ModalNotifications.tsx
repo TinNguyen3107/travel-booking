@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { X, CheckCircle, Trash2, Bell, Info, AlertTriangle, XCircle } from 'lucide-react';
-import { NotificationTable } from '../types';
+
+export interface NotificationItem {
+  id: number;
+  title: string;
+  message: string;
+  type: string;
+  is_read: boolean;
+  created_at: string;
+}
 
 interface ModalNotificationsProps {
   isOpen: boolean;
   onClose: () => void;
-  notifications: NotificationTable[];
+  notifications: NotificationItem[];
   onMarkAsRead: (id: number) => void;
   onDelete: (id: number) => void;
 }
