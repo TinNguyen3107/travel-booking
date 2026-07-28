@@ -1300,9 +1300,16 @@ app.use(async (req, res, next) => {
       });
       
       const post = await db.getPostById(post_id);
-      if (post && post.user_email !== user_email) {
-        // fullname might be passed in body, but let's ensure it's not the email
-        const commenterName = fullname.includes('@') ? ((await db.findUser(user_email))?.fullname || fullname) : fullname;
+      const commenterName = fullname.includes('@') ? ((await db.findUser(user_email))?.fullname || fullname) : fullname;
+      
+      if (parent_id) {
+        // It's a reply to a comment, notify the comment author
+        const parentComment = await db.getCommentById(Number(parent_id));
+        if (parentComment && parentComment.user_email !== user_email) {
+          await db.createNotification(parentComment.user_email, 'Phản hồi mới', `${commenterName} đã phản hồi bình luận của bạn.`, 'info');
+        }
+      } else if (post && post.user_email !== user_email) {
+        // It's a top level comment, notify the post author
         await db.createNotification(post.user_email, 'Bình luận mới', `${commenterName} đã bình luận về bài viết của bạn.`, 'info');
       }
       res.status(201).json(newComment);
@@ -1366,6 +1373,15 @@ app.use(async (req, res, next) => {
         user_email,
         reaction_type: reaction_type as any
       });
+      
+      if (success) {
+        const comment = await db.getCommentById(comment_id);
+        if (comment && comment.user_email !== user_email) {
+          const reactor = await db.findUser(user_email);
+          const reactorName = reactor?.fullname || user_email;
+          await db.createNotification(comment.user_email, 'Cảm xúc mới', `${reactorName} đã thả cảm xúc bình luận của bạn.`, 'info');
+        }
+      }
       res.json({ success });
     } catch (e: any) { handleError(res, e); }
   });

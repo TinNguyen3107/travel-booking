@@ -37,6 +37,9 @@ export default function ModalNotifications({
       document.body.style.overflow = 'unset';
       return () => clearTimeout(timer);
     }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [isOpen]);
 
   if (!isOpen && !isVisible) return null;

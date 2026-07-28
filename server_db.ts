@@ -1480,6 +1480,12 @@ class RelationalDatabase {
     return normalizePostComment(rows[0]);
   }
 
+  public async getCommentById(id: number): Promise<PostCommentTable | null> {
+    const [rows] = await pool.query<PostCommentRow[]>('SELECT * FROM post_comments WHERE id = ?', [id]);
+    if (rows.length === 0) return null;
+    return normalizePostComment(rows[0]);
+  }
+
   public async getPostComments(postId: number): Promise<PostCommentTable[]> {
     const [rows] = await pool.query<PostCommentRow[]>(
       `SELECT pc.*, u.avatar as user_avatar 

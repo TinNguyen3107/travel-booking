@@ -657,6 +657,25 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
         </div>
       )}
 
+      {viewCommentReactions && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-slate-800 p-4">
+              <h3 className="font-bold text-zinc-900 dark:text-slate-100">Người đã bày tỏ cảm xúc</h3>
+              <button onClick={() => setViewCommentReactions(null)} className="rounded-full p-1 hover:bg-zinc-100 dark:hover:bg-slate-800 text-zinc-500"><X className="h-5 w-5" /></button>
+            </div>
+            <div className="max-h-96 overflow-y-auto p-4 space-y-3">
+              {(commentReactionsData[viewCommentReactions] || []).map(r => (
+                <div key={r.id} className="flex items-center justify-between">
+                  <span className="font-semibold text-zinc-800 dark:text-slate-200 text-sm">{(r as any).fullname || r.user_email}</span>
+                  <span className="flex items-center gap-2 text-sm text-zinc-500">{smallReactionIcons[r.reaction_type]} {reactionLabels[r.reaction_type]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {commentModalPostId && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="flex flex-col w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
@@ -748,14 +767,17 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
 
                         {/* Comment Reaction summary */}
                         {commentReactionsData[comment.id] && commentReactionsData[comment.id].length > 0 && (
-                          <div className="flex items-center gap-1 bg-white dark:bg-slate-700 rounded-full px-2 py-0.5 shadow-sm border border-zinc-100 dark:border-slate-600 text-[10px] text-zinc-500">
+                          <button 
+                            onClick={() => setViewCommentReactions(comment.id)}
+                            className="flex items-center gap-1 bg-white dark:bg-slate-700 rounded-full px-2 py-0.5 shadow-sm border border-zinc-100 dark:border-slate-600 text-[10px] text-zinc-500 hover:bg-zinc-50 dark:hover:bg-slate-600 transition-colors"
+                          >
                             <div className="flex -space-x-1">
                               {getReactionSummary(commentReactionsData[comment.id]).sorted.slice(0, 2).map(([type]) => (
                                 <span key={type} title={reactionLabels[type]}>{tinyReactionEmoji[type]}</span>
                               ))}
                             </div>
                             <span>{commentReactionsData[comment.id].length}</span>
-                          </div>
+                          </button>
                         )}
                       </div>
 
