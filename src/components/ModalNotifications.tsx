@@ -54,8 +54,10 @@ export default function ModalNotifications({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 sm:px-6">
+  if (typeof document === 'undefined') return null;
+
+  return React.createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 sm:px-6">
       <div
         className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
           isOpen ? 'opacity-100' : 'opacity-0'
@@ -159,6 +161,7 @@ export default function ModalNotifications({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
