@@ -699,66 +699,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative inline-flex items-center justify-center rounded-xl border border-zinc-200 dark:border-slate-700 p-2.5 text-zinc-700 dark:text-slate-200 hover:bg-zinc-50 dark:hover:bg-slate-700"
-              title="Thông báo"
-            >
-              <Bell className="h-5 w-5" />
-              {notifications.filter(n => !n.is_read).length > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                  {notifications.filter(n => !n.is_read).length}
-                </span>
-              )}
-            </button>
-
-            {showNotifications && (
-              <div className="absolute right-0 top-12 z-50 w-80 max-h-96 overflow-y-auto rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-2xl">
-                <div className="flex items-center justify-between border-b border-zinc-100 dark:border-slate-800 p-4">
-                  <h4 className="text-sm font-black text-zinc-900 dark:text-slate-100">Thông báo</h4>
-                  <button type="button" onClick={() => setShowNotifications(false)} className="rounded-lg p-1 text-zinc-400 dark:text-slate-500 hover:bg-zinc-100 dark:hover:bg-slate-800">
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-                {notifications.length === 0 ? (
-                  <div className="p-6 text-center text-sm text-zinc-400 dark:text-slate-500">Chưa có thông báo nào</div>
-                ) : (
-                  <div className="divide-y divide-zinc-100">
-                    {notifications.map((noti) => (
-                      <div
-                        key={noti.id}
-                        className={`p-3 text-sm cursor-pointer hover:bg-zinc-50 dark:hover:bg-slate-700 transition ${!noti.is_read ? 'bg-blue-50/50' : ''}`}
-                        onClick={async () => {
-                          if (!noti.is_read) {
-                            try {
-                              await fetchJson(`/api/notifications/${noti.id}/read`, { method: 'PUT' });
-                              setNotifications(prev => prev.map(n => n.id === noti.id ? { ...n, is_read: true } : n));
-                            } catch {}
-                          }
-                        }}
-                      >
-                        <div className="flex items-start gap-2">
-                          <div className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
-                            noti.type === 'success' ? 'bg-emerald-500'
-                            : noti.type === 'error' ? 'bg-red-500'
-                            : noti.type === 'warning' ? 'bg-yellow-500'
-                            : 'bg-blue-500'
-                          }`} />
-                          <div className="flex-1 min-w-0">
-                            <div className="font-bold text-zinc-800 dark:text-slate-200">{noti.title}</div>
-                            <div className="mt-0.5 text-xs text-zinc-500 dark:text-slate-400 leading-relaxed">{noti.message}</div>
-                            <div className="mt-1 text-[10px] text-zinc-400 dark:text-slate-500">
-                              {new Date(noti.created_at).toLocaleString('vi-VN')}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+            {/* Notification bell removed, using global Header bell */}
           </div>
           <button
             type="button"
