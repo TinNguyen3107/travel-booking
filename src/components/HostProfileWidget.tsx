@@ -46,9 +46,9 @@ export default function HostProfileWidget({ email }: { email: string }) {
             {profile.average_rating > 0 ? profile.average_rating.toFixed(1) : t('host_no_reviews')}
           </span>
           <span>•</span>
-          <span>{profile.total_reviews} {t('detail_reviews_count')}</span>
+          <span>{profile.total_reviews} {lang === 'en' ? (profile.total_reviews > 1 ? t('detail_reviews_count') : t('detail_review_count')) : t('detail_reviews_count')}</span>
           <span>•</span>
-          <span>{profile.total_experiences} {t('detail_tours_count')}</span>
+          <span>{profile.total_experiences} {lang === 'en' ? (profile.total_experiences > 1 ? t('detail_tours_count') : t('detail_tour_count')) : t('detail_tours_count')}</span>
         </div>
         {profile.description && (
           <p className="mt-3 text-sm leading-relaxed text-zinc-600">

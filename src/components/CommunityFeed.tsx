@@ -434,7 +434,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                       {/* Action row */}
                       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-zinc-500 dark:text-slate-400 relative z-10">
                         <button onClick={() => openCommentModal(post.id)} className="hover:text-zinc-800 dark:hover:text-slate-200 hover:underline">
-                          {t('comm_comments')} {post.comments_count > 0 && `(${post.comments_count})`}
+                          {post.comments_count === 1 ? t('comm_comment') : t('comm_comments')} {post.comments_count > 0 && `(${post.comments_count})`}
                         </button>
                         <span>•</span>
 

@@ -280,7 +280,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
                     </div>
                     <div>
                       <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">{t('detail_rooms')}</div>
-                      <div className="text-base font-black text-zinc-950 dark:text-slate-50">{experience.rooms} {t('detail_rooms')}</div>
+                      <div className="text-base font-black text-zinc-950 dark:text-slate-50">{experience.rooms} {lang === 'en' ? (experience.rooms > 1 ? t('detail_rooms') : t('detail_room')) : t('detail_rooms')}</div>
                     </div>
                   </div>
                 ) : null}
@@ -291,7 +291,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
                     </div>
                     <div>
                       <div className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">{t('detail_beds')}</div>
-                      <div className="text-base font-black text-zinc-950 dark:text-slate-50">{experience.beds} {t('detail_beds')}</div>
+                      <div className="text-base font-black text-zinc-950 dark:text-slate-50">{experience.beds} {lang === 'en' ? (experience.beds > 1 ? t('detail_beds') : t('detail_bed')) : t('detail_beds')}</div>
                     </div>
                   </div>
                 ) : null}

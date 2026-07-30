@@ -51,7 +51,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function App() {
   const { isDark, toggle: toggleDark } = useDarkMode();
-  const { t, tCategory, tDynamic } = useLanguage();
+  const { lang, t, tCategory, tDynamic } = useLanguage();
   const [user, setUser] = useState<CurrentUser | null>(() => {
     const saved = localStorage.getItem('currentUser');
     try { return saved ? JSON.parse(saved) : null; } catch { return null; }
@@ -658,9 +658,9 @@ export default function App() {
                       </span>
                       {(experience.rooms || experience.beds) ? (
                         <span className="inline-flex items-center gap-1.5 text-zinc-500 dark:text-slate-400">
-                          {experience.rooms ? `${experience.rooms} ${t('detail_rooms')}` : ''}
+                          {experience.rooms ? `${experience.rooms} ${lang === 'en' ? (experience.rooms > 1 ? t('detail_rooms') : t('detail_room')) : t('detail_rooms')}` : ''}
                           {(experience.rooms && experience.beds) ? ' · ' : ''}
-                          {experience.beds ? `${experience.beds} ${t('detail_beds')}` : ''}
+                          {experience.beds ? `${experience.beds} ${lang === 'en' ? (experience.beds > 1 ? t('detail_beds') : t('detail_bed')) : t('detail_beds')}` : ''}
                         </span>
                       ) : null}
                     </div>
