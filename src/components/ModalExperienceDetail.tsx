@@ -351,10 +351,6 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
               </div>
             </div>
 
-            {experience.host_email && (
-              <HostProfileWidget email={experience.host_email} />
-            )}
-
             <div className="mt-6">
               <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">{t('detail_map')}</h3>
               <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-slate-700">

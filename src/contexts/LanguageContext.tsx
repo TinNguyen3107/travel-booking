@@ -847,7 +847,9 @@ export const translations = {
     profile_no_wishlists: 'You have no favorite tours.',
 
     // More detail
+    detail_review_count: 'comment',
     detail_reviews_count: 'comments',
+    detail_tour_count: 'tour',
     detail_tours_count: 'tours',
     detail_hour: 'hours',
     detail_rating_count: 'reviews',
