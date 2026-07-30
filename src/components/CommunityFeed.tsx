@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Heart, Send, ThumbsUp, Image as ImageIcon, Trash2, X, ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 import { PostTable, PostCommentTable, PostReactionTable } from '../types';
 import CustomSelect from './CustomSelect';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface CommunityFeedProps {
   currentUser: any;
@@ -40,16 +41,18 @@ const tinyReactionEmoji: Record<string, string> = {
   angry: '😡'
 };
 
-const reactionLabels: Record<string, string> = {
-  like: 'Thích',
-  love: 'Yêu thích',
-  wow: 'Wow',
-  haha: 'Haha',
-  sad: 'Buồn',
-  angry: 'Phẫn nộ'
-};
+const getReactionLabels = (t: (key: string) => string): Record<string, string> => ({
+  like: t('comm_like'),
+  love: t('comm_love'),
+  wow: t('comm_wow'),
+  haha: t('comm_haha'),
+  sad: t('comm_sad'),
+  angry: t('comm_angry')
+});
 
 export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, experiences = [], hideCreatePost = false }: CommunityFeedProps) {
+  const { t, tDynamic } = useLanguage();
+  const reactionLabels = getReactionLabels(t);
   const [posts, setPosts] = useState<PostTable[]>([]);
   const [loading, setLoading] = useState(true);
   const [postContent, setPostContent] = useState('');
@@ -85,7 +88,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
 
     const isVideo = files[0].type.startsWith('video/');
     if (!files.every(file => file.type.startsWith('image/') || file.type.startsWith('video/'))) {
-      alert('Vui lòng chọn file hình ảnh hoặc video.');
+      alert(t('comm_file_type_error'));
       return;
     }
 
@@ -105,14 +108,14 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
           uploadedUrls.push(data.url);
         } else {
           const err = await res.json();
-          alert(err.error || 'Lỗi tải lên file');
+          alert(err.error || t('comm_upload_error'));
         }
       }
       setMediaUrls(prev => [...prev, ...uploadedUrls]);
       setMediaType(isVideo ? 'video' : 'image');
     } catch (err) {
       console.error(err);
-      alert('Lỗi tải lên file');
+      alert(t('comm_upload_error'));
     } finally {
       setSubmitting(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -274,7 +277,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
   };
 
   const deletePost = async (postId: number) => {
-    if (!window.confirm('Xóa bài viết này?')) return;
+    if (!window.confirm(t('comm_delete_confirm'))) return;
     try {
       const res = await fetch(`/api/posts/${postId}/status`, {
         method: 'PUT',
@@ -284,7 +287,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
         },
         body: JSON.stringify({ status: 'deleted' })
       });
-      if (res.ok) { fetchPosts(); } else { alert('Có lỗi xảy ra'); }
+      if (res.ok) { fetchPosts(); } else { alert(t('error_generic')); }
     } catch (e) { console.error(e); }
   };
 
@@ -298,14 +301,14 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
   };
 
   if (loading) {
-    return <div className="p-8 text-center text-zinc-500 dark:text-slate-400">Đang tải bảng tin...</div>;
+    return <div className="p-8 text-center text-zinc-500 dark:text-slate-400">{t('comm_loading_feed')}</div>;
   }
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
       <div className="mb-8 text-center">
-        <h2 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-slate-100">Cộng đồng Travel</h2>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-slate-400">Chia sẻ khoảnh khắc và trải nghiệm của bạn cùng những người đam mê du lịch.</p>
+        <h2 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-slate-100">{t('comm_title')}</h2>
+        <p className="mt-2 text-sm text-zinc-500 dark:text-slate-400">{t('comm_desc')}</p>
       </div>
 
       {!limit && (
@@ -315,8 +318,8 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
               value={selectedExperienceFilter}
               onChange={setSelectedExperienceFilter}
               options={[
-                { value: 'all', label: 'Tất cả bài viết' },
-                ...experiences.map(exp => ({ value: String(exp.id), label: exp.title }))
+                { value: 'all', label: t('comm_all_posts') },
+                ...experiences.map(exp => ({ value: String(exp.id), label: tDynamic(exp.title) }))
               ]}
               className="w-full"
             />
@@ -332,7 +335,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
               <textarea
                 className="w-full resize-none bg-transparent text-lg outline-none placeholder:text-zinc-400 dark:text-slate-500"
                 rows={3}
-                placeholder={currentUser ? `${currentUser.fullname} ơi, bạn đang nghĩ gì?` : 'Đăng nhập để chia sẻ trải nghiệm của bạn...'}
+                placeholder={currentUser ? t('comm_post_placeholder_user') : t('comm_post_placeholder')}
                 value={postContent}
                 onChange={(e) => setPostContent(e.target.value)}
                 onClick={() => !currentUser && onLogin()}
@@ -359,37 +362,28 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                 </div>
               )}
 
-              <hr className="my-4 border-zinc-100 dark:border-slate-800" />
-
-              <div className="flex items-center justify-between">
-                <div className="flex flex-wrap gap-2 items-center">
-                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" multiple onChange={handleFileUpload} />
-                  <button
-                    type="button"
-                    disabled={submitting}
-                    onClick={() => { if (!currentUser) return onLogin(); fileInputRef.current?.click(); }}
-                    className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800 disabled:opacity-50"
-                  >
-                    <ImageIcon className="h-4 w-4 text-emerald-500" /> Ảnh / Video
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <input type="file" hidden ref={fileInputRef} onChange={handleFileUpload} accept="image/*,video/*" multiple />
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30">
+                    <ImageIcon className="h-4 w-4" />
+                    {t('comm_type_image')} / {t('comm_type_video')}
                   </button>
-                  <div className="w-48">
-                    <CustomSelect
-                      value={postExperienceId || 'none'}
-                      onChange={setPostExperienceId}
-                      options={[
-                        { value: 'none', label: 'Bài viết chung' },
-                        ...experiences.map(exp => ({ value: String(exp.id), label: exp.title }))
-                      ]}
-                    />
-                  </div>
+                  <CustomSelect
+                    value={postExperienceId || 'none'}
+                    onChange={setPostExperienceId}
+                    options={[
+                      { value: 'none', label: t('comm_tag_tour') },
+                      ...experiences.map(e => ({ value: String(e.id), label: tDynamic(e.title) }))
+                    ]}
+                  />
                 </div>
-
                 <button
                   type="submit"
-                  disabled={submitting || !postContent.trim()}
-                  className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2 text-sm font-bold text-white hover:bg-indigo-700 disabled:opacity-50"
+                  disabled={submitting || !postContent.trim() || !currentUser}
+                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50"
                 >
-                  Đăng bài <Send className="h-4 w-4" />
+                  {t('comm_post_btn')} <Send className="h-4 w-4" />
                 </button>
               </div>
             </form>
@@ -425,7 +419,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-zinc-900 dark:text-slate-100">{post.fullname}</span>
                         {post.role === 'host' && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">Host</span>}
-                        {post.role === 'admin' && <span className="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] font-medium text-white">Quản trị viên</span>}
+                        {post.role === 'admin' && <span className="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] font-medium text-white">{t('comm_admin_badge')}</span>}
                       </div>
 
                       <div className="mt-1 text-[15px] leading-relaxed text-zinc-800 dark:text-slate-200 whitespace-pre-wrap">{post.content}</div>
@@ -433,14 +427,14 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                       {post.experience_id && experiences.find(e => e.id === post.experience_id) && (
                         <div className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                           <MapPin className="h-3.5 w-3.5" />
-                          Đang nói về: {experiences.find(e => e.id === post.experience_id)?.title}
+                          {t('comm_talking_about')} {tDynamic(experiences.find(e => e.id === post.experience_id)?.title)}
                         </div>
                       )}
 
                       {/* Action row */}
                       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-zinc-500 dark:text-slate-400 relative z-10">
                         <button onClick={() => openCommentModal(post.id)} className="hover:text-zinc-800 dark:hover:text-slate-200 hover:underline">
-                          Bình luận {post.comments_count > 0 && `(${post.comments_count})`}
+                          {t('comm_comments')} {post.comments_count > 0 && `(${post.comments_count})`}
                         </button>
                         <span>•</span>
 
@@ -465,12 +459,12 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                             className={`flex items-center gap-1 hover:text-blue-600 ${myReaction ? 'text-blue-600' : ''}`}
                           >
                             {myReaction ? smallReactionIcons[myReaction] : <ThumbsUp className="h-3.5 w-3.5" />}
-                            {myReaction ? reactionLabels[myReaction] : 'Hữu ích'}
+                            {myReaction ? reactionLabels[myReaction] : t('comm_helpful')}
                           </button>
                         </div>
 
                         <span>•</span>
-                        <span className="text-zinc-400 dark:text-slate-500">{new Date(post.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                        <span className="text-zinc-400 dark:text-slate-500">{(() => { const lang = localStorage.getItem('lang') || 'vi'; return new Date(post.created_at).toLocaleString(lang === 'en' ? 'en-GB' : 'vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }); })()}</span>
                       </div>
 
                       {/* Reaction summary bar (Facebook-style) */}
@@ -487,7 +481,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                             ))}
                           </div>
                           <span className="text-xs text-zinc-500 dark:text-slate-400 hover:underline">
-                            {reactionTotal} người
+                            {reactionTotal} {t('comm_people')}
                             {reactionSummary.length <= 2
                               ? ' · ' + reactionSummary.map(([t, c]) => `${reactionLabels[t]} (${c})`).join(', ')
                               : ''}
@@ -591,7 +585,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
           });
         })()}
         {posts.length === 0 && (
-          <div className="py-12 text-center text-zinc-500 dark:text-slate-400">Chưa có bài viết nào. Hãy là người đầu tiên!</div>
+          <div className="py-12 text-center text-zinc-500 dark:text-slate-400">{t('comm_no_posts')}</div>
         )}
         {limit && posts.length > limit && (
           <div className="text-center mt-6">
@@ -599,7 +593,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
               onClick={onViewAll}
               className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 shadow-sm hover:bg-zinc-50 dark:hover:bg-slate-900/50"
             >
-              Xem thêm
+              {t('comm_show_more')}
             </button>
           </div>
         )}
@@ -642,7 +636,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
             <div className="flex items-center justify-between border-b border-zinc-200 dark:border-slate-800 p-4">
-              <h3 className="font-bold text-zinc-900 dark:text-slate-100">Người đã bày tỏ cảm xúc</h3>
+              <h3 className="font-bold text-zinc-900 dark:text-slate-100">{t('comm_reactions_title')}</h3>
               <button onClick={() => setViewReactions(null)} className="rounded-full p-1 hover:bg-zinc-100 dark:hover:bg-slate-800 text-zinc-500"><X className="h-5 w-5" /></button>
             </div>
             <div className="max-h-96 overflow-y-auto p-4 space-y-3">
@@ -661,7 +655,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
         <div className="fixed inset-0 z-110 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
             <div className="flex items-center justify-between border-b border-zinc-200 dark:border-slate-800 p-4">
-              <h3 className="font-bold text-zinc-900 dark:text-slate-100">Người đã bày tỏ cảm xúc</h3>
+              <h3 className="font-bold text-zinc-900 dark:text-slate-100">{t('comm_people')}</h3>
               <button onClick={() => setViewCommentReactions(null)} className="rounded-full p-1 hover:bg-zinc-100 dark:hover:bg-slate-800 text-zinc-500"><X className="h-5 w-5" /></button>
             </div>
             <div className="max-h-96 overflow-y-auto p-4 space-y-3">
@@ -681,7 +675,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
           <div className="flex flex-col w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-zinc-200 dark:border-slate-800 p-4 shrink-0">
-              <h3 className="font-bold text-xl text-zinc-900 dark:text-slate-100">Bình luận</h3>
+              <h3 className="font-bold text-xl text-zinc-900 dark:text-slate-100">{t('comm_comment')}</h3>
               <button
                 onClick={() => setCommentModalPostId(null)}
                 className="rounded-full p-2 hover:bg-zinc-100 dark:hover:bg-slate-800 text-zinc-500 transition-colors"
@@ -695,7 +689,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
               {(() => {
                 const comments = commentsData[commentModalPostId] || [];
                 if (comments.length === 0) {
-                  return <div className="py-8 text-center text-zinc-500">Chưa có bình luận nào. Hãy trở thành người đầu tiên!</div>;
+                  return <div className="py-8 text-center text-zinc-500">{t('comm_no_posts')}</div>;
                 }
 
                 const rootComments = comments.filter(c => !c.parent_id);
@@ -735,7 +729,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                           }}
                           className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-slate-200 font-semibold transition-colors"
                         >
-                          Trả lời
+                          {t('comm_reply')}
                         </button>
 
                         {/* Comment Reaction trigger */}
@@ -756,12 +750,17 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                           </div>
                           <button
                             onClick={() => toggleCommentReaction(comment.id, 'like', commentModalPostId)}
-                            className={`text-xs font-semibold hover:text-blue-600 transition-colors ${currentUser && commentReactionsData[comment.id]?.find(r => r.user_email === currentUser.email)
+                            className={`inline-flex items-center gap-1 text-xs font-semibold hover:text-blue-600 transition-colors ${currentUser && commentReactionsData[comment.id]?.find(r => r.user_email === currentUser.email)
                               ? 'text-blue-600'
                               : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-slate-200'
                               }`}
                           >
-                            Thích
+                            {currentUser && commentReactionsData[comment.id]?.find(r => r.user_email === currentUser.email)
+                              ? smallReactionIcons[commentReactionsData[comment.id]!.find(r => r.user_email === currentUser.email)!.reaction_type]
+                              : <ThumbsUp className="h-3.5 w-3.5" />}
+                            {currentUser && commentReactionsData[comment.id]?.find(r => r.user_email === currentUser.email)
+                              ? reactionLabels[commentReactionsData[comment.id]!.find(r => r.user_email === currentUser.email)!.reaction_type]
+                              : t('comm_like')}
                           </button>
                         </div>
 
@@ -797,7 +796,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                                     onClick={() => setExpandedReplies(prev => ({ ...prev, [comment.id]: true }))}
                                     className="mt-2 ml-11 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline transition-colors"
                                   >
-                                    Hiển thị thêm {hiddenCount} phản hồi
+                                    {t('comm_show_more_replies')} {hiddenCount} {t('comm_replies_word')}
                                   </button>
                                 )}
                                 {isExpanded && hiddenCount > 0 && (
@@ -805,7 +804,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                                     onClick={() => setExpandedReplies(prev => ({ ...prev, [comment.id]: false }))}
                                     className="mt-2 ml-11 text-xs font-semibold text-zinc-500 dark:text-slate-400 hover:text-zinc-800 dark:hover:text-slate-200 hover:underline transition-colors"
                                   >
-                                    Ẩn bớt phản hồi
+                                    {t('comm_hide_replies')}
                                   </button>
                                 )}
                               </>
@@ -825,7 +824,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
             <div className="border-t border-zinc-200 dark:border-slate-800 p-4 shrink-0 bg-zinc-50 dark:bg-slate-900/80">
               {replyingTo?.postId === commentModalPostId && (
                 <div className="mb-2 flex items-center justify-between text-xs text-zinc-500 dark:text-slate-400 bg-zinc-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg w-max max-w-full">
-                  <span className="truncate">Đang trả lời <strong>{replyingTo.fullname}</strong></span>
+                  <span className="truncate">{t('comm_replying_to')} <strong>{replyingTo.fullname}</strong></span>
                   <button onClick={() => setReplyingTo(null)} className="ml-2 hover:text-zinc-800 dark:hover:text-slate-200">
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -843,7 +842,7 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                   <textarea
                     id="comment-input"
                     rows={1}
-                    placeholder="Viết phản hồi của bạn..."
+                    placeholder={t('comm_write_reply')}
                     value={commentInputs[commentModalPostId] || ''}
                     onChange={(e) => {
                       setCommentInputs(prev => ({ ...prev, [commentModalPostId]: e.target.value }));

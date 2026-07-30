@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TourScheduleTable, formatDateVi } from '../types';
 import { Trash2, Plus, Calendar } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ScheduleManagerProps {
   experienceId: number;
@@ -9,6 +10,7 @@ interface ScheduleManagerProps {
 }
 
 export default function ScheduleManager({ experienceId, experienceTitle, onClose }: ScheduleManagerProps) {
+  const { t, tDynamic } = useLanguage();
   const [schedules, setSchedules] = useState<TourScheduleTable[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export default function ScheduleManager({ experienceId, experienceTitle, onClose
     try {
       const res = await fetch(`/api/schedules?experience_id=${experienceId}`, { cache: 'no-store' });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Lỗi tải lịch khởi hành');
+      if (!res.ok) throw new Error(data.error || t('schedule_load_error'));
       setSchedules(data);
     } catch (err: any) {
       setError(err.message);
@@ -40,11 +42,11 @@ export default function ScheduleManager({ experienceId, experienceTitle, onClose
   const addSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.start_date || !form.end_date) {
-      setError('Vui lòng chọn ngày bắt đầu và kết thúc');
+      setError(t('schedule_validate_dates'));
       return;
     }
     if (form.end_date < form.start_date) {
-      setError('Ngày kết thúc phải sau hoặc bằng ngày bắt đầu');
+      setError(t('schedule_validate_range'));
       return;
     }
     
@@ -74,7 +76,7 @@ export default function ScheduleManager({ experienceId, experienceTitle, onClose
   };
 
   const deleteSchedule = async (id: number) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa lịch này?')) return;
+    if (!confirm(t('schedule_delete_confirm'))) return;
     try {
       const res = await fetch(`/api/schedules/${id}`, { 
         method: 'DELETE',
@@ -96,7 +98,7 @@ export default function ScheduleManager({ experienceId, experienceTitle, onClose
         <div className="border-b border-zinc-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-black text-zinc-900">
-              Lịch khởi hành: <span className="text-emerald-700">{experienceTitle}</span>
+              {t('schedule_title')}: <span className="text-emerald-700">{tDynamic(experienceTitle)}</span>
             </h2>
             <button onClick={onClose} className="rounded-full p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900">
               ✕
@@ -113,29 +115,29 @@ export default function ScheduleManager({ experienceId, experienceTitle, onClose
 
           <form onSubmit={addSchedule} className="mb-6 grid gap-4 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4 sm:grid-cols-4">
             <label className="block sm:col-span-1">
-              <span className="mb-1 block text-xs font-bold text-zinc-600">Bắt đầu</span>
+              <span className="mb-1 block text-xs font-bold text-zinc-600">{t('schedule_start')}</span>
               <input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
             </label>
             <label className="block sm:col-span-1">
-              <span className="mb-1 block text-xs font-bold text-zinc-600">Kết thúc</span>
+              <span className="mb-1 block text-xs font-bold text-zinc-600">{t('schedule_end')}</span>
               <input type="date" min={form.start_date} value={form.end_date} onChange={e => setForm({...form, end_date: e.target.value})} className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
             </label>
             <label className="block sm:col-span-1">
-              <span className="mb-1 block text-xs font-bold text-zinc-600">Số chỗ</span>
+              <span className="mb-1 block text-xs font-bold text-zinc-600">{t('schedule_slots')}</span>
               <input type="number" min="1" value={form.max_slots} onChange={e => setForm({...form, max_slots: Number(e.target.value)})} className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
             </label>
             <div className="flex items-end sm:col-span-1">
               <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-bold text-white hover:bg-emerald-700">
-                <Plus className="h-4 w-4" /> Thêm
+                <Plus className="h-4 w-4" /> {t('schedule_add')}
               </button>
             </div>
           </form>
 
           {loading ? (
-            <div className="py-10 text-center text-sm font-bold text-zinc-500">Đang tải lịch...</div>
+            <div className="py-10 text-center text-sm font-bold text-zinc-500">{t('schedule_loading')}</div>
           ) : schedules.length === 0 ? (
             <div className="rounded-xl border border-dashed border-zinc-300 py-10 text-center text-sm font-semibold text-zinc-500">
-              Chưa có lịch khởi hành nào.
+              {t('schedule_empty')}
             </div>
           ) : (
             <div className="space-y-3">
@@ -150,7 +152,7 @@ export default function ScheduleManager({ experienceId, experienceTitle, onClose
                         {formatDateVi(schedule.start_date)} - {formatDateVi(schedule.end_date)}
                       </div>
                       <div className="text-xs font-semibold text-zinc-500">
-                        Còn <span className="text-emerald-600">{Math.max(0, schedule.remaining_slots)}</span> / {schedule.max_slots} chỗ trống
+                        {t('schedule_remaining')} <span className="text-emerald-600">{Math.max(0, schedule.remaining_slots)}</span> / {schedule.max_slots} {t('schedule_slots_empty')}
                       </div>
                     </div>
                   </div>

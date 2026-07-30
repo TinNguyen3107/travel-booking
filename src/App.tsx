@@ -51,7 +51,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function App() {
   const { isDark, toggle: toggleDark } = useDarkMode();
-  const { t } = useLanguage();
+  const { t, tCategory, tDynamic } = useLanguage();
   const [user, setUser] = useState<CurrentUser | null>(() => {
     const saved = localStorage.getItem('currentUser');
     try { return saved ? JSON.parse(saved) : null; } catch { return null; }
@@ -153,7 +153,7 @@ export default function App() {
 
   const toggleWishlist = async (experienceId: number) => {
     if (!user) {
-      alert('Vui lòng đăng nhập để thêm vào danh sách yêu thích');
+      alert(t('exp_wishlist_login'));
       setShowLoginModal(true);
       return;
     }
@@ -242,21 +242,23 @@ export default function App() {
 
   const handleLogout = () => {
     setUser(null);
+    setShowLoginModal(false);
+    setShowUserProfile(false);
     localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
     setActiveSection('hero');
-    alert('Đăng xuất thành công');
+    alert(t('logout_success'));
   };
 
   const handleBookClick = (experience: ExperienceTable) => {
     if (!user) {
-      alert('Vui lòng đăng nhập để đặt tour.');
+      alert(t('review_login_required'));
       setShowLoginModal(true);
       return;
     }
 
     if (!isExperienceOpen(experience)) {
-      alert('Tour này chưa mở hoặc đã hết thời gian nhận đặt.');
+      alert(t('tour_not_bookable'));
       return;
     }
 
@@ -276,12 +278,12 @@ export default function App() {
     }
 
     if (!reviewExperienceId) {
-      setReviewMessage('Vui lòng chọn tour cần đánh giá');
+      setReviewMessage(t('review_choose_tour_error'));
       return;
     }
 
     if (reviewComment.trim().length < 5) {
-      setReviewMessage('Bình luận cần tối thiểu 5 ký tự');
+      setReviewMessage(t('review_comment_min_error'));
       return;
     }
 
@@ -307,13 +309,13 @@ export default function App() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Không thể gửi bình luận');
+        throw new Error(data.error || t('review_submit_error'));
       }
 
       setReviewComment('');
       setReviewRating(5);
       setReviewImage('');
-      setReviewMessage('Đã gửi bình luận thành công');
+      setReviewMessage(t('review_submit_success'));
       await Promise.all([fetchReviews(), fetchExperiences()]);
     } catch (err: any) {
       setReviewMessage(err.message);
@@ -327,22 +329,22 @@ export default function App() {
     setHostMessage(null);
 
     if (!hostForm.name.trim() || !hostForm.email.trim() || !hostForm.phone.trim() || !hostForm.address.trim() || !hostForm.id_number.trim() || !hostForm.experience_location.trim() || !hostForm.description.trim()) {
-      setHostMessage('Vui lòng nhập đầy đủ thông tin đăng ký host');
+      setHostMessage(t('host_form_required_error'));
       return;
     }
 
     if (!emailPattern.test(hostForm.email.trim()) || !phonePattern.test(hostForm.phone.trim())) {
-      setHostMessage('Email hoặc số điện thoại không hợp lệ');
+      setHostMessage(t('host_contact_invalid_error'));
       return;
     }
 
     if (!/^\d{12}$/.test(hostForm.id_number.trim())) {
-      setHostMessage('Số CCCD/Passport phải gồm đúng 12 chữ số');
+      setHostMessage(t('host_id_invalid_error'));
       return;
     }
 
     if (hostForm.description.trim().length < 20) {
-      setHostMessage('Mô tả cần tối thiểu 20 ký tự');
+      setHostMessage(t('host_desc_min_error'));
       return;
     }
 
@@ -368,11 +370,11 @@ export default function App() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Không thể gửi đăng ký host');
+        throw new Error(data.error || t('host_submit_error'));
       }
 
       setHostForm({ name: '', email: '', phone: '', address: '', id_number: '', experience_location: '', description: '' });
-      setHostMessage('Đã gửi đăng ký host thành công! Admin sẽ duyệt đơn của bạn.');
+      setHostMessage(t('host_submit_success'));
     } catch (err: any) {
       setHostMessage(err.message);
     } finally {
@@ -434,21 +436,21 @@ export default function App() {
           user={user}
           onOpenLogin={() => setShowLoginModal(true)}
           onLogout={handleLogout}
-          onNavigate={(id) => { setActiveSection(id); if(id !== 'community_page') scrollToSection(id); }}
+          onNavigate={(id) => { setActiveSection(id); if (id !== 'community_page') scrollToSection(id); }}
           onOpenProfile={() => setShowUserProfile(true)}
           activeSection="community_page"
           isDark={isDark}
           onToggleDark={toggleDark}
         />
-        
+
         <main className="px-4 py-8 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <button 
+          <button
             onClick={() => { setActiveSection('hero'); setTimeout(() => scrollToSection('community'), 100); }}
             className="mb-6 flex items-center gap-2 text-sm font-semibold text-zinc-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
           >
             <ChevronLeft className="h-4 w-4" /> {t('back_home')}
           </button>
-          
+
           <CommunityFeed
             currentUser={user}
             onLogin={() => setShowLoginModal(true)}
@@ -601,7 +603,7 @@ export default function App() {
               onChange={(val) => setSelectedCategory(val)}
               options={[
                 { value: 'all', label: t('exp_all_categories') },
-                ...categories.map(cat => ({ value: cat, label: cat }))
+                ...categories.map(cat => ({ value: cat, label: tCategory(cat) }))
               ]}
               className="min-w-40"
             />
@@ -614,7 +616,7 @@ export default function App() {
                   <div className="relative">
                     <img
                       src={experience.image || FALLBACK_IMAGE}
-                      alt={experience.title}
+                      alt={tDynamic(experience.title)}
                       onError={(event) => {
                         event.currentTarget.onerror = null;
                         event.currentTarget.src = FALLBACK_IMAGE;
@@ -622,7 +624,7 @@ export default function App() {
                       className="h-48 w-full object-cover"
                     />
                     <span className="absolute left-3 top-3 rounded-full bg-white dark:bg-slate-800/95 px-3 py-1 text-xs font-black text-emerald-700 shadow-sm">
-                      {experience.category}
+                      {tCategory(experience.category)}
                     </span>
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleWishlist(experience.id); }}
@@ -633,39 +635,39 @@ export default function App() {
                   </div>
                   <div className="flex flex-1 flex-col p-4">
                     <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-zinc-500 dark:text-slate-400">
-                      <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-emerald-600" />{experience.location}</span>
-                      <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5 text-emerald-600" />{experience.duration}</span>
+                      <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-emerald-600" />{tDynamic(experience.location)}</span>
+                      <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5 text-emerald-600" />{tDynamic(experience.duration)}</span>
                     </div>
-                    <h3 className="mt-2 line-clamp-2 text-base font-black leading-snug text-zinc-950 dark:text-slate-50">{experience.title}</h3>
+                    <h3 className="mt-2 line-clamp-2 text-base font-black leading-snug text-zinc-950 dark:text-slate-50">{tDynamic(experience.title)}</h3>
                     <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-zinc-500 dark:text-slate-400">
-                      {experience.description || 'Chưa có mô tả cho tour này.'}
+                      {tDynamic(experience.description) || t('host_no_desc')}
                     </p>
                     <div className="mt-3 flex items-center gap-1 text-sm font-black text-amber-500">
                       <Star className="h-4 w-4 fill-current" />
                       <span>{Number(experience.rating || 0).toFixed(1)}</span>
-                      <span className="font-semibold text-zinc-400 dark:text-slate-500">({experience.reviews_count} đánh giá)</span>
+                      <span className="font-semibold text-zinc-400 dark:text-slate-500">({experience.reviews_count} {t('detail_rating_count')})</span>
                     </div>
                     <div className="mt-3 grid gap-1 rounded-xl border border-zinc-100 dark:border-slate-800 bg-zinc-50 dark:bg-slate-900/50 p-3 text-xs font-bold text-zinc-600 dark:text-slate-300">
                       <span className="inline-flex items-center gap-1.5">
                         <Users className="h-3.5 w-3.5 text-emerald-600" />
-                        Tối đa {Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests ?? 50)} khách/ngày
+                        {Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests ?? 50)} {t('host_max_guests_day')}
                       </span>
                       <span className="inline-flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5 text-emerald-600" />
-                        Nhận đặt: {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
+                        {t('host_booking_period')}: {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
                       </span>
                       {(experience.rooms || experience.beds) ? (
                         <span className="inline-flex items-center gap-1.5 text-zinc-500 dark:text-slate-400">
-                          {experience.rooms ? `${experience.rooms} phòng` : ''}
+                          {experience.rooms ? `${experience.rooms} ${t('detail_rooms')}` : ''}
                           {(experience.rooms && experience.beds) ? ' · ' : ''}
-                          {experience.beds ? `${experience.beds} giường` : ''}
+                          {experience.beds ? `${experience.beds} ${t('detail_beds')}` : ''}
                         </span>
                       ) : null}
                     </div>
                     <div className="mt-auto flex flex-col gap-3 border-t border-zinc-100 dark:border-slate-800 pt-4">
                       <div className="flex items-end justify-between">
                         <div>
-                          <div className="text-xs font-bold uppercase text-zinc-400 dark:text-slate-500">Giá từ</div>
+                          <div className="text-xs font-bold uppercase text-zinc-400 dark:text-slate-500">{t('host_price_from')}</div>
                           <div className="text-lg font-black text-emerald-700">{formatVnd(experience.price)}</div>
                         </div>
                       </div>
@@ -725,7 +727,7 @@ export default function App() {
               <CustomSelect
                 value={String(reviewExperienceId ?? '')}
                 onChange={(val) => setReviewExperienceId(Number(val))}
-                options={experiences.map(exp => ({ value: String(exp.id), label: exp.title }))}
+                options={experiences.map(exp => ({ value: String(exp.id), label: tDynamic(exp.title) }))}
                 placeholder={t('review_select_tour')}
                 className="w-full"
               />
@@ -757,7 +759,7 @@ export default function App() {
                 type="url"
                 value={reviewImage}
                 onChange={(event) => setReviewImage(event.target.value)}
-                placeholder="Đường dẫn hình ảnh minh họa (không bắt buộc)"
+                placeholder={t('review_img_optional')}
                 className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
               />
 
@@ -787,7 +789,7 @@ export default function App() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <div className="font-black text-zinc-950 dark:text-slate-50">{review.fullname}</div>
-                      <div className="text-xs font-semibold text-zinc-500 dark:text-slate-400">{tour?.title || 'Tour đã đánh giá'}</div>
+                      <div className="text-xs font-semibold text-zinc-500 dark:text-slate-400">{tDynamic(tour?.title) || t('review_fallback')}</div>
                     </div>
                     <div className="flex items-center gap-1 text-sm font-black text-amber-500">
                       <Star className="h-4 w-4 fill-current" />
@@ -812,7 +814,7 @@ export default function App() {
             })}
             {reviews.length === 0 && (
               <div className="rounded-2xl border border-dashed border-zinc-300 dark:border-slate-600 p-10 text-center text-sm font-semibold text-zinc-500 dark:text-slate-400">
-                Chưa có bình luận nào. Hãy là người đầu tiên đánh giá tour.
+                {t('review_no_reviews')}
               </div>
             )}
           </div>
@@ -882,7 +884,7 @@ export default function App() {
           currentUser={user}
           onLogin={() => setShowLoginModal(true)}
           limit={1}
-          onViewAll={() => { window.scrollTo(0,0); setActiveSection('community_page'); }}
+          onViewAll={() => { window.scrollTo(0, 0); setActiveSection('community_page'); }}
           experiences={experiences}
         />
       </section>
@@ -972,10 +974,12 @@ function FeatureCard({
 }) {
   return (
     <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
-      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
-        <Icon className="h-5 w-5" />
+      <div className="mb-2 flex items-center gap-4">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+          <Icon className="h-5 w-5" />
+        </div>
+        <h3 className="font-black text-zinc-950 dark:text-slate-50">{title}</h3>
       </div>
-      <h3 className="font-black text-zinc-950 dark:text-slate-50">{title}</h3>
       <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-slate-300">{text}</p>
     </div>
   );
@@ -984,10 +988,12 @@ function FeatureCard({
 function StepCard({ step, title, text }: { step: string; title: string; text: string }) {
   return (
     <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
-      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-zinc-950 text-sm font-black text-white">
-        {step}
+      <div className="mb-2 flex items-center gap-4">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-950 text-sm font-black text-white">
+          {step}
+        </div>
+        <h3 className="font-black text-zinc-950 dark:text-slate-50">{title}</h3>
       </div>
-      <h3 className="font-black text-zinc-950 dark:text-slate-50">{title}</h3>
       <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-slate-300">{text}</p>
     </div>
   );
@@ -1007,5 +1013,4 @@ function HeroStat({
     </div>
   );
 }
-
 

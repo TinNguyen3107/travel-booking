@@ -174,8 +174,14 @@ export interface CommentReactionTable {
   reaction_type: 'like' | 'love' | 'wow' | 'haha' | 'sad' | 'angry';
 }
 
-export const formatVnd = (value: number) =>
-  `${Number(value || 0).toLocaleString('vi-VN')} VN\u0110`;
+export const formatVnd = (value: number) => {
+  const lang = localStorage.getItem('lang') || 'vi';
+  if (lang === 'en') {
+    const gbp = Number(value || 0) / 32000;
+    return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(gbp);
+  }
+  return `${Number(value || 0).toLocaleString('vi-VN')} VN\u0110`;
+};
 
 export const todayIso = () => {
   const date = new Date();

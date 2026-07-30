@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 import { X, CheckCircle, Trash2, Bell, Info, AlertTriangle, XCircle } from 'lucide-react';
 
 export interface NotificationItem {
@@ -26,6 +27,7 @@ export default function ModalNotifications({
   onMarkAsRead,
   onDelete
 }: ModalNotificationsProps) {
+  const { t, lang } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -81,9 +83,9 @@ export default function ModalNotifications({
               <Bell className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Hòm thư / Thông báo</h2>
+              <h2 className="text-xl font-bold text-zinc-900 dark:text-white">{t('noti_title')}</h2>
               <p className="text-sm text-zinc-500 dark:text-slate-400">
-                {notifications.filter(n => !n.is_read).length} thông báo chưa đọc
+                {notifications.filter(n => !n.is_read).length} {t('noti_unread')}
               </p>
             </div>
           </div>
@@ -102,9 +104,9 @@ export default function ModalNotifications({
               <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-zinc-100 dark:bg-slate-800">
                 <Bell className="h-8 w-8 text-zinc-400 dark:text-slate-500" />
               </div>
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Chưa có thông báo nào</h3>
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-white">{t('noti_empty_title')}</h3>
               <p className="mt-2 max-w-sm text-sm text-zinc-500 dark:text-slate-400">
-                Khi có người tương tác với bài viết của bạn hoặc có cập nhật mới, thông báo sẽ hiển thị ở đây.
+                {t('noti_empty_desc')}
               </p>
             </div>
           ) : (
@@ -130,17 +132,33 @@ export default function ModalNotifications({
                   >
                     <div className="flex items-center justify-between gap-4">
                       <h4 className={`text-base font-bold ${!noti.is_read ? 'text-emerald-900 dark:text-emerald-100' : 'text-zinc-900 dark:text-white'}`}>
-                        {noti.title}
+                        {lang === 'en' && noti.title.includes('Tour đã được duyệt') ? t('noti_tour_approved_title') :
+                         lang === 'en' && noti.title.includes('Tour bị từ chối') ? t('noti_tour_rejected_title') :
+                         noti.title.includes('Bình luận mới') ? t('noti_new_comment') : 
+                         noti.title.includes('Cảm xúc mới') ? t('noti_new_reaction') : 
+                         noti.title}
                       </h4>
                       <span className="shrink-0 text-xs text-zinc-400">
-                        {new Date(noti.created_at || '').toLocaleDateString('vi-VN', {
+                        {new Date(noti.created_at || '').toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'en-US', {
                           hour: '2-digit', minute: '2-digit',
                           day: '2-digit', month: '2-digit', year: 'numeric'
                         })}
                       </span>
                     </div>
                     <p className={`mt-1.5 text-sm leading-relaxed ${!noti.is_read ? 'text-emerald-800 dark:text-emerald-200/80' : 'text-zinc-600 dark:text-slate-400'}`}>
-                      {noti.message}
+                      {lang === 'en' && noti.message.includes('Tour "') && noti.message.includes('đã được admin phê duyệt') ?
+                        noti.message.replace(/Tour "(.*?)" đã được admin phê duyệt và hiện có thể nhận khách\./,
+                          (_, title) => t('noti_tour_approved_message').replace('{title}', `"${title}"`)) :
+                      lang === 'en' && noti.message.includes('Tour "') && noti.message.includes('đã bị từ chối. Lý do:') ?
+                        noti.message.replace(/Tour "(.*?)" đã bị từ chối\. Lý do: (.*)/,
+                          (_, title, reason) => t('noti_tour_rejected_message').replace('{title}', `"${title}"`).replace('{reason}', reason || t('noti_tour_rejected_no_reason'))) :
+                      noti.message.includes('đã bình luận về bài viết của bạn') ? 
+                        noti.message.replace('đã bình luận về bài viết của bạn.', t('noti_commented')) :
+                      noti.message.includes('đã thả cảm xúc bình luận của bạn') ? 
+                        noti.message.replace('đã thả cảm xúc bình luận của bạn.', t('noti_reacted_comment')) :
+                      noti.message.includes('đã thả cảm xúc bài viết của bạn') ? 
+                        noti.message.replace('đã thả cảm xúc bài viết của bạn.', t('noti_reacted_post')) :
+                      noti.message}
                     </p>
                   </div>
 
@@ -154,7 +172,7 @@ export default function ModalNotifications({
                         onDelete(noti.id);
                       }}
                       className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 opacity-0 transition-all hover:bg-rose-100 hover:text-rose-600 group-hover:opacity-100 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-rose-900/30 dark:hover:text-rose-400"
-                      title="Xóa thông báo"
+                      title={t('noti_delete_title')}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

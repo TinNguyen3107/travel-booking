@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, BadgeCheck, Calendar, MessageSquare, Phone, User, Users, X, Tag, Building2, CreditCard, Copy, CheckCircle2, Loader2 } from 'lucide-react';
 import { ExperienceTable, TourScheduleTable, formatDateVi, formatVnd, todayIso } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ModalBookingProps {
   experience: ExperienceTable;
@@ -22,6 +23,7 @@ export default function ModalBooking({
   onClose,
   onBookingSuccess
 }: ModalBookingProps) {
+  const { t, tDynamic } = useLanguage();
   const today = todayIso();
   const maxGuests = Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests ?? 50);
   const totalMaxGuests = Number(experience.max_guests || 50);
@@ -98,34 +100,34 @@ export default function ModalBooking({
 
   const validate = () => {
     if (validSchedules.length > 0) {
-      if (!selectedScheduleId) return 'Vui lòng chọn lịch trình';
+      if (!selectedScheduleId) return t('booking_validate_schedule');
       const sched = validSchedules.find(s => s.id === selectedScheduleId);
-      if (sched && sched.remaining_slots < guests) return `Lịch trình này chỉ còn ${sched.remaining_slots} chỗ`;
+      if (sched && sched.remaining_slots < guests) return t('booking_validate_schedule_slots').replace('{count}', String(sched.remaining_slots));
     } else {
-      if (!isBookableWindow) return 'Tour này đã hết thời gian nhận đặt';
-      if (bookingDate < minBookingDate) return 'Ngày đi phải nằm trong thời gian tour đang nhận đặt';
-      if (maxBookingDate && bookingDate > maxBookingDate) return 'Ngày đi đã vượt quá ngày đóng nhận đặt của tour';
+      if (!isBookableWindow) return t('booking_validate_window');
+      if (bookingDate < minBookingDate) return t('booking_validate_date_min');
+      if (maxBookingDate && bookingDate > maxBookingDate) return t('booking_validate_date_max');
       if (availability) {
-        if (!availability.isAvailable) return 'Tour này đã hết chỗ trong ngày được chọn.';
-        if (guests > availability.dailyRemaining) return `Tour này chỉ còn ${availability.dailyRemaining} chỗ trong ngày này.`;
-        if (guests > availability.totalRemaining) return `Tour này chỉ còn ${availability.totalRemaining} chỗ tổng cộng.`;
+        if (!availability.isAvailable) return t('booking_validate_day_full');
+        if (guests > availability.dailyRemaining) return t('booking_validate_daily_remaining').replace('{count}', String(availability.dailyRemaining));
+        if (guests > availability.totalRemaining) return t('booking_validate_total_remaining').replace('{count}', String(availability.totalRemaining));
       }
     }
 
     if (guests > maxGuests) {
-      return `Tour này chỉ nhận tối đa ${maxGuests} khách cho một ngày`;
+      return t('booking_validate_max_guests').replace('{count}', String(maxGuests));
     }
 
     if (contactName.trim().length < 2) {
-      return 'Tên người liên hệ cần tối thiểu 2 ký tự';
+      return t('booking_validate_contact');
     }
 
     if (!phonePattern.test(contactPhone.trim())) {
-      return 'Số điện thoại không hợp lệ';
+      return t('booking_validate_phone');
     }
 
     if (note.length > 300) {
-      return 'Ghi chú tối đa 300 ký tự';
+      return t('booking_validate_note');
     }
 
     return null;
@@ -148,11 +150,11 @@ export default function ModalBooking({
         setPromoMessage(data.error);
         setActivePromo(null);
       } else {
-        setPromoMessage('Áp dụng mã thành công!');
+        setPromoMessage(t('booking_apply_success'));
         setActivePromo(data);
       }
     } catch (e: any) {
-      setPromoMessage('Có lỗi xảy ra');
+      setPromoMessage(t('error_generic'));
     }
   };
 
@@ -177,7 +179,7 @@ export default function ModalBooking({
         })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Đặt tour thất bại, vui lòng thử lại');
+      if (!res.ok) throw new Error(data.error || t('booking_submit_error'));
       onBookingSuccess();
       onClose();
     } catch (err: any) {
@@ -195,7 +197,7 @@ export default function ModalBooking({
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 rounded-lg p-2 text-zinc-400 dark:text-slate-500 hover:bg-zinc-100 dark:hover:bg-slate-800 hover:text-zinc-900 dark:hover:text-slate-100"
-          aria-label="Đóng"
+          aria-label={t('detail_close')}
         >
           <X className="h-5 w-5" />
         </button>
@@ -208,7 +210,7 @@ export default function ModalBooking({
             />
             <img
               src={experience.image}
-              alt={experience.title}
+              alt={tDynamic(experience.title)}
               className="relative h-full min-h-75 w-full object-contain"
             />
           </div>
@@ -216,24 +218,24 @@ export default function ModalBooking({
           <div className="p-6 sm:p-8">
             <div className="mb-5 pr-8">
               <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold uppercase text-emerald-700">
-                Đặt tour
+                {t('exp_book')}
               </span>
-              <h2 className="mt-3 text-2xl font-black leading-tight text-zinc-950 dark:text-slate-50">{experience.title}</h2>
+              <h2 className="mt-3 text-2xl font-black leading-tight text-zinc-950 dark:text-slate-50">{tDynamic(experience.title)}</h2>
               <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">
-                {experience.location} · {formatVnd(experience.price)} / khách
+                {tDynamic(experience.location)} · {formatVnd(experience.price)} / {t('booking_per_guest')}
               </p>
               <div className="mt-3 grid gap-2 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-3 text-xs font-bold text-zinc-600 dark:text-slate-300">
                 <span className="inline-flex items-center gap-1.5">
                   <Users className="h-3.5 w-3.5 text-emerald-600" />
-                  Tối đa {maxGuests} khách/ngày
+                  {t('booking_max_daily')} {maxGuests} {t('booking_guests_day')}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <Users className="h-3.5 w-3.5 text-blue-600" />
-                  Tối đa {totalMaxGuests} khách toàn tour
+                  {t('booking_max_total')} {totalMaxGuests} {t('booking_guests_total')}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <Calendar className="h-3.5 w-3.5 text-emerald-600" />
-                  Nhận đặt: {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
+                  {t('detail_booking_open')}: {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
                 </span>
               </div>
             </div>
@@ -241,17 +243,17 @@ export default function ModalBooking({
             <form onSubmit={handleBookingSubmit} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><User className="inline h-3 w-3" /> Tên liên hệ</span>
+                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><User className="inline h-3 w-3" /> {t('booking_contact_name')}</span>
                   <input
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
-                    placeholder="Nguyễn Văn A"
+                    placeholder={t('booking_contact_name_ph')}
                     className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500"
                     required
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Phone className="inline h-3 w-3" /> Số điện thoại</span>
+                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Phone className="inline h-3 w-3" /> {t('booking_phone')}</span>
                   <input
                     value={contactPhone}
                     onChange={(e) => setContactPhone(e.target.value)}
@@ -264,24 +266,24 @@ export default function ModalBooking({
 
               {validSchedules.length > 0 ? (
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Calendar className="inline h-3 w-3" /> Chọn lịch trình</span>
+                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Calendar className="inline h-3 w-3" /> {t('booking_select_schedule')}</span>
                   <select
                     value={selectedScheduleId}
                     onChange={(e) => setSelectedScheduleId(Number(e.target.value))}
                     className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500"
                     required
                   >
-                    <option value="">-- Chọn lịch --</option>
+                    <option value="">{t('booking_select_schedule_ph')}</option>
                     {validSchedules.map(s => (
                       <option key={s.id} value={s.id}>
-                        {formatDateVi(s.start_date)} → {formatDateVi(s.end_date)} ({s.remaining_slots} chỗ còn)
+                        {formatDateVi(s.start_date)} → {formatDateVi(s.end_date)} ({s.remaining_slots} {t('booking_slot_left')})
                       </option>
                     ))}
                   </select>
                 </label>
               ) : (
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Calendar className="inline h-3 w-3" /> Ngày đi</span>
+                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Calendar className="inline h-3 w-3" /> {t('booking_departure_date')}</span>
                   <input
                     type="date"
                     value={bookingDate}
@@ -296,7 +298,7 @@ export default function ModalBooking({
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Users className="inline h-3 w-3" /> Người lớn</span>
+                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Users className="inline h-3 w-3" /> {t('booking_adults')}</span>
                   <input
                     type="number" min="1" max={maxGuests}
                     value={adults}
@@ -306,7 +308,7 @@ export default function ModalBooking({
                 </label>
                 {experience.allow_children !== false && (
                   <label className="block">
-                    <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Users className="inline h-3 w-3" /> Trẻ em {experience.child_max_age ? `(dưới ${experience.child_max_age} tuổi)` : ''}</span>
+                    <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Users className="inline h-3 w-3" /> {t('booking_children')} {experience.child_max_age ? `(${t('booking_children_under')} ${experience.child_max_age} ${t('detail_age_to')})` : ''}</span>
                     <input
                       type="number" min="0" max={maxGuests - adults}
                       value={children}
@@ -318,12 +320,12 @@ export default function ModalBooking({
               </div>
 
               <label className="block">
-                <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><MessageSquare className="inline h-3 w-3" /> Ghi chú (tuỳ chọn)</span>
+                <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><MessageSquare className="inline h-3 w-3" /> {t('booking_note')}</span>
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   rows={2}
-                  placeholder="Yêu cầu đặc biệt, dị ứng thực phẩm..."
+                  placeholder={t('booking_note_ph')}
                   className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500"
                 />
               </label>
@@ -335,7 +337,7 @@ export default function ModalBooking({
                   <input
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                    placeholder="Mã khuyến mãi"
+                    placeholder={t('booking_promo')}
                     className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 pl-9 pr-3 py-2 text-sm outline-none focus:border-emerald-500"
                   />
                 </div>
@@ -347,19 +349,19 @@ export default function ModalBooking({
                       const res = await fetch(`/api/promotions/validate?code=${encodeURIComponent(promoCode.trim())}&experience_id=${experience.id}`);
                       const data = await res.json();
                       if (!res.ok || data.error) {
-                        setPromoMessage(data.error || 'Mã không hợp lệ');
+                        setPromoMessage(data.error || t('booking_invalid_promo'));
                         setActivePromo(null);
                       } else {
-                        setPromoMessage('Áp dụng mã thành công!');
+                        setPromoMessage(t('booking_apply_success'));
                         setActivePromo(data);
                       }
                     } catch {
-                      setPromoMessage('Có lỗi xảy ra');
+                      setPromoMessage(t('error_generic'));
                     }
                   }}
                   className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
                 >
-                  Áp dụng
+                  {t('booking_apply')}
                 </button>
               </div>
               {promoMessage && (
@@ -369,23 +371,23 @@ export default function ModalBooking({
               {/* Price summary */}
               <div className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-3 space-y-1 text-sm">
                 <div className="flex justify-between text-zinc-600 dark:text-slate-300">
-                  <span>{adults} người lớn × {formatVnd(adultPrice)}</span>
+                  <span>{adults} {t('booking_adult_unit')} × {formatVnd(adultPrice)}</span>
                   <span>{formatVnd(adults * adultPrice)}</span>
                 </div>
                 {children > 0 && (
                   <div className="flex justify-between text-zinc-600 dark:text-slate-300">
-                    <span>{children} trẻ em × {formatVnd(childPrice)}</span>
+                    <span>{children} {t('booking_child_unit')} × {formatVnd(childPrice)}</span>
                     <span>{formatVnd(children * childPrice)}</span>
                   </div>
                 )}
                 {discount > 0 && (
                   <div className="flex justify-between text-emerald-600 font-semibold">
-                    <span>Giảm giá</span>
+                    <span>{t('booking_discount')}</span>
                     <span>-{formatVnd(discount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between font-black text-zinc-900 dark:text-slate-50 border-t border-zinc-200 dark:border-slate-700 pt-1 mt-1">
-                  <span>Tổng cộng</span>
+                  <span>{t('booking_total_due')}</span>
                   <span className="text-xl font-black">{formatVnd(finalPrice)}</span>
                 </div>
               </div>
@@ -403,7 +405,7 @@ export default function ModalBooking({
                   onClick={onClose}
                   className="rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2.5 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-900/50 sm:w-1/3"
                 >
-                  Hủy
+                  {t('booking_cancel')}
                 </button>
                 <button
                   type="submit"
@@ -417,11 +419,11 @@ export default function ModalBooking({
                   {loading ? (
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : (!isBookableWindow && validSchedules.length === 0) ? (
-                    <><BadgeCheck className="h-4 w-4" />Tour đã đóng</>
+                    <><BadgeCheck className="h-4 w-4" />{t('booking_closed')}</>
                   ) : (validSchedules.length === 0 && availability && !availability.isAvailable) ? (
-                    <><X className="h-4 w-4" />Hết chỗ</>
+                    <><X className="h-4 w-4" />{t('exp_full')}</>
                   ) : (
-                    <><BadgeCheck className="h-4 w-4" />Xác nhận đặt tour</>
+                    <><BadgeCheck className="h-4 w-4" />{t('booking_confirm')}</>
                   )}
                 </button>
               </div>

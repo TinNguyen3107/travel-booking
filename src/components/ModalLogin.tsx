@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { AlertCircle, Lock, LogIn, Mail, User, X, Eye, EyeOff } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ModalLoginProps {
   onClose: () => void;
@@ -14,6 +15,7 @@ interface ModalLoginProps {
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps) {
+  const { t } = useLanguage();
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -123,14 +125,14 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
 
         <div className="border-b border-zinc-100 dark:border-slate-800 px-6 py-5">
           <h2 className="text-xl font-black text-zinc-950 dark:text-slate-50">
-            {isForgotPassword ? 'Quên mật khẩu' : isRegisterMode ? 'Đăng ký tài khoản' : 'Đăng nhập'}
+            {isForgotPassword ? t('auth_forgot_title') : isRegisterMode ? t('auth_register_title') : t('auth_login_title')}
           </h2>
           <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">
             {isForgotPassword 
-              ? 'Nhập email và mật khẩu mới của bạn để đổi mật khẩu.'
+              ? t('auth_forgot_desc')
               : isRegisterMode
-              ? 'Tạo tài khoản để đặt tour và bình luận.'
-              : 'Đăng nhập để đặt tour, bình luận và trải nghiệm các dịch vụ.'}
+              ? t('auth_register_desc')
+              : t('auth_login_desc')}
           </p>
         </div>
 
@@ -140,14 +142,14 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isForgotPassword && isRegisterMode && (
               <label className="block">
-                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Họ và tên</span>
+                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">{t('auth_fullname')}</span>
                 <span className="relative block">
                   <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
                   <input
                     value={fullname}
                     onChange={(event) => setFullname(event.target.value)}
                     className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
-                    placeholder="Nguyễn Văn A"
+                    placeholder={t('auth_fullname_ph')}
                     autoComplete="name"
                   />
                 </span>
@@ -155,7 +157,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
             )}
 
             <label className="block">
-              <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Email</span>
+              <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">{t('auth_email')}</span>
               <span className="relative block">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
                 <input
@@ -163,7 +165,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
-                  placeholder="name@example.com"
+                  placeholder={t('auth_email_ph')}
                   autoComplete="email"
                 />
               </span>
@@ -172,11 +174,11 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
             <label className="block">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">
-                  {isForgotPassword ? 'Mật khẩu mới' : 'Mật khẩu'}
+                  {isForgotPassword ? t('auth_password_new') : t('auth_password')}
                 </span>
                 {!isRegisterMode && !isForgotPassword && (
                   <button type="button" onClick={() => setIsForgotPassword(true)} className="text-xs font-bold text-emerald-600 hover:underline">
-                    Quên mật khẩu?
+                    {t('auth_password_forgot')}
                   </button>
                 )}
               </div>
@@ -187,7 +189,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-10 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
-                  placeholder={isForgotPassword ? 'Mật khẩu mới (tối thiểu 6 ký tự)' : 'Tối thiểu 6 ký tự'}
+                  placeholder={isForgotPassword ? t('auth_password_new_ph') : t('auth_password_ph')}
                   autoComplete={isRegisterMode || isForgotPassword ? 'new-password' : 'current-password'}
                 />
                 <button
@@ -202,7 +204,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
 
             {isForgotPassword && (
               <label className="block">
-                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">Xác nhận mật khẩu mới</span>
+                <span className="mb-1.5 block text-xs font-bold uppercase text-zinc-600 dark:text-slate-300">{t('auth_password_confirm')}</span>
                 <span className="relative block">
                   <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-slate-500" />
                   <input
@@ -210,7 +212,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
                     className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 py-2.5 pl-10 pr-10 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800"
-                    placeholder="Nhập lại mật khẩu mới"
+                    placeholder={t('auth_password_confirm_ph')}
                     autoComplete="new-password"
                   />
                   <button
@@ -241,7 +243,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
               ) : (
                 <>
                   <LogIn className="h-4 w-4" />
-                  {isForgotPassword ? 'Đổi mật khẩu' : isRegisterMode ? 'Đăng ký' : 'Đăng nhập'}
+                  {isForgotPassword ? t('auth_reset_btn') : isRegisterMode ? t('auth_register_btn') : t('auth_login_btn')}
                 </>
               )}
             </button>
@@ -257,11 +259,11 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                 }}
                 className="font-bold text-emerald-700 hover:underline"
               >
-                Quay lại đăng nhập
+                {t('auth_login_now')}
               </button>
             ) : (
               <>
-                {isRegisterMode ? 'Đã có tài khoản?' : 'Chưa có tài khoản?'}{' '}
+                {isRegisterMode ? t('auth_has_account') : t('auth_no_account')}{' '}
                 <button
                   type="button"
                   onClick={() => {
@@ -270,7 +272,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                   }}
                   className="font-bold text-emerald-700 hover:underline"
                 >
-                  {isRegisterMode ? 'Đăng nhập ngay' : 'Đăng ký miễn phí'}
+                  {isRegisterMode ? t('auth_login_now') : t('auth_register_free')}
                 </button>
               </>
             )}

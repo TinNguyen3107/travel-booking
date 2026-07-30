@@ -8,7 +8,7 @@ import { ChevronDown, HelpCircle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function FAQSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
   const { t } = useLanguage();
 
   const faqs = [

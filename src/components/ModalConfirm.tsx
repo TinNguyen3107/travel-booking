@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle, X } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export interface ConfirmConfig {
   title: string;
@@ -17,12 +18,16 @@ interface ModalConfirmProps extends ConfirmConfig {
 export default function ModalConfirm({
   title,
   message,
-  confirmText = 'Xóa',
-  cancelText = 'Hủy',
+  confirmText,
+  cancelText,
   isDanger = true,
   onConfirm,
   onClose
 }: ModalConfirmProps) {
+  const { t } = useLanguage();
+  const resolvedConfirmText = confirmText || t('host_delete_title');
+  const resolvedCancelText = cancelText || t('host_form_cancel');
+
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
       <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-2xl animate-in zoom-in-95 duration-200">
@@ -30,7 +35,7 @@ export default function ModalConfirm({
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 rounded-lg p-2 text-zinc-400 dark:text-slate-500 hover:bg-zinc-100 dark:hover:bg-slate-800 hover:text-zinc-900 dark:hover:text-slate-100"
-          aria-label="Đóng"
+          aria-label={t('detail_close')}
         >
           <X className="h-5 w-5" />
         </button>
@@ -49,7 +54,7 @@ export default function ModalConfirm({
             onClick={onClose}
             className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-4 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-800"
           >
-            {cancelText}
+            {resolvedCancelText}
           </button>
           <button
             type="button"
@@ -60,7 +65,7 @@ export default function ModalConfirm({
             className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm ${isDanger ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
               }`}
           >
-            {confirmText}
+            {resolvedConfirmText}
           </button>
         </div>
       </div>

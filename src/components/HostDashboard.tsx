@@ -84,13 +84,16 @@ const EMPTY_FORM = {
   child_price: 0
 };
 
-const statusLabels: Record<string, string> = {
-  pending: 'Chờ xử lý',
-  confirmed: 'Đã xác nhận',
-  cancelled: 'Đã hủy',
-  approved: 'Đã duyệt',
-  rejected: 'Đã từ chối',
-  suspended: 'Đã tạm khóa'
+const getStatusLabel = (status: string, t: any) => {
+  const labels: Record<string, string> = {
+    pending: t('host_opt_pending'),
+    confirmed: t('host_opt_confirmed'),
+    cancelled: t('host_opt_cancelled'),
+    approved: t('host_status_approved'),
+    rejected: t('host_status_rejected'),
+    suspended: t('host_status_suspended')
+  };
+  return labels[status] || status;
 };
 
 const statusClass = (status: string) => {
@@ -135,7 +138,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
     setVisibleCount(4);
   }, [searchTerm, selectedCategory]);
 
-  const { t } = useLanguage();
+  const { t, tCategory, tDynamic } = useLanguage();
 
   const tabs = [
     { id: 'overview', label: t('host_tab_overview') },
@@ -238,9 +241,9 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
         localStorage.removeItem('token');
         localStorage.removeItem('currentUser');
         window.location.reload();
-        throw new Error('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.');
+        throw new Error(t('host_session_expired'));
       }
-      throw new Error(data.error || 'Không thể đọc dữ liệu');
+      throw new Error(data.error || t('host_data_error'));
     }
 
     return data;
@@ -274,7 +277,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       } catch { /* ignore */ }
 
     } catch (err: any) {
-      setError(err.message || 'Không thể tải dữ liệu quản trị');
+      setError(err.message || t('host_load_error'));
     } finally {
       setLoading(false);
     }
@@ -297,7 +300,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (!file.type.startsWith('image/')) {
-        alert('Vui lòng chọn file hình ảnh.');
+        alert(t('host_image_type_error'));
         continue;
       }
       const formData = new FormData();
@@ -316,7 +319,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
             setForm(prev => ({ ...prev, images: prev.images ? prev.images + '\\n' + data.url : data.url }));
           }
         } else {
-          alert('Lỗi tải ảnh lên');
+          alert(t('host_upload_error'));
         }
       } catch (err) {
         console.error(err);
@@ -361,23 +364,23 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
 
     const price = Number(form.price);
     if (!form.title.trim() || !form.location.trim() || !form.duration.trim() || !form.category.trim() || !form.description.trim()) {
-      setError('Vui lòng nhập đầy đủ thông tin tour');
+      setError(t('host_tour_required_error'));
       return;
     }
 
     if (!Number.isFinite(price) || price < 1000) {
-      setError('Giá tour phải từ 1.000 VNĐ trở lên');
+      setError(t('host_price_min_error'));
       return;
     }
 
     const maxGuests = Number(form.max_guests);
     if (!Number.isInteger(maxGuests) || maxGuests < 1 || maxGuests > 1000) {
-      setError('Số khách tối đa phải từ 1 đến 1000');
+      setError(t('host_max_guests_error'));
       return;
     }
 
     if (!form.booking_open_date || !form.booking_close_date || form.booking_close_date < form.booking_open_date) {
-      setError('Ngày đóng tour phải sau hoặc bằng ngày mở tour');
+      setError(t('host_close_date_error'));
       return;
     }
 
@@ -428,7 +431,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: currentUser?.email, ...profileForm })
       });
-      alert('Cập nhật hồ sơ thành công!');
+      alert(t('host_profile_success'));
       await fetchAllData();
     } catch (err: any) {
       setError(err.message);
@@ -438,8 +441,10 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
 
   const deleteExperience = async (id: number) => {
     setConfirmConfig({
-      title: 'Xóa tour',
-      message: 'Bạn có chắc chắn muốn xóa tour này không? Mọi dữ liệu liên quan sẽ bị mất.',
+      title: t('host_delete_title'),
+      message: t('host_delete_message'),
+      confirmText: t('host_delete_title'),
+      cancelText: t('host_form_cancel'),
       onConfirm: async () => {
         try {
           await fetchJson(`/api/experiences/${id}`, { method: 'DELETE' });
@@ -454,9 +459,10 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
 
   const requestReopen = async (id: number) => {
     setConfirmConfig({
-      title: 'Yêu cầu duyệt tour',
-      message: 'Tour sẽ được gửi cho Admin duyệt. Bạn sẽ nhận được thông báo sau khi Admin phản hồi.',
-      confirmText: 'Gửi duyệt',
+      title: t('host_review_request_title'),
+      message: t('host_review_request_message'),
+      confirmText: t('host_submit_review'),
+      cancelText: t('host_form_cancel'),
       isDanger: false,
       onConfirm: async () => {
         try {
@@ -507,13 +513,13 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
   };
 
   const handleRefundComplete = async (id: number) => {
-    if (!confirm('Xác nhận bạn đã hoàn tiền cho khách hàng?')) return;
+    if (!confirm(t('host_refund_confirm'))) return;
     try {
       await fetchJson(`/api/bookings/${id}/refund_complete`, { method: 'PUT' });
       await fetchAllData();
-      alert('Đã cập nhật trạng thái hoàn tiền thành công.');
+      alert(t('host_refund_success'));
     } catch (err: any) {
-      alert(err.message || 'Lỗi xử lý hoàn tiền');
+      alert(err.message || t('host_refund_error'));
     }
   };
 
@@ -538,7 +544,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
     if (!evaluatingBooking) return;
 
     if (hostReviewForm.comment.trim().length < 5) {
-      alert('Bình luận cần tối thiểu 5 ký tự');
+      alert(t('review_comment_min_error'));
       return;
     }
 
@@ -555,7 +561,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
         })
       });
 
-      alert('Đã gửi đánh giá khách hàng thành công');
+      alert(t('host_review_success'));
       setEvaluatingBooking(null);
       setHostReviewForm({ rating: 5, comment: '' });
     } catch (err: any) {
@@ -568,8 +574,8 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
     return (
       <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm p-5 sm:p-6">
         <div className="mb-6">
-          <h3 className="text-2xl font-black text-zinc-950 dark:text-slate-50">Tour đang mở bán</h3>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">Xem trước danh sách tour hiển thị với khách hàng.</p>
+          <h3 className="text-2xl font-black text-zinc-950 dark:text-slate-50">{t('host_preview_title')}</h3>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">{t('host_preview_desc')}</p>
         </div>
 
         <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 lg:flex-row lg:items-center mb-6">
@@ -578,7 +584,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
             <input
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Tìm theo tên tour, địa điểm hoặc danh mục"
+              placeholder={t('host_search_ph')}
               className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-emerald-500"
             />
           </label>
@@ -587,9 +593,9 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
             onChange={(event) => setSelectedCategory(event.target.value)}
             className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
           >
-            <option value="all">Tất cả danh mục</option>
+            <option value="all">{t('exp_all_categories')}</option>
             {categories.map((category) => (
-              <option key={category} value={category}>{category}</option>
+              <option key={category} value={category}>{tCategory(category)}</option>
             ))}
           </select>
         </div>
@@ -601,7 +607,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                 <div className="relative">
                   <img
                     src={experience.image || FALLBACK_IMAGE}
-                    alt={experience.title}
+                    alt={tDynamic(experience.title)}
                     onError={(event) => {
                       event.currentTarget.onerror = null;
                       event.currentTarget.src = FALLBACK_IMAGE;
@@ -609,37 +615,37 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                     className="h-48 w-full object-cover"
                   />
                   <span className="absolute left-3 top-3 rounded-full bg-white/80 backdrop-blur-lg dark:bg-slate-800/95 px-3 py-1 text-xs font-black text-emerald-700 shadow-sm">
-                    {experience.category}
+                    {tCategory(experience.category)}
                   </span>
                 </div>
                 <div className="flex flex-1 flex-col p-4">
                   <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-zinc-500 dark:text-slate-400">
-                    <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-emerald-600" />{experience.location}</span>
-                    <span className="inline-flex items-center gap-1"><Clock3 className="h-3.5 w-3.5 text-emerald-600" />{experience.duration}</span>
+                    <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-emerald-600" />{tDynamic(experience.location)}</span>
+                    <span className="inline-flex items-center gap-1"><Clock3 className="h-3.5 w-3.5 text-emerald-600" />{tDynamic(experience.duration)}</span>
                   </div>
-                  <h3 className="mt-2 line-clamp-2 text-base font-black leading-snug text-zinc-950 dark:text-slate-50">{experience.title}</h3>
+                  <h3 className="mt-2 line-clamp-2 text-base font-black leading-snug text-zinc-950 dark:text-slate-50">{tDynamic(experience.title)}</h3>
                   <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-zinc-500 dark:text-slate-400">
-                    {experience.description || 'Chưa có mô tả cho tour này.'}
+                    {tDynamic(experience.description) || t('host_no_desc')}
                   </p>
                   <div className="mt-3 flex items-center gap-1 text-sm font-black text-amber-500">
                     <Star className="h-4 w-4 fill-current" />
                     <span>{Number(experience.rating || 0).toFixed(1)}</span>
-                    <span className="font-semibold text-zinc-400 dark:text-slate-500">({experience.reviews_count} đánh giá)</span>
+                    <span className="font-semibold text-zinc-400 dark:text-slate-500">({experience.reviews_count} {t('detail_rating_count')})</span>
                   </div>
                   <div className="mt-3 grid gap-1 rounded-xl border border-zinc-100 dark:border-slate-800 bg-zinc-50 dark:bg-slate-900/50 p-3 text-xs font-bold text-zinc-600 dark:text-slate-300">
                     <span className="inline-flex items-center gap-1.5">
                       <Users className="h-3.5 w-3.5 text-emerald-600" />
-                      Tối đa {Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests ?? 50)} khách/ngày
+                      {Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests ?? 50)} {t('host_max_guests_day')}
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <Clock3 className="h-3.5 w-3.5 text-emerald-600" />
-                      Nhận đặt: {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
+                      {t('host_booking_period')}: {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
                     </span>
                   </div>
                   <div className="mt-auto flex flex-col gap-3 border-t border-zinc-100 dark:border-slate-800 pt-4">
                     <div className="flex items-end justify-between">
                       <div>
-                        <div className="text-xs font-bold uppercase text-zinc-400 dark:text-slate-500">Giá từ</div>
+                        <div className="text-xs font-bold uppercase text-zinc-400 dark:text-slate-500">{t('host_price_from')}</div>
                         <div className="text-lg font-black text-emerald-700">{formatVnd(experience.price)}</div>
                       </div>
                     </div>
@@ -649,7 +655,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                         onClick={() => setViewExperienceDetail(experience)}
                         className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-4 py-2 text-sm font-black text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-700"
                       >
-                        Chi tiết
+                        {t('host_view_detail')}
                       </button>
                     </div>
                   </div>
@@ -659,7 +665,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
           ))}
           {filteredExperiences.length === 0 && (
             <div className="col-span-full rounded-2xl border border-dashed border-zinc-300 dark:border-slate-600 bg-white/80 backdrop-blur-lg dark:bg-slate-800 p-10 text-center text-sm font-semibold text-zinc-500 dark:text-slate-400">
-              Không tìm thấy tour phù hợp.
+              {t('host_no_match')}
             </div>
           )}
         </div>
@@ -670,7 +676,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
               onClick={() => setVisibleCount((prev) => prev + 4)}
               className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-6 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 shadow-sm hover:bg-zinc-50 dark:hover:bg-slate-900/50"
             >
-              Xem thêm
+              {t('host_load_more')}
             </button>
           </div>
         )}
@@ -681,7 +687,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
             onClose={() => setViewExperienceDetail(null)}
             onBook={() => {
               setViewExperienceDetail(null);
-              alert('Host không cần đặt tour trong chế độ xem trước!');
+              alert(t('host_preview_no_booking'));
             }}
           />
         )}
@@ -693,10 +699,10 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
     <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 shadow-sm w-full min-h-[calc(100vh-120px)]">
       <div className="flex flex-col gap-4 border-b border-zinc-200 dark:border-slate-700 p-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Bảng điều khiển</p>
-          <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-slate-50">Quản trị VietTour</h2>
+          <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">{t('host_dashboard_eyebrow')}</p>
+          <h2 className="mt-1 text-2xl font-black text-zinc-950 dark:text-slate-50">{t('host_dashboard_title')}</h2>
           <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">
-            Quản lý tour, đơn đặt, host và phân quyền người dùng.
+            {t('host_dashboard_desc')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -709,7 +715,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-50 dark:hover:bg-slate-700"
           >
             <RefreshCcw className="h-4 w-4" />
-            Làm mới
+            {t('host_refresh')}
           </button>
         </div>
       </div>
@@ -740,26 +746,26 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
         )}
 
         {loading && (
-          <div className="py-10 text-center text-sm font-bold text-zinc-500 dark:text-slate-400">Đang tải dữ liệu...</div>
+          <div className="py-10 text-center text-sm font-bold text-zinc-500 dark:text-slate-400">{t('host_loading')}</div>
         )}
 
         {!loading && activeTab === 'overview' && (
           <div className="space-y-5">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <StatCard icon={FileCheck2} label="Tour đang bán" value={stats.tours} tone="emerald" />
-              <StatCard icon={Star} label="Đánh giá" value={stats.reviews} tone="sky" />
-              <StatCard icon={Clock3} label="Đơn chờ duyệt" value={stats.pendingBookings} tone="amber" />
-              <StatCard icon={TrendingUp} label="Thực nhận dự kiến" value={formatVnd(stats.confirmedRevenue)} tone="emerald" />
+              <StatCard icon={FileCheck2} label={t('host_stat_tours')} value={stats.tours} tone="emerald" />
+              <StatCard icon={Star} label={t('host_stat_reviews')} value={stats.reviews} tone="sky" />
+              <StatCard icon={Clock3} label={t('host_stat_pending')} value={stats.pendingBookings} tone="amber" />
+              <StatCard icon={TrendingUp} label={t('host_stat_revenue')} value={formatVnd(stats.confirmedRevenue)} tone="emerald" />
             </div>
 
             <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 p-6">
               <div className="mb-6 flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-black text-zinc-950 dark:text-slate-50">Biểu đồ doanh thu</h3>
-                  <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">Thống kê thực nhận trong 7 ngày gần nhất</p>
+                  <h3 className="text-lg font-black text-zinc-950 dark:text-slate-50">{t('host_chart_title')}</h3>
+                  <p className="mt-1 text-sm text-zinc-500 dark:text-slate-400">{t('host_chart_desc')}</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs font-bold uppercase tracking-wide text-zinc-400 dark:text-slate-500">Tổng 7 ngày</div>
+                  <div className="text-xs font-bold uppercase tracking-wide text-zinc-400 dark:text-slate-500">{t('host_chart_total')}</div>
                   <div className="text-xl font-black text-emerald-700">
                     {formatVnd(stats.chartData.reduce((acc, item) => acc + item.revenue, 0))}
                   </div>
@@ -785,7 +791,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                       width={60}
                     />
                     <RechartsTooltip
-                      formatter={(value: number) => [formatVnd(value), 'Thực nhận']}
+                      formatter={(value: number) => [formatVnd(value), t('host_chart_earning')]}
                       labelStyle={{ fontWeight: 'bold', color: '#18181b' }}
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
                     />
@@ -804,27 +810,27 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
 
             <div className="grid gap-4 lg:grid-cols-2">
               <div className="rounded-2xl border border-zinc-200 dark:border-slate-700">
-                <div className="border-b border-zinc-200 dark:border-slate-700 px-4 py-3 font-black text-zinc-950 dark:text-slate-50">Đơn mới</div>
+                <div className="border-b border-zinc-200 dark:border-slate-700 px-4 py-3 font-black text-zinc-950 dark:text-slate-50">{t('host_new_bookings')}</div>
                 <div className="divide-y divide-zinc-100">
                   {bookings.slice(0, 5).map((booking) => (
                     <div key={booking.id} className="flex items-center justify-between gap-4 p-4 text-sm">
                       <div>
                         <div className="font-bold text-zinc-900 dark:text-slate-100">{booking.experience_title}</div>
                         <div className="text-xs text-zinc-500 dark:text-slate-400">
-                          {booking.contact_name} · {booking.guests} khách · {formatVnd(booking.total_price)}
+                          {booking.contact_name} · {booking.guests} {t('host_guests')} · {formatVnd(booking.total_price)}
                         </div>
                       </div>
                       <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${statusClass(booking.status)}`}>
-                        {statusLabels[booking.status]}
+                        {getStatusLabel(booking.status, t)}
                       </span>
                     </div>
                   ))}
-                  {bookings.length === 0 && <EmptyRow text="Chưa có đơn đặt tour." />}
+                  {bookings.length === 0 && <EmptyRow text={t('host_no_bookings')} />}
                 </div>
               </div>
 
               <div className="rounded-2xl border border-zinc-200 dark:border-slate-700">
-                <div className="border-b border-zinc-200 dark:border-slate-700 px-4 py-3 font-black text-zinc-950 dark:text-slate-50">Đánh giá mới</div>
+                <div className="border-b border-zinc-200 dark:border-slate-700 px-4 py-3 font-black text-zinc-950 dark:text-slate-50">{t('host_new_reviews')}</div>
                 <div className="divide-y divide-zinc-100">
                   {reviews.slice(0, 5).map((review) => (
                     <div key={review.id} className="flex items-start justify-between gap-4 p-4 text-sm">
@@ -840,7 +846,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                       </div>
                     </div>
                   ))}
-                  {reviews.length === 0 && <EmptyRow text="Chưa có đánh giá nào." />}
+                  {reviews.length === 0 && <EmptyRow text={t('host_no_reviews')} />}
                 </div>
               </div>
             </div>
@@ -850,7 +856,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
         {!loading && activeTab === 'experiences' && (
           <div className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-lg font-black text-zinc-950 dark:text-slate-50">Quản lý tour</h3>
+              <h3 className="text-lg font-black text-zinc-950 dark:text-slate-50">{t('host_manage_tours')}</h3>
               <button
                 type="button"
                 onClick={() => {
@@ -860,110 +866,110 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
               >
                 <Plus className="h-4 w-4" />
-                {editingId ? 'Đang sửa tour' : 'Thêm tour'}
+                {editingId ? t('host_editing_tour') : t('host_add_tour')}
               </button>
             </div>
 
             {showForm && (
               <form onSubmit={saveExperience} className="grid gap-3 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-4 lg:grid-cols-6">
                 <label className="block lg:col-span-2">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Tên tour</span>
-                  <input value={form.title} onChange={(event) => updateForm('title', event.target.value)} placeholder="Nhập tên tour" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_name')}</span>
+                  <input value={form.title} onChange={(event) => updateForm('title', event.target.value)} placeholder={t('host_form_name_ph')} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Địa điểm</span>
-                  <input value={form.location} onChange={(event) => updateForm('location', event.target.value)} placeholder="Nhập địa điểm" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_location')}</span>
+                  <input value={form.location} onChange={(event) => updateForm('location', event.target.value)} placeholder={t('host_form_location_ph')} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Thời lượng</span>
-                  <input value={form.duration} onChange={(event) => updateForm('duration', event.target.value)} placeholder="VD: 2 ngày 1 đêm" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_duration')}</span>
+                  <input value={form.duration} onChange={(event) => updateForm('duration', event.target.value)} placeholder={t('host_form_duration_ph')} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Giá (VND)</span>
-                  <input type="number" min="1000" step="1000" value={form.price} onChange={(event) => updateForm('price', Number(event.target.value))} placeholder="Nhập giá" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_price')}</span>
+                  <input type="number" min="1000" step="1000" value={form.price} onChange={(event) => updateForm('price', Number(event.target.value))} placeholder={t('host_form_price_ph')} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Danh mục</span>
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_category')}</span>
                   <select value={form.category} onChange={(event) => updateForm('category', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500">
-                    <option value="" disabled>Chọn danh mục</option>
-                    {dbCategories.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}
+                    <option value="" disabled>{t('host_form_category_ph')}</option>
+                    {dbCategories.map((item) => <option key={item.id} value={item.name}>{tCategory(item.name)}</option>)}
                   </select>
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Tổng khách tối đa (toàn tour)</span>
-                  <input type="number" min="1" max="1000" value={form.max_guests} onChange={(event) => updateForm('max_guests', Number(event.target.value))} placeholder="Số lượng" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_max_guests')}</span>
+                  <input type="number" min="1" max="1000" value={form.max_guests} onChange={(event) => updateForm('max_guests', Number(event.target.value))} placeholder={t('host_guests')} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Khách tối đa mỗi ngày</span>
-                  <input type="number" min="1" max={form.max_guests} value={form.daily_capacity_max} onChange={(event) => updateForm('daily_capacity_max', Number(event.target.value))} placeholder="Khách/ngày" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_daily_max')}</span>
+                  <input type="number" min="1" max={form.max_guests} value={form.daily_capacity_max} onChange={(event) => updateForm('daily_capacity_max', Number(event.target.value))} placeholder={t('host_max_guests_day')} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Mở đặt từ ngày</span>
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_open_date')}</span>
                   <input type="date" value={form.booking_open_date} onChange={(event) => updateForm('booking_open_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Đóng đặt sau ngày</span>
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_close_date')}</span>
                   <input type="date" min={form.booking_open_date} value={form.booking_close_date} onChange={(event) => updateForm('booking_close_date', event.target.value)} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Số phòng</span>
-                  <input type="number" min="0" value={form.rooms} onChange={(event) => updateForm('rooms', Number(event.target.value))} placeholder="Phòng" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_rooms')}</span>
+                  <input type="number" min="0" value={form.rooms} onChange={(event) => updateForm('rooms', Number(event.target.value))} placeholder={t('host_form_rooms')} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Số giường</span>
-                  <input type="number" min="0" value={form.beds} onChange={(event) => updateForm('beds', Number(event.target.value))} placeholder="Giường" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_beds')}</span>
+                  <input type="number" min="0" value={form.beds} onChange={(event) => updateForm('beds', Number(event.target.value))} placeholder={t('host_form_beds')} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <div className="lg:col-span-6 grid gap-3 lg:grid-cols-6 rounded-xl border border-zinc-200 dark:border-slate-700 p-3 bg-white/80 backdrop-blur-lg dark:bg-slate-800">
                   <label className="flex lg:col-span-1 items-center gap-2 mt-4">
                     <input type="checkbox" checked={form.allow_children} onChange={(event) => updateForm('allow_children', event.target.checked)} className="h-4 w-4 rounded border-zinc-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-600" />
-                    <span className="text-xs font-bold text-zinc-700 dark:text-slate-200">Cho trẻ em tham gia</span>
+                    <span className="text-xs font-bold text-zinc-700 dark:text-slate-200">{t('host_form_children')}</span>
                   </label>
                   <label className="block lg:col-span-1">
-                    <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Tuổi tối thiểu</span>
-                    <input type="number" min="0" value={form.min_age} onChange={(event) => updateForm('min_age', Number(event.target.value))} placeholder="Tuổi" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800" />
+                    <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_min_age')}</span>
+                    <input type="number" min="0" value={form.min_age} onChange={(event) => updateForm('min_age', Number(event.target.value))} placeholder={t('host_form_min_age')} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800" />
                   </label>
                   <label className="block lg:col-span-2">
-                    <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Trẻ em tối đa (tuổi)</span>
-                    <input type="number" min={form.min_age} max="17" value={form.child_max_age} onChange={(event) => updateForm('child_max_age', Number(event.target.value))} placeholder="Độ tuổi tối đa tính là trẻ em" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800" disabled={!form.allow_children} />
+                    <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_child_max_age')}</span>
+                    <input type="number" min={form.min_age} max="17" value={form.child_max_age} onChange={(event) => updateForm('child_max_age', Number(event.target.value))} placeholder={t('host_child_max_age_ph')} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800" disabled={!form.allow_children} />
                   </label>
                   <label className="block lg:col-span-2">
-                    <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Giảm giá cho trẻ em (%)</span>
-                    <input type="number" min="0" max="100" step="1" value={form.child_price} onChange={(event) => updateForm('child_price', Number(event.target.value))} placeholder="% giảm so với người lớn" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800" disabled={!form.allow_children} />
+                    <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_child_discount')}</span>
+                    <input type="number" min="0" max="100" step="1" value={form.child_price} onChange={(event) => updateForm('child_price', Number(event.target.value))} placeholder={t('host_child_discount_ph')} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800" disabled={!form.allow_children} />
                   </label>
                 </div>
                 <label className="block lg:col-span-2">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Tiện ích</span>
-                  <input value={form.amenities} onChange={(event) => updateForm('amenities', event.target.value)} placeholder="Nhập các tiện ích (cách nhau bằng dấu phẩy)" className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_amenities')}</span>
+                  <input value={form.amenities} onChange={(event) => updateForm('amenities', event.target.value)} placeholder={t('host_form_amenities_ph')} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <div className="lg:col-span-2 space-y-1">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Ảnh đại diện</span>
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_image')}</span>
                   <div className="flex gap-2">
-                    <input value={form.image} onChange={(event) => updateForm('image', event.target.value)} placeholder="URL hoặc tải lên" className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                    <input value={form.image} onChange={(event) => updateForm('image', event.target.value)} placeholder={t('host_form_image_ph')} className="flex-1 rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                     <label className="flex cursor-pointer items-center justify-center rounded-xl bg-zinc-100 dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-200 dark:hover:bg-slate-700">
-                      Tải lên
+                      {t('host_form_upload')}
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'image')} />
                     </label>
                   </div>
                 </div>
                 <div className="lg:col-span-2 space-y-1">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Danh sách ảnh phụ</span>
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_gallery')}</span>
                   <div className="flex gap-2 items-start">
-                    <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder="Các link cách nhau bằng dấu phẩy hoặc khoảng trắng" rows={3} className="flex-1 resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                    <textarea value={form.images} onChange={(event) => updateForm('images', event.target.value)} placeholder={t('host_form_gallery_ph')} rows={3} className="flex-1 resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                     <label className="flex cursor-pointer items-center justify-center rounded-xl bg-zinc-100 dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-200 dark:hover:bg-slate-700 h-9">
-                      Tải lên
+                      {t('host_form_upload')}
                       <input type="file" className="hidden" accept="image/*" multiple onChange={(e) => handleImageUpload(e, 'images')} />
                     </label>
                   </div>
                 </div>
                 <label className="block lg:col-span-4">
-                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Mô tả chi tiết</span>
-                  <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} placeholder="Nhập mô tả chi tiết về tour để thu hút khách hàng" rows={3} className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_desc')}</span>
+                  <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} placeholder={t('host_form_desc_ph')} rows={3} className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <div className="flex items-end justify-end gap-2 lg:col-span-6">
                   <button type="submit" className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-bold text-white hover:bg-emerald-700">
-                    {editingId && !['draft', 'pending_review'].includes(experiences.find(e => e.id === editingId)?.status || '') ? 'Lưu & Gửi duyệt cập nhật' : 'Lưu'}
+                    {editingId && !['draft', 'pending_review'].includes(experiences.find(e => e.id === editingId)?.status || '') ? t('host_form_save_review') : t('host_form_save')}
                   </button>
-                  <button type="button" onClick={resetForm} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-5 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800">Hủy</button>
+                  <button type="button" onClick={resetForm} className="rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-5 py-2 text-sm font-bold text-zinc-600 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-800">{t('host_form_cancel')}</button>
                 </div>
               </form>
             )}
@@ -972,13 +978,13 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
               <table className="min-w-full text-sm">
                 <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
                   <tr>
-                    <th className="px-4 py-3 text-left">Tour</th>
-                    <th className="px-4 py-3 text-left">Danh mục</th>
-                    <th className="px-4 py-3 text-left">Giá</th>
-                    <th className="px-4 py-3 text-left">Sức chứa</th>
-                    <th className="px-4 py-3 text-left">Thời gian mở</th>
-                    <th className="px-4 py-3 text-left">Đánh giá</th>
-                    <th className="px-4 py-3 text-right">Thao tác</th>
+                    <th className="px-4 py-3 text-left">{t('host_table_tour')}</th>
+                    <th className="px-4 py-3 text-left">{t('host_table_category')}</th>
+                    <th className="px-4 py-3 text-left">{t('host_table_price')}</th>
+                    <th className="px-4 py-3 text-left">{t('host_table_capacity')}</th>
+                    <th className="px-4 py-3 text-left">{t('host_table_period')}</th>
+                    <th className="px-4 py-3 text-left">{t('host_table_rating')}</th>
+                    <th className="px-4 py-3 text-right">{t('host_table_actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-200">
@@ -988,16 +994,16 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                         <div className="flex items-center gap-3">
                           <img src={item.image || FALLBACK_IMAGE} alt={item.title} className="h-12 w-16 rounded-lg object-cover" />
                           <div>
-                            <div className="font-bold text-zinc-900 dark:text-slate-100">{item.title}</div>
-                            <div className="text-xs text-zinc-500 dark:text-slate-400">{item.location} · {item.duration}</div>
+                            <div className="font-bold text-zinc-900 dark:text-slate-100">{tDynamic(item.title)}</div>
+                            <div className="text-xs text-zinc-500 dark:text-slate-400">{tDynamic(item.location)} · {tDynamic(item.duration)}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{item.category}</td>
+                      <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{tCategory(item.category)}</td>
                       <td className="px-4 py-3 font-bold text-emerald-700">{formatVnd(item.price)}</td>
                       <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">
-                        <div>{Number(item.max_guests || 50)} khách (tổng)</div>
-                        <div className="text-xs text-zinc-400 dark:text-slate-500">{Number(item.daily_capacity_max ?? item.daily_capacity ?? item.max_guests ?? 50)}/ngày</div>
+                        <div>{Number(item.max_guests || 50)} {t('host_guests_total')}</div>
+                        <div className="text-xs text-zinc-400 dark:text-slate-500">{Number(item.daily_capacity_max ?? item.daily_capacity ?? item.max_guests ?? 50)}{t('host_per_day')}</div>
                       </td>
                       <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">
                         <div className="text-xs font-semibold">{formatDateVi(item.booking_open_date)} - {formatDateVi(item.booking_close_date)}</div>
@@ -1009,36 +1015,36 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                                     : item.booking_open_date && item.booking_open_date > todayIso() ? 'border-sky-100 bg-sky-50 text-sky-700'
                                       : 'border-red-100 bg-red-50 text-red-700'
                           }`}>
-                          {item.status === 'closed' ? 'Đã đóng (đủ khách)'
-                            : item.status === 'pending_review' ? 'Chờ Admin duyệt'
-                              : item.status === 'pending_update' ? 'Chờ duyệt cập nhật'
-                                : item.status === 'hidden' ? 'Đã ẩn'
-                                  : item.status === 'draft' ? 'Bản nháp'
-                                    : isExperienceOpen(item) ? 'Đang mở'
-                                      : item.booking_open_date && item.booking_open_date > todayIso() ? 'Chưa mở'
-                                        : 'Đã đóng'}
+                          {item.status === 'closed' ? t('host_status_closed')
+                            : item.status === 'pending_review' ? t('host_status_pending_review')
+                              : item.status === 'pending_update' ? t('host_status_pending_update')
+                                : item.status === 'hidden' ? t('host_status_hidden')
+                                  : item.status === 'draft' ? t('host_status_draft')
+                                    : isExperienceOpen(item) ? t('host_status_open')
+                                      : item.booking_open_date && item.booking_open_date > todayIso() ? t('host_status_not_open')
+                                        : t('host_status_closed_simple')}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{Number(item.rating || 0).toFixed(1)} ({item.reviews_count})</td>
                       <td className="px-4 py-3 text-right">
                         {item.status === 'closed' && (
-                          <button type="button" onClick={() => requestReopen(item.id)} className="mr-2 rounded-lg border border-yellow-200 bg-yellow-50 px-2 py-1.5 text-xs font-bold text-yellow-700 hover:bg-yellow-100" title="Gửi yêu cầu mở lại tour cho Admin duyệt">Mở lại</button>
+                          <button type="button" onClick={() => requestReopen(item.id)} className="mr-2 rounded-lg border border-yellow-200 bg-yellow-50 px-2 py-1.5 text-xs font-bold text-yellow-700 hover:bg-yellow-100" title={t('host_reopen')}>{t('host_reopen')}</button>
                         )}
                         {item.status === 'draft' && (
-                          <button type="button" onClick={() => requestReopen(item.id)} className="mr-2 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100" title="Gửi yêu cầu duyệt tour cho Admin">Gửi duyệt</button>
+                          <button type="button" onClick={() => requestReopen(item.id)} className="mr-2 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100" title={t('host_submit_review')}>{t('host_submit_review')}</button>
                         )}
                         {item.status === 'pending_review' && (
-                          <span className="mr-2 inline-flex rounded-lg border border-yellow-200 bg-yellow-50 px-2 py-1.5 text-xs font-bold text-yellow-600">Đang chờ...</span>
+                          <span className="mr-2 inline-flex rounded-lg border border-yellow-200 bg-yellow-50 px-2 py-1.5 text-xs font-bold text-yellow-600">{t('host_waiting')}</span>
                         )}
-                        <button type="button" onClick={() => setViewExperienceDetail(item)} className="mr-2 rounded-lg border border-sky-200 bg-sky-50 p-2 text-sky-600 hover:bg-sky-100" aria-label="Xem chi tiết tour"><Eye className="h-4 w-4" /></button>
-                        <button type="button" onClick={() => setScheduleExperience(item)} className="mr-2 rounded-lg border border-emerald-100 bg-emerald-50 p-2 text-emerald-600 hover:bg-emerald-100" aria-label="Quản lý lịch"><Calendar className="h-4 w-4" /></button>
-                        <button type="button" onClick={() => editExperience(item)} className="mr-2 rounded-lg border border-zinc-200 dark:border-slate-700 p-2 text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-700" aria-label="Sửa tour"><Edit2 className="h-4 w-4" /></button>
-                        <button type="button" onClick={() => deleteExperience(item.id)} className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50" aria-label="Xóa tour"><Trash2 className="h-4 w-4" /></button>
+                        <button type="button" onClick={() => setViewExperienceDetail(item)} className="mr-2 rounded-lg border border-sky-200 bg-sky-50 p-2 text-sky-600 hover:bg-sky-100" aria-label={t('host_view_detail')}><Eye className="h-4 w-4" /></button>
+                        <button type="button" onClick={() => setScheduleExperience(item)} className="mr-2 rounded-lg border border-emerald-100 bg-emerald-50 p-2 text-emerald-600 hover:bg-emerald-100" aria-label={t('schedule_title')}><Calendar className="h-4 w-4" /></button>
+                        <button type="button" onClick={() => editExperience(item)} className="mr-2 rounded-lg border border-zinc-200 dark:border-slate-700 p-2 text-zinc-600 dark:text-slate-300 hover:bg-zinc-50 dark:hover:bg-slate-700" aria-label={t('host_editing_tour')}><Edit2 className="h-4 w-4" /></button>
+                        <button type="button" onClick={() => deleteExperience(item.id)} className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50" aria-label={t('host_form_cancel')}><Trash2 className="h-4 w-4" /></button>
                       </td>
                     </tr>
                   ))}
                   {experiences.length === 0 && (
-                    <tr><td colSpan={7}><EmptyRow text="Chưa có tour trong hệ thống." /></td></tr>
+                    <tr><td colSpan={7}><EmptyRow text={t('host_no_tours')} /></td></tr>
                   )}
                 </tbody>
               </table>
@@ -1047,33 +1053,33 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
         )}
 
         {!loading && activeTab === 'bookings' && (
-          <HostTable title="Quản lý đơn đặt tour">
+          <HostTable title={t('host_manage_bookings')}>
             <table className="min-w-full text-sm">
               <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
                 <tr>
-                  <th className="px-4 py-3 text-left">Đơn</th>
-                  <th className="px-4 py-3 text-left">Liên hệ</th>
-                  <th className="px-4 py-3 text-left">Ngày/Lịch đi</th>
-                  <th className="px-4 py-3 text-left">Tài chính</th>
-                  <th className="px-4 py-3 text-left">Trạng thái</th>
+                  <th className="px-4 py-3 text-left">{t('host_table_order')}</th>
+                  <th className="px-4 py-3 text-left">{t('host_table_contact')}</th>
+                  <th className="px-4 py-3 text-left">{t('host_table_schedule')}</th>
+                  <th className="px-4 py-3 text-left">{t('host_table_finance')}</th>
+                  <th className="px-4 py-3 text-left">{t('host_table_status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200">
                 {bookings.map((booking) => (
                   <tr key={booking.id}>
                     <td className="px-4 py-3">
-                      <div className="font-bold text-zinc-900 dark:text-slate-100">#{booking.id} · {booking.experience_title}</div>
-                      <div className="text-xs text-zinc-500 dark:text-slate-400">{booking.user_email} · {booking.guests} khách</div>
+                      <div className="font-bold text-zinc-900 dark:text-slate-100">#{booking.id} · {tDynamic(booking.experience_title)}</div>
+                      <div className="text-xs text-zinc-500 dark:text-slate-400">{booking.user_email} · {booking.guests} {t('host_guests')}</div>
                     </td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{booking.contact_name}<br /><span className="text-xs">{booking.contact_phone}</span></td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">
                       {booking.booking_date}
-                      {booking.schedule_id && <div className="mt-1 text-xs font-bold text-emerald-600">Lịch ID: #{booking.schedule_id}</div>}
+                      {booking.schedule_id && <div className="mt-1 text-xs font-bold text-emerald-600">{t('host_schedule_id')}: #{booking.schedule_id}</div>}
                     </td>
                     <td className="px-4 py-3">
                       <div className="font-bold text-emerald-700">{formatVnd(booking.total_price)}</div>
                       <div className="mt-1 flex flex-col gap-0.5 text-xs">
-                        <div className="font-semibold text-sky-600">Thực nhận: {formatVnd(booking.host_earnings || 0)}</div>
+                        <div className="font-semibold text-sky-600">{t('host_earning')}: {formatVnd(booking.host_earnings || 0)}</div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -1083,35 +1089,35 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                           onChange={(event) => updateBookingStatus(booking.id, event.target.value as BookingTable['status'])}
                           className={`w-full rounded-lg border px-2 py-1.5 text-xs font-bold outline-none ${statusClass(booking.status)}`}
                         >
-                          <option value="pending">Chờ xử lý</option>
-                          <option value="confirmed">Đã xác nhận</option>
-                          <option value="cancelled">Đã hủy</option>
+                          <option value="pending">{t('host_opt_pending')}</option>
+                          <option value="confirmed">{t('host_opt_confirmed')}</option>
+                          <option value="cancelled">{t('host_opt_cancelled')}</option>
                         </select>
                         <select
                           value={booking.payment_status || 'unpaid'}
                           onChange={(event) => updateBookingPaymentStatus(booking.id, event.target.value as BookingTable['payment_status'])}
                           className={`w-full rounded-lg border px-2 py-1.5 text-xs font-bold outline-none ${booking.payment_status === 'paid' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : booking.payment_status === 'refunded' ? 'border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 text-zinc-600 dark:text-slate-300' : 'border-rose-200 bg-rose-50 text-rose-700'}`}
                         >
-                          <option value="unpaid">Chưa thanh toán</option>
-                          <option value="paid">Đã thanh toán</option>
-                          <option value="refunded">Đã hoàn tiền</option>
+                          <option value="unpaid">{t('host_opt_unpaid')}</option>
+                          <option value="paid">{t('host_opt_paid')}</option>
+                          <option value="refunded">{t('host_refunded')}</option>
                         </select>
 
                         {booking.refund_status === 'pending' && (
                           <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-center">
-                            <span className="block text-xs font-bold text-amber-700 mb-1">Yêu cầu hoàn tiền</span>
+                            <span className="block text-xs font-bold text-amber-700 mb-1">{t('host_refund_req')}</span>
                             <button
                               onClick={() => handleRefundComplete(booking.id)}
                               className="w-full rounded bg-amber-600 py-1 text-xs font-bold text-white hover:bg-amber-700"
                             >
-                              Đã hoàn tiền
+                              {t('host_refunded')}
                             </button>
                           </div>
                         )}
 
                         {booking.refund_status === 'completed' && (
                           <div className="mt-2 text-center text-xs font-bold text-zinc-500 dark:text-slate-400 bg-zinc-100 dark:bg-slate-800 py-1 rounded">
-                            Đã hoàn tiền
+                            {t('host_refunded')}
                           </div>
                         )}
 
@@ -1123,7 +1129,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                             }}
                             className="mt-2 w-full rounded-lg bg-indigo-50 border border-indigo-200 px-2 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100"
                           >
-                            Đánh giá khách
+                            {t('host_eval_customer')}
                           </button>
                         )}
                       </div>
@@ -1131,7 +1137,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   </tr>
                 ))}
                 {bookings.length === 0 && (
-                  <tr><td colSpan={5}><EmptyRow text="Chưa có đơn đặt tour." /></td></tr>
+                  <tr><td colSpan={5}><EmptyRow text={t('host_no_bookings')} /></td></tr>
                 )}
               </tbody>
             </table>
@@ -1139,13 +1145,13 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
         )}
 
         {!loading && activeTab === 'reviews' && (
-          <HostTable title="Đánh giá từ khách hàng">
+          <HostTable title={t('host_reviews_title')}>
             <table className="min-w-full text-sm">
               <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
                 <tr>
-                  <th className="px-4 py-3 text-left">Tour</th>
-                  <th className="px-4 py-3 text-left">Khách hàng</th>
-                  <th className="px-4 py-3 text-left">Đánh giá</th>
+                  <th className="px-4 py-3 text-left">{t('host_table_tour')}</th>
+                  <th className="px-4 py-3 text-left">{t('host_table_contact')}</th>
+                  <th className="px-4 py-3 text-left">{t('host_table_rating')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200">
@@ -1154,7 +1160,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   return (
                     <tr key={review.id}>
                       <td className="px-4 py-3">
-                        <div className="font-bold text-zinc-900 dark:text-slate-100 line-clamp-1">{experience?.title || 'Tour đã xóa'}</div>
+                        <div className="font-bold text-zinc-900 dark:text-slate-100 line-clamp-1">{tDynamic(experience?.title) || t('host_tour_deleted')}</div>
                         <div className="text-xs text-zinc-500 dark:text-slate-400">{new Date(review.created_at).toLocaleDateString('vi-VN')}</div>
                       </td>
                       <td className="px-4 py-3">
@@ -1171,7 +1177,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   );
                 })}
                 {reviews.length === 0 && (
-                  <tr><td colSpan={3}><EmptyRow text="Chưa có đánh giá nào." /></td></tr>
+                  <tr><td colSpan={3}><EmptyRow text={t('host_no_reviews')} /></td></tr>
                 )}
               </tbody>
             </table>
@@ -1181,12 +1187,12 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
 
 
         {!loading && activeTab === 'profile' && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-black text-zinc-950 dark:text-slate-50">Hồ sơ cá nhân</h3>
-            <form onSubmit={updateProfile} className="max-w-2xl rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-6">
+          <div className="space-y-4 max-w-3xl mx-auto">
+            <h3 className="text-center text-lg font-black text-zinc-950 dark:text-slate-50">{t('host_profile_title')}</h3>
+            <form onSubmit={updateProfile} className="mx-auto max-w-2xl rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-6">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block sm:col-span-2">
-                  <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">Tên hiển thị</span>
+                  <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">{t('host_profile_name')}</span>
                   <input
                     value={profileForm.name}
                     onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
@@ -1194,7 +1200,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">Số điện thoại</span>
+                  <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">{t('host_profile_phone')}</span>
                   <input
                     value={profileForm.phone}
                     onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
@@ -1202,7 +1208,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">CMND/CCCD</span>
+                  <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">{t('host_profile_id')}</span>
                   <input
                     value={profileForm.id_number}
                     onChange={(e) => setProfileForm({ ...profileForm, id_number: e.target.value })}
@@ -1210,7 +1216,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   />
                 </label>
                 <label className="block sm:col-span-2">
-                  <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">Địa chỉ</span>
+                  <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">{t('host_profile_address')}</span>
                   <input
                     value={profileForm.address}
                     onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
@@ -1218,7 +1224,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   />
                 </label>
                 <label className="block sm:col-span-2">
-                  <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">Khu vực hoạt động</span>
+                  <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">{t('host_profile_area')}</span>
                   <input
                     value={profileForm.experience_location}
                     onChange={(e) => setProfileForm({ ...profileForm, experience_location: e.target.value })}
@@ -1226,7 +1232,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   />
                 </label>
                 <label className="block sm:col-span-2">
-                  <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">Mô tả bản thân</span>
+                  <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">{t('host_profile_desc')}</span>
                   <textarea
                     value={profileForm.description}
                     onChange={(e) => setProfileForm({ ...profileForm, description: e.target.value })}
@@ -1240,7 +1246,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   type="submit"
                   className="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-emerald-700"
                 >
-                  Cập nhật hồ sơ
+                  {t('host_profile_update')}
                 </button>
               </div>
             </form>
@@ -1258,13 +1264,15 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       {evaluatingBooking && (
         <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-white/80 backdrop-blur-lg dark:bg-slate-800 p-6 shadow-2xl">
-            <h3 className="mb-4 text-xl font-black text-zinc-900 dark:text-slate-100">Đánh giá khách hàng</h3>
+            <h3 className="mb-4 text-xl font-black text-zinc-900 dark:text-slate-100">{t('host_review_modal_title')}</h3>
             <div className="mb-4 rounded-lg bg-zinc-50 dark:bg-slate-900/50 p-3 text-sm">
-              Đánh giá khách hàng <span className="font-bold">{evaluatingBooking.contact_name}</span> cho đơn hàng <span className="font-bold">#{evaluatingBooking.id}</span>
+              {t('host_review_modal_desc')
+                .replace('{name}', evaluatingBooking.contact_name)
+                .replace('{id}', String(evaluatingBooking.id))}
             </div>
             <form onSubmit={submitHostReview} className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">Chất lượng (sao)</label>
+                <label className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">{t('host_review_rating_label')}</label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((value) => (
                     <button
@@ -1279,13 +1287,13 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">Nhận xét của bạn</label>
+                <label className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">{t('host_review_comment_label')}</label>
                 <textarea
                   value={hostReviewForm.comment}
                   onChange={(e) => setHostReviewForm({ ...hostReviewForm, comment: e.target.value })}
                   rows={4}
                   className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:border-indigo-500"
-                  placeholder="Khách hàng đã trải nghiệm như thế nào..."
+                  placeholder={t('host_review_comment_ph')}
                 />
               </div>
               <div className="flex gap-3 pt-4">
@@ -1294,13 +1302,13 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   onClick={() => setEvaluatingBooking(null)}
                   className="flex-1 rounded-xl bg-zinc-100 dark:bg-slate-800 py-2.5 text-sm font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-200 dark:hover:bg-slate-700"
                 >
-                  Hủy
+                  {t('host_form_cancel')}
                 </button>
                 <button
                   type="submit"
                   className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-bold text-white hover:bg-indigo-700"
                 >
-                  Gửi đánh giá
+                  {t('host_review_submit')}
                 </button>
               </div>
             </form>
@@ -1311,7 +1319,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       {scheduleExperience && (
         <ScheduleManager
           experienceId={scheduleExperience.id}
-          experienceTitle={scheduleExperience.title}
+          experienceTitle={tDynamic(scheduleExperience.title)}
           onClose={() => setScheduleExperience(null)}
         />
       )}
@@ -1322,7 +1330,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
           onClose={() => setViewExperienceDetail(null)}
           onBook={() => {
             setViewExperienceDetail(null);
-            alert('Quản trị viên không cần đặt tour trong chế độ xem trước!');
+            alert(t('admin_preview_no_booking'));
           }}
         />
       )}

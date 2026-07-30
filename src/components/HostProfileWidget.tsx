@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Star, MapPin } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface HostProfile {
   host_name: string;
@@ -11,6 +12,7 @@ interface HostProfile {
 }
 
 export default function HostProfileWidget({ email }: { email: string }) {
+  const { t } = useLanguage();
   const [profile, setProfile] = useState<HostProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -41,12 +43,12 @@ export default function HostProfileWidget({ email }: { email: string }) {
         <div className="mt-1 flex flex-wrap items-center gap-3 text-sm font-medium text-zinc-600">
           <span className="flex items-center gap-1">
             <Star className="h-4 w-4 text-emerald-600" />
-            {profile.average_rating > 0 ? profile.average_rating.toFixed(1) : 'Chưa có đánh giá'}
+            {profile.average_rating > 0 ? profile.average_rating.toFixed(1) : t('host_no_reviews')}
           </span>
           <span>•</span>
-          <span>{profile.total_reviews} bình luận</span>
+          <span>{profile.total_reviews} {t('detail_reviews_count')}</span>
           <span>•</span>
-          <span>{profile.total_experiences} tour</span>
+          <span>{profile.total_experiences} {t('detail_tours_count')}</span>
         </div>
         {profile.description && (
           <p className="mt-3 text-sm leading-relaxed text-zinc-600">

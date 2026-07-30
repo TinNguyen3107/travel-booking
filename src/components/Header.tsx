@@ -313,7 +313,7 @@ export default function Header({
               {isDark ? t('nav_dark_off') : t('nav_dark_on')}
             </button>
             {/* Mobile language toggle */}
-            {!adminMode && (
+            {(!adminMode || user?.role === 'host') && (
               <button
                 type="button"
                 onClick={() => setLang(lang === 'vi' ? 'en' : 'vi')}
