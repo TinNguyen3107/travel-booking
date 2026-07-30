@@ -597,6 +597,14 @@ class RelationalDatabase {
     return rows;
   }
 
+  public async getUserById(id: number): Promise<UserTable | undefined> {
+    const [rows] = await pool.query<UserRow[]>(
+      'SELECT id, email, role, fullname, avatar, phone, address FROM users WHERE id = ? LIMIT 1',
+      [id]
+    );
+    return rows[0];
+  }
+
   public async deleteUser(id: number): Promise<boolean> {
     const [result] = await pool.query<mysql.ResultSetHeader>(
       'DELETE FROM users WHERE id = ?',

@@ -10,6 +10,9 @@ export interface UserTable {
   password?: string;
   role: 'user' | 'admin' | 'host';
   fullname: string;
+  avatar?: string;
+  phone?: string;
+  address?: string;
 }
 
 export interface ExperienceTable {

@@ -97,6 +97,8 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
   const [experiences, setExperiences] = useState<ExperienceTable[]>([]);
   const [bookings, setBookings] = useState<BookingTable[]>([]);
   const [users, setUsers] = useState<UserTable[]>([]);
+  const [selectedUser, setSelectedUser] = useState<UserTable | null>(null);
+  const [selectedUserLoading, setSelectedUserLoading] = useState(false);
   const [hosts, setHosts] = useState<HostApplicationTable[]>([]);
   const [dbCategories, setDbCategories] = useState<{ id: number; name: string }[]>([]);
   const [newCategory, setNewCategory] = useState('');
@@ -138,6 +140,24 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
     () => Array.from(new Set(dbCategories.map(c => c.name))),
     [dbCategories]
   );
+
+  const getUserDetails = async (id: number) => {
+    setSelectedUserLoading(true);
+    try {
+      const user = await fetchJson<UserTable>(`/api/users/${id}`);
+      setSelectedUser(user);
+    } catch (err: any) {
+      setError(err.message || 'Không thể tải thông tin người dùng');
+    } finally {
+      setSelectedUserLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedUser?.id) return;
+    const interval = setInterval(() => getUserDetails(selectedUser.id), 10000);
+    return () => clearInterval(interval);
+  }, [selectedUser?.id]);
 
   const filteredExperiences = useMemo(() => {
     const keyword = searchTerm.trim().toLowerCase();
@@ -1259,49 +1279,104 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         )}
 
         {!loading && activeTab === 'users' && (
-          <AdminTable title="Phân quyền người dùng">
-            <table className="min-w-full text-sm">
-              <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
-                <tr>
-                  <th className="px-4 py-3 text-left">Người dùng</th>
-                  <th className="px-4 py-3 text-left">Email</th>
-                  <th className="px-4 py-3 text-left">Quyền</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-200">
-                {users.map((item) => (
-                  <tr key={item.id}>
-                    <td className="px-4 py-3 font-bold text-zinc-900 dark:text-slate-100">{item.fullname}</td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{item.email}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={item.role}
-                          onChange={(event) => updateUserRole(item.id, event.target.value as UserTable['role'])}
-                          className="rounded-lg border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
-                        >
-                          <option value="user">User</option>
-                          <option value="admin">Admin</option>
-                          <option value="host">Host</option>
-                        </select>
+          <>
+            <AdminTable title="Phân quyền người dùng">
+              <table className="min-w-full text-sm">
+                <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
+                  <tr>
+                    <th className="px-4 py-3 text-left">Người dùng</th>
+                    <th className="px-4 py-3 text-left">Email</th>
+                    <th className="px-4 py-3 text-left">Quyền</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-200">
+                  {users.map((item) => (
+                    <tr key={item.id}>
+                      <td className="px-4 py-3 font-bold text-zinc-900 dark:text-slate-100">
                         <button
                           type="button"
-                          onClick={() => deleteUser(item.id)}
-                          className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50"
-                          aria-label="Xóa người dùng"
+                          onClick={() => getUserDetails(item.id)}
+                          className="text-left font-bold text-emerald-700 hover:underline"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {item.fullname}
                         </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {users.length === 0 && (
-                  <tr><td colSpan={3}><EmptyRow text="Chưa có người dùng." /></td></tr>
-                )}
-              </tbody>
-            </table>
-          </AdminTable>
+                      </td>
+                      <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{item.email}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={item.role}
+                            onChange={(event) => updateUserRole(item.id, event.target.value as UserTable['role'])}
+                            className="rounded-lg border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm font-bold text-zinc-700 dark:text-slate-200 outline-none focus:border-emerald-500"
+                          >
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                            <option value="host">Host</option>
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => deleteUser(item.id)}
+                            className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50"
+                            aria-label="Xóa người dùng"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {users.length === 0 && (
+                    <tr><td colSpan={3}><EmptyRow text="Chưa có người dùng." /></td></tr>
+                  )}
+                </tbody>
+              </table>
+            </AdminTable>
+
+            {selectedUser && (
+              <div className="mt-6 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 p-5 shadow-sm">
+                <div className="flex items-center justify-between gap-4 mb-4">
+                  <div>
+                    <h3 className="text-lg font-black text-zinc-950 dark:text-slate-50">Thông tin người dùng</h3>
+                    <p className="text-sm text-zinc-500 dark:text-slate-400">Thông tin cập nhật mới nhất từ profile của người dùng.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => getUserDetails(selectedUser.id)}
+                    className="rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2 text-xs font-bold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-900"
+                  >
+                    {selectedUserLoading ? 'Đang tải...' : 'Tải lại'}
+                  </button>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="sm:col-span-1 flex flex-col items-center gap-3 rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900 p-4">
+                    <img
+                      src={selectedUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUser.fullname)}&background=10b981&color=fff&size=256`}
+                      alt={selectedUser.fullname}
+                      className="h-24 w-24 rounded-full object-cover"
+                    />
+                    <div className="text-center">
+                      <div className="font-bold text-zinc-900 dark:text-slate-100">{selectedUser.fullname}</div>
+                      <div className="text-xs text-zinc-500 dark:text-slate-400">{selectedUser.role.toUpperCase()}</div>
+                    </div>
+                  </div>
+                  <div className="sm:col-span-2 grid gap-3">
+                    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900 p-4">
+                      <div className="text-xs uppercase font-bold text-zinc-500 dark:text-slate-400">Email</div>
+                      <div className="mt-2 font-semibold text-zinc-900 dark:text-slate-100">{selectedUser.email}</div>
+                    </div>
+                    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900 p-4">
+                      <div className="text-xs uppercase font-bold text-zinc-500 dark:text-slate-400">Số điện thoại</div>
+                      <div className="mt-2 font-semibold text-zinc-900 dark:text-slate-100">{selectedUser.phone || 'Chưa cập nhật'}</div>
+                    </div>
+                    <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900 p-4">
+                      <div className="text-xs uppercase font-bold text-zinc-500 dark:text-slate-400">Địa chỉ</div>
+                      <div className="mt-2 font-semibold text-zinc-900 dark:text-slate-100">{selectedUser.address || 'Chưa cập nhật'}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {!loading && activeTab === 'hosts' && (

@@ -395,6 +395,25 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
+  app.get('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      if (!id) {
+        res.status(400).json({ error: 'ID người dùng không hợp lệ' });
+        return;
+      }
+
+      const user = await db.getUserById(id);
+      if (!user) {
+        res.status(404).json({ error: 'Không tìm thấy người dùng' });
+        return;
+      }
+
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (e: any) { handleError(res, e); }
+  });
+
   app.get('/api/users', authenticateToken, requireAdmin, async (_req, res) => {
     try {
       res.json(await db.getUsers());
