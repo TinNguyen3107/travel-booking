@@ -103,10 +103,18 @@ export default function Header({
 
   const { lang, setLang, t } = useLanguage();
 
+  const adminLabels = {
+    dashboard: 'Bảng điều khiển',
+    preview: 'Tour đang mở bán',
+    logout: 'Đăng xuất',
+    darkOn: 'Chuyển giao diện tối',
+    darkOff: 'Chuyển giao diện sáng'
+  };
+
   const navItems = adminMode
     ? [
-        { id: 'dashboard', label: t('nav_dashboard'), icon: LayoutDashboard },
-        { id: 'preview', label: t('nav_preview'), icon: Compass }
+        { id: 'dashboard', label: adminLabels.dashboard, icon: LayoutDashboard },
+        { id: 'preview', label: adminLabels.preview, icon: Compass }
       ]
     : [
         { id: 'about', label: t('nav_about') },
@@ -115,6 +123,9 @@ export default function Header({
         { id: 'community', label: t('nav_community') },
         { id: 'faq', label: t('nav_faq') }
       ];
+
+  const getDarkLabel = () => (adminMode ? (isDark ? adminLabels.darkOff : adminLabels.darkOn) : (isDark ? t('nav_dark_off') : t('nav_dark_on')));
+  const getLogoutLabel = () => (adminMode ? adminLabels.logout : t('nav_logout'));
 
   const handleNavClick = (id: string) => {
     onNavigate(id);
@@ -182,8 +193,8 @@ export default function Header({
           <button
             type="button"
             onClick={onToggleDark}
-            aria-label={isDark ? t('nav_dark_off') : t('nav_dark_on')}
-            title={isDark ? t('nav_dark_off') : t('nav_dark_on')}
+            aria-label={getDarkLabel()}
+            title={getDarkLabel()}
             className={`relative flex h-9 w-16 items-center rounded-full p-1 transition-all duration-300 ${
               isDark
                 ? 'bg-indigo-600 shadow-inner shadow-indigo-900'
@@ -258,7 +269,7 @@ export default function Header({
                 className="inline-flex items-center gap-2 rounded-lg border border-red-100 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
               >
                 <LogOut className="h-4 w-4" />
-                {t('nav_logout')}
+                {getLogoutLabel()}
               </button>
             </>
           ) : (
@@ -310,7 +321,7 @@ export default function Header({
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-zinc-700 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-700 dark:hover:text-white"
             >
               {isDark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-indigo-500" />}
-              {isDark ? t('nav_dark_off') : t('nav_dark_on')}
+              {getDarkLabel()}
             </button>
             {/* Mobile language toggle */}
             {(!adminMode || user?.role === 'host') && (
@@ -333,7 +344,7 @@ export default function Header({
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-100 px-3 py-2 text-sm font-semibold text-red-600"
               >
                 <LogOut className="h-4 w-4" />
-                {t('nav_logout')}
+                {getLogoutLabel()}
               </button>
             ) : (
               <button
