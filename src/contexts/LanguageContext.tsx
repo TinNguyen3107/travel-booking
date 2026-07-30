@@ -423,12 +423,18 @@ export const translations = {
     noti_unread: 'thông báo chưa đọc',
     noti_new_comment: 'Bình luận mới',
     noti_new_reaction: 'Cảm xúc mới',
+    noti_tour_approved_title: 'Tour đã được duyệt',
+    noti_tour_rejected_title: 'Tour đã bị từ chối',
+    noti_tour_approved_message: 'Tour {title} đã được admin phê duyệt và hiện có thể nhận khách.',
+    noti_tour_rejected_message: 'Tour {title} đã bị từ chối. Lý do: {reason}',
+    noti_tour_rejected_no_reason: 'Không có lý do cụ thể',
     noti_commented: 'đã bình luận về bài viết của bạn.',
     noti_reacted_comment: 'đã thả cảm xúc bình luận của bạn.',
     noti_reacted_post: 'đã thả cảm xúc bài viết của bạn.',
     noti_empty_title: 'Chưa có thông báo nào',
     noti_empty_desc: 'Khi có người tương tác với bài viết của bạn hoặc có cập nhật mới, thông báo sẽ hiển thị ở đây.',
     noti_delete_title: 'Xóa thông báo',
+
 
     footer_address: 'Ngũ Hành Sơn, Đà Nẵng, Việt Nam',
     review_img_optional: 'Đường dẫn hình ảnh minh họa (không bắt buộc)',
@@ -1014,7 +1020,7 @@ export const translations = {
   }
 } as const;
 
-export type TranslationKey = keyof typeof translations['vi'];
+export type TranslationKey = keyof typeof translations['vi'] | keyof typeof translations['en'];
 
 interface LanguageContextType {
   lang: Language;
