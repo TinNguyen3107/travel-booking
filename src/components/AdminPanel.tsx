@@ -171,8 +171,9 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
   }, [bookings, experiences, hosts, users]);
 
   useEffect(() => {
+    if (!currentUser?.email) return;
     fetchAllData();
-  }, []);
+  }, [currentUser?.email]);
 
   const fetchJson = async <T,>(url: string, options?: RequestInit): Promise<T> => {
     const headers = {

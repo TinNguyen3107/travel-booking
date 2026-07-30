@@ -417,11 +417,11 @@ export default function App() {
         <main id="dashboard" className="px-4 py-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-350">
             {activeSection !== 'hero' && user?.role === 'admin' && (
-              <AdminPanel onExperiencesChange={fetchExperiences} activeSection={activeSection === 'hero' ? 'dashboard' : activeSection} currentUser={user} />
+              <AdminPanel key={user.email} onExperiencesChange={fetchExperiences} activeSection={activeSection === 'hero' ? 'dashboard' : activeSection} currentUser={user} />
             )}
 
             {activeSection !== 'hero' && user?.role === 'host' && (
-              <HostDashboard onExperiencesChange={fetchExperiences} activeSection={activeSection === 'hero' ? 'dashboard' : activeSection} currentUser={user} />
+              <HostDashboard key={user.email} onExperiencesChange={fetchExperiences} activeSection={activeSection === 'hero' ? 'dashboard' : activeSection} currentUser={user} />
             )}
           </div>
         </main>
