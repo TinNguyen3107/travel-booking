@@ -866,6 +866,8 @@ export const translations = {
     detail_booking_open: 'Booking Period',
     detail_child_policy: 'Child Policy',
     detail_status: 'Status',
+    detail_room: 'Room',
+    detail_bed: 'Bed',
     detail_rooms: 'Rooms',
     detail_beds: 'Beds',
     detail_amenities: 'Amenities',
