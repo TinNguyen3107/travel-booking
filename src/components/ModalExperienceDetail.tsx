@@ -13,7 +13,7 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1476514525535-07fb3b4a
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function ModalExperienceDetail({ experience, onClose, onBook }: ModalExperienceDetailProps) {
-  const { t, tCategory, tDynamic } = useLanguage();
+  const { lang, t, tCategory, tDynamic } = useLanguage();
   const isOpen = isExperienceOpen(experience);
   const [schedules, setSchedules] = useState<TourScheduleTable[]>([]);
   const validSchedules = schedules.filter(s =>
