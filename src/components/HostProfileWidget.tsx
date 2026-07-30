@@ -12,7 +12,7 @@ interface HostProfile {
 }
 
 export default function HostProfileWidget({ email }: { email: string }) {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const [profile, setProfile] = useState<HostProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
