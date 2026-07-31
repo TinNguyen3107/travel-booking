@@ -178,6 +178,7 @@ app.use(async (req, res, next) => {
         email: user.email,
         fullname: user.fullname,
         role: user.role,
+        avatar: user.avatar || '',
         token
       });
     } catch (e: any) { handleError(res, e); }
