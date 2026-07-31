@@ -1072,6 +1072,14 @@ class RelationalDatabase {
     };
   }
 
+  public async findHostByEmail(email: string): Promise<HostApplicationTable | undefined> {
+    const [rows] = await pool.query<HostApplicationRow[]>(
+      'SELECT * FROM hosts WHERE LOWER(email) = LOWER(?) LIMIT 1',
+      [email.trim()]
+    );
+    return rows[0] ? normalizeHost(rows[0]) : undefined;
+  }
+
   public async getWishlists(email: string): Promise<number[]> {
     const [rows] = await pool.query<RowDataPacket[]>(
       'SELECT experience_id FROM wishlists WHERE LOWER(user_email) = LOWER(?)',
@@ -1173,10 +1181,20 @@ class RelationalDatabase {
     );
 
     if (result.affectedRows === 0) {
-      throw new Error('Không tìm thấy host để cập nhật');
+      const [insertResult] = await pool.query<mysql.ResultSetHeader>(
+        `INSERT INTO hosts (name, email, phone, address, id_number, experience_location, description, status, avatar)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'approved', ?)`,
+        [profile.name, email.trim().toLowerCase(), profile.phone, profile.address, profile.id_number, profile.experience_location, profile.description, profile.avatar || null]
+      );
+
+      const [rows] = await pool.query<HostApplicationRow[]>('SELECT * FROM hosts WHERE id = ? LIMIT 1', [insertResult.insertId]);
+      if (rows.length === 0) {
+        throw new Error('Lỗi khi tạo hồ sơ host mới');
+      }
+      return normalizeHost(rows[0]);
     }
 
-    const [rows] = await pool.query<HostApplicationRow[]>('SELECT * FROM hosts WHERE LOWER(email) = LOWER(?)', [email]);
+    const [rows] = await pool.query<HostApplicationRow[]>('SELECT * FROM hosts WHERE LOWER(email) = LOWER(?) ORDER BY id DESC LIMIT 1', [email]);
     if (rows.length === 0) {
       throw new Error('Lỗi khi lấy thông tin host sau khi cập nhật');
     }
