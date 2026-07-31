@@ -1173,19 +1173,65 @@ class RelationalDatabase {
       avatar?: string;
     }
   ): Promise<HostApplicationTable> {
-    const [result] = await pool.query<mysql.ResultSetHeader>(
-      `UPDATE hosts 
-       SET name = ?, phone = ?, address = ?, id_number = ?, experience_location = ?, description = ?, avatar = COALESCE(?, avatar)
-       WHERE LOWER(email) = LOWER(?)`,
-      [profile.name, profile.phone, profile.address, profile.id_number, profile.experience_location, profile.description, profile.avatar || null, email]
-    );
+    const normalizedEmail = email.trim().toLowerCase();
+    const avatarValue = profile.avatar ? profile.avatar : null;
 
-    if (result.affectedRows === 0) {
-      const [insertResult] = await pool.query<mysql.ResultSetHeader>(
-        `INSERT INTO hosts (name, email, phone, address, id_number, experience_location, description, status, avatar)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'approved', ?)`,
-        [profile.name, email.trim().toLowerCase(), profile.phone, profile.address, profile.id_number, profile.experience_location, profile.description, profile.avatar || null]
+    try {
+      await pool.query('ALTER TABLE hosts ADD COLUMN avatar VARCHAR(500) NULL');
+    } catch (e: any) {
+      // Ignore if the column already exists or if the DB schema cannot be altered.
+    }
+
+    let updatedRows = 0;
+    try {
+      const [result] = await pool.query<mysql.ResultSetHeader>(
+        `UPDATE hosts 
+         SET name = ?, phone = ?, address = ?, id_number = ?, experience_location = ?, description = ?, avatar = COALESCE(?, avatar)
+         WHERE LOWER(email) = LOWER(?)`,
+        [profile.name, profile.phone, profile.address, profile.id_number, profile.experience_location, profile.description, avatarValue, normalizedEmail]
       );
+      updatedRows = result.affectedRows;
+    } catch (e: any) {
+      if (String(e.message || '').toLowerCase().includes('unknown column') && avatarValue !== null) {
+        const [result] = await pool.query<mysql.ResultSetHeader>(
+          `UPDATE hosts 
+           SET name = ?, phone = ?, address = ?, id_number = ?, experience_location = ?, description = ?
+           WHERE LOWER(email) = LOWER(?)`,
+          [profile.name, profile.phone, profile.address, profile.id_number, profile.experience_location, profile.description, normalizedEmail]
+        );
+        updatedRows = result.affectedRows;
+      } else {
+        throw e;
+      }
+    }
+
+    if (updatedRows === 0) {
+      const insertColumns = ['name', 'email', 'phone', 'address', 'id_number', 'experience_location', 'description', 'status'];
+      const insertValues: Array<string | null> = [profile.name, normalizedEmail, profile.phone, profile.address, profile.id_number, profile.experience_location, profile.description, 'approved'];
+      let insertStatement = `INSERT INTO hosts (${insertColumns.join(', ')}) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+      if (avatarValue !== null) {
+        insertColumns.push('avatar');
+        insertValues.push(avatarValue);
+        insertStatement = `INSERT INTO hosts (${insertColumns.join(', ')}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      }
+
+      let insertResult: mysql.ResultSetHeader;
+      try {
+        const [result] = await pool.query<mysql.ResultSetHeader>(insertStatement, insertValues);
+        insertResult = result;
+      } catch (e: any) {
+        if (avatarValue !== null && String(e.message || '').toLowerCase().includes('unknown column')) {
+          const [result] = await pool.query<mysql.ResultSetHeader>(
+            `INSERT INTO hosts (name, email, phone, address, id_number, experience_location, description, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [profile.name, normalizedEmail, profile.phone, profile.address, profile.id_number, profile.experience_location, profile.description, 'approved']
+          );
+          insertResult = result;
+        } else {
+          throw e;
+        }
+      }
 
       const [rows] = await pool.query<HostApplicationRow[]>('SELECT * FROM hosts WHERE id = ? LIMIT 1', [insertResult.insertId]);
       if (rows.length === 0) {
@@ -1194,7 +1240,7 @@ class RelationalDatabase {
       return normalizeHost(rows[0]);
     }
 
-    const [rows] = await pool.query<HostApplicationRow[]>('SELECT * FROM hosts WHERE LOWER(email) = LOWER(?) ORDER BY id DESC LIMIT 1', [email]);
+    const [rows] = await pool.query<HostApplicationRow[]>('SELECT * FROM hosts WHERE LOWER(email) = LOWER(?) ORDER BY id DESC LIMIT 1', [normalizedEmail]);
     if (rows.length === 0) {
       throw new Error('Lỗi khi lấy thông tin host sau khi cập nhật');
     }
