@@ -1192,7 +1192,7 @@ class RelationalDatabase {
       );
       updatedRows = result.affectedRows;
     } catch (e: any) {
-      if (String(e.message || '').toLowerCase().includes('unknown column') && avatarValue !== null) {
+      if (String(e.message || '').toLowerCase().includes('unknown column')) {
         const [result] = await pool.query<mysql.ResultSetHeader>(
           `UPDATE hosts 
            SET name = ?, phone = ?, address = ?, id_number = ?, experience_location = ?, description = ?

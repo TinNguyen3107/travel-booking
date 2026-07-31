@@ -384,6 +384,24 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
+  app.get('/api/hosts/profile', authenticateToken, requireHostOrAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      let email = user.email;
+      if (user.role === 'admin') {
+        const queryEmail = cleanText(req.query.email);
+        email = queryEmail || email;
+      }
+      if (!email) {
+        res.status(400).json({ error: 'Email host không hợp lệ' });
+        return;
+      }
+
+      const profile = await db.getHostProfileByEmail(email);
+      res.json(profile);
+    } catch (e: any) { handleError(res, e); }
+  });
+
   app.get('/api/hosts/profile/:email', async (req, res) => {
     try {
       const email = cleanText(req.params.email);
