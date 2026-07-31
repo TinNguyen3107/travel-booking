@@ -421,7 +421,9 @@ export default function App() {
             )}
 
             {activeSection !== 'hero' && user?.role === 'host' && (
-              <HostDashboard key={user.email} onExperiencesChange={fetchExperiences} activeSection={activeSection === 'hero' ? 'dashboard' : activeSection} currentUser={user} />
+              <HostDashboard key={user.email} onExperiencesChange={fetchExperiences} activeSection={activeSection === 'hero' ? 'dashboard' : activeSection} currentUser={user} onCurrentUserUpdated={(updatedUser) => {
+                setUser(updatedUser);
+              }} />
             )}
           </div>
         </main>

@@ -1069,13 +1069,18 @@ app.use(async (req, res, next) => {
       const id_number = cleanText(req.body.id_number);
       const experience_location = cleanText(req.body.experience_location);
       const description = cleanText(req.body.description);
+      const avatar = typeof req.body.avatar === 'string' ? req.body.avatar : undefined;
 
       if (!email || !name || !phone || !address || !id_number || !experience_location || !description) {
         res.status(400).json({ error: 'Vui lòng nhập đầy đủ thông tin' });
         return;
       }
 
-      res.json(await db.updateHostProfile(email, { name, phone, address, id_number, experience_location, description }));
+      const updatedHost = await db.updateHostProfile(email, { name, phone, address, id_number, experience_location, description, avatar });
+      if (avatar) {
+        await db.updateUserProfile(email, { avatar });
+      }
+      res.json(updatedHost);
     } catch (e: any) { handleError(res, e); }
   });
 

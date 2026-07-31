@@ -109,6 +109,7 @@ export interface HostApplicationTable {
   experience_location: string;
   description: string;
   status: 'pending' | 'approved' | 'rejected' | 'suspended';
+  avatar?: string;
   created_at: string;
 }
 

@@ -1042,7 +1042,7 @@ class RelationalDatabase {
   public async getHostProfileByEmail(email: string): Promise<any> {
     const normalizedEmail = email.trim().toLowerCase();
     const [hostRows] = await pool.query<RowDataPacket[]>(
-      'SELECT name, description, avatar FROM hosts WHERE LOWER(email) = ? LIMIT 1',
+      'SELECT name, description, avatar, phone, address, id_number, experience_location FROM hosts WHERE LOWER(email) = ? LIMIT 1',
       [normalizedEmail]
     );
     const [statsRows] = await pool.query<RowDataPacket[]>(
@@ -1062,6 +1062,10 @@ class RelationalDatabase {
       host_name: host?.name || email.split('@')[0],
       description: host?.description || '',
       avatar: host?.avatar || '',
+      phone: host?.phone || '',
+      address: host?.address || '',
+      id_number: host?.id_number || '',
+      experience_location: host?.experience_location || '',
       total_experiences: toNumber(stats?.total_experiences),
       total_reviews: toNumber(stats?.total_reviews),
       average_rating: Math.round((toNumber(stats?.average_rating) || 0) * 10) / 10
@@ -1158,20 +1162,21 @@ class RelationalDatabase {
       id_number: string;
       experience_location: string;
       description: string;
+      avatar?: string;
     }
   ): Promise<HostApplicationTable> {
     const [result] = await pool.query<mysql.ResultSetHeader>(
       `UPDATE hosts 
-       SET name = ?, phone = ?, address = ?, id_number = ?, experience_location = ?, description = ?
-       WHERE email = ?`,
-      [profile.name, profile.phone, profile.address, profile.id_number, profile.experience_location, profile.description, email]
+       SET name = ?, phone = ?, address = ?, id_number = ?, experience_location = ?, description = ?, avatar = COALESCE(?, avatar)
+       WHERE LOWER(email) = LOWER(?)`,
+      [profile.name, profile.phone, profile.address, profile.id_number, profile.experience_location, profile.description, profile.avatar || null, email]
     );
 
     if (result.affectedRows === 0) {
       throw new Error('Không tìm thấy host để cập nhật');
     }
 
-    const [rows] = await pool.query<HostApplicationRow[]>('SELECT * FROM hosts WHERE email = ?', [email]);
+    const [rows] = await pool.query<HostApplicationRow[]>('SELECT * FROM hosts WHERE LOWER(email) = LOWER(?)', [email]);
     if (rows.length === 0) {
       throw new Error('Lỗi khi lấy thông tin host sau khi cập nhật');
     }

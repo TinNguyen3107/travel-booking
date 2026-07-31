@@ -49,6 +49,7 @@ interface HostDashboardProps {
   onExperiencesChange: () => void;
   activeSection: string;
   currentUser?: any;
+  onCurrentUserUpdated?: (updatedUser: any) => void;
 }
 
 type HostTab = 'overview' | 'experiences' | 'bookings' | 'profile' | 'reviews';
@@ -109,7 +110,7 @@ const statusClass = (status: string) => {
   return 'bg-amber-50 text-amber-700 border-amber-100';
 };
 
-export default function HostDashboard({ onExperiencesChange, activeSection, currentUser }: HostDashboardProps) {
+export default function HostDashboard({ onExperiencesChange, activeSection, currentUser, onCurrentUserUpdated }: HostDashboardProps) {
   const [activeTab, setActiveTab] = useState<HostTab>('overview');
   const [experiences, setExperiences] = useState<ExperienceTable[]>([]);
   const [bookings, setBookings] = useState<BookingTable[]>([]);
@@ -126,7 +127,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
   const [viewExperienceDetail, setViewExperienceDetail] = useState<ExperienceTable | null>(null);
   const [scheduleExperience, setScheduleExperience] = useState<ExperienceTable | null>(null);
   const [confirmConfig, setConfirmConfig] = useState<ConfirmConfig | null>(null);
-  const [profileForm, setProfileForm] = useState({ name: '', phone: '', address: '', id_number: '', experience_location: '', description: '' });
+  const [profileForm, setProfileForm] = useState({ name: '', phone: '', address: '', id_number: '', experience_location: '', description: '', avatar: '' });
   const [isProfileInitialized, setIsProfileInitialized] = useState(false);
   const [evaluatingBooking, setEvaluatingBooking] = useState<BookingTable | null>(null);
   const [hostReviewForm, setHostReviewForm] = useState({ rating: 5, comment: '' });
@@ -220,7 +221,8 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
           address: currentHost.address,
           id_number: currentHost.id_number,
           experience_location: currentHost.experience_location,
-          description: currentHost.description
+          description: currentHost.description,
+          avatar: currentHost.avatar || ''
         });
         setIsProfileInitialized(true);
       }
@@ -255,12 +257,13 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
 
     try {
       const isAdmin = currentUser?.role === 'admin';
-      const [experienceData, bookingsData, categoryData, reviewsData, hostsData] = await Promise.all([
+      const [experienceData, bookingsData, categoryData, reviewsData, hostsData, hostProfileData] = await Promise.all([
         fetchJson<ExperienceTable[]>('/api/experiences'),
         fetchJson<BookingTable[]>(`/api/bookings?role=${currentUser?.role}&email=${encodeURIComponent(currentUser?.email)}`),
         fetchJson<{ id: number; name: string }[]>('/api/categories'),
         fetchJson<any[]>('/api/reviews'),
-        isAdmin ? fetchJson<HostApplicationTable[]>('/api/hosts') : Promise.resolve([])
+        isAdmin ? fetchJson<HostApplicationTable[]>('/api/hosts') : Promise.resolve([]),
+        currentUser?.role === 'host' ? fetchJson<any>(`/api/hosts/profile/${encodeURIComponent(currentUser.email)}`) : Promise.resolve(null)
       ]);
 
       const hostExperiences = isAdmin ? (experienceData || []) : (experienceData || []).filter(e => e.host_email === currentUser?.email);
@@ -269,6 +272,19 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       setHosts(hostsData || []);
       setDbCategories(categoryData || []);
       setReviews((reviewsData || []).filter((r: any) => hostExperiences.some(e => e.id === r.experience_id)));
+
+      if (currentUser?.role === 'host' && hostProfileData) {
+        setProfileForm({
+          name: hostProfileData.host_name || '',
+          phone: hostProfileData.phone || '',
+          address: hostProfileData.address || '',
+          id_number: hostProfileData.id_number || '',
+          experience_location: hostProfileData.experience_location || '',
+          description: hostProfileData.description || '',
+          avatar: hostProfileData.avatar || ''
+        });
+        setIsProfileInitialized(true);
+      }
 
       // Fetch notifications
       try {
@@ -432,6 +448,11 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
         body: JSON.stringify({ email: currentUser?.email, ...profileForm })
       });
       alert(t('host_profile_success'));
+      if (currentUser?.role === 'host') {
+        const updatedUser = { ...currentUser, avatar: profileForm.avatar || currentUser.avatar };
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        onCurrentUserUpdated?.(updatedUser);
+      }
       await fetchAllData();
     } catch (err: any) {
       setError(err.message);
@@ -1230,6 +1251,43 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                     onChange={(e) => setProfileForm({ ...profileForm, experience_location: e.target.value })}
                     className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2 outline-none focus:border-emerald-500"
                   />
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">{t('profile_avatar')}</span>
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={profileForm.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileForm.name || 'Host')}&background=10b981&color=fff&size=256`}
+                      alt={profileForm.name || 'Host'}
+                      className="h-20 w-20 rounded-full object-cover border border-zinc-200 dark:border-slate-700"
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        try {
+                          const res = await fetch('/api/upload', {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                            body: formData
+                          });
+                          const data = await res.json();
+                          if (res.ok) {
+                            setProfileForm((prev) => ({ ...prev, avatar: data.url }));
+                          } else {
+                            alert(data.error || 'Lỗi upload ảnh');
+                          }
+                        } catch (err) {
+                          console.error(err);
+                          alert('Lỗi kết nối khi upload');
+                        }
+                      }}
+                      className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2 text-sm outline-none file:mr-4 file:py-2 file:px-3 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                    />
+                  </div>
                 </label>
                 <label className="block sm:col-span-2">
                   <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">{t('host_profile_desc')}</span>
