@@ -665,13 +665,44 @@ class RelationalDatabase {
 
     if (entries.length === 0) return false;
 
+    if (payload.avatar !== undefined) {
+      try {
+        await pool.query('ALTER TABLE users ADD COLUMN avatar VARCHAR(500) NULL');
+      } catch (e: any) {
+        // Ignore if column already exists or cannot be altered.
+      }
+    }
+
     const setClause = entries.map(([field]) => `${field} = ?`).join(', ');
     const values = entries.map(([, value]) => value);
 
-    const [result] = await pool.query<mysql.ResultSetHeader>(
-      `UPDATE users SET ${setClause} WHERE LOWER(email) = LOWER(?)`,
-      [...values, email.trim()]
-    );
+    let result: mysql.ResultSetHeader;
+    try {
+      const [queryResult] = await pool.query<mysql.ResultSetHeader>(
+        `UPDATE users SET ${setClause} WHERE LOWER(email) = LOWER(?)`,
+        [...values, email.trim()]
+      );
+      result = queryResult;
+    } catch (e: any) {
+      if (String(e.message || '').toLowerCase().includes('unknown column')) {
+        if (payload.avatar !== undefined) {
+          try {
+            await pool.query('ALTER TABLE users ADD COLUMN avatar VARCHAR(500) NULL');
+          } catch (ignored: any) {
+            // ignore
+          }
+          const [queryResult] = await pool.query<mysql.ResultSetHeader>(
+            `UPDATE users SET ${setClause} WHERE LOWER(email) = LOWER(?)`,
+            [...values, email.trim()]
+          );
+          result = queryResult;
+        } else {
+          throw e;
+        }
+      } else {
+        throw e;
+      }
+    }
 
     // Propagate fullname changes to posts and comments
     if (payload.fullname) {

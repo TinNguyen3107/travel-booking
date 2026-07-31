@@ -1074,9 +1074,13 @@ app.use(async (req, res, next) => {
 
   app.put('/api/hosts/profile', authenticateToken, requireHostOrAdmin, async (req, res) => {
     try {
-      const email = cleanText(req.body.email).toLowerCase();
+      let email = cleanText(req.body.email);
       const user = (req as any).user;
-      
+      if (!email) {
+        email = user.email;
+      }
+      email = email.toLowerCase();
+
       if (user.role !== 'admin' && user.email !== email) {
         res.status(403).json({ error: 'Không có quyền cập nhật hồ sơ của host khác' });
         return;
