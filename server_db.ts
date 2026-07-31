@@ -408,10 +408,10 @@ class RelationalDatabase {
     } catch (e: any) { }
 
     try { await pool.query("ALTER TABLE bookings ADD COLUMN refund_status ENUM('none', 'pending', 'completed') NOT NULL DEFAULT 'none' AFTER payment_status"); } catch (e: any) { }
-    try { await pool.query("ALTER TABLE users ADD COLUMN avatar VARCHAR(500) NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE users ADD COLUMN avatar LONGTEXT NULL"); } catch (e: any) { }
     try { await pool.query("ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL"); } catch (e: any) { }
     try { await pool.query("ALTER TABLE users ADD COLUMN address TEXT NULL"); } catch (e: any) { }
-    try { await pool.query("ALTER TABLE hosts ADD COLUMN avatar VARCHAR(500) NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE hosts ADD COLUMN avatar LONGTEXT NULL"); } catch (e: any) { }
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS notifications (
@@ -667,9 +667,14 @@ class RelationalDatabase {
 
     if (payload.avatar !== undefined) {
       try {
-        await pool.query('ALTER TABLE users ADD COLUMN avatar VARCHAR(500) NULL');
+        await pool.query('ALTER TABLE users ADD COLUMN avatar LONGTEXT NULL');
       } catch (e: any) {
-        // Ignore if column already exists or cannot be altered.
+        // Ignore if column already exists.
+      }
+      try {
+        await pool.query('ALTER TABLE users MODIFY COLUMN avatar LONGTEXT NULL');
+      } catch (e: any) {
+        // Ignore if modify fails.
       }
     }
 
@@ -687,7 +692,7 @@ class RelationalDatabase {
       if (String(e.message || '').toLowerCase().includes('unknown column')) {
         if (payload.avatar !== undefined) {
           try {
-            await pool.query('ALTER TABLE users ADD COLUMN avatar VARCHAR(500) NULL');
+            await pool.query('ALTER TABLE users ADD COLUMN avatar LONGTEXT NULL');
           } catch (ignored: any) {
             // ignore
           }
@@ -1208,9 +1213,14 @@ class RelationalDatabase {
     const avatarValue = profile.avatar ? profile.avatar : null;
 
     try {
-      await pool.query('ALTER TABLE hosts ADD COLUMN avatar VARCHAR(500) NULL');
+      await pool.query('ALTER TABLE hosts ADD COLUMN avatar LONGTEXT NULL');
     } catch (e: any) {
-      // Ignore if the column already exists or if the DB schema cannot be altered.
+      // Ignore if the column already exists.
+    }
+    try {
+      await pool.query('ALTER TABLE hosts MODIFY COLUMN avatar LONGTEXT NULL');
+    } catch (e: any) {
+      // Ignore if modify fails.
     }
 
     let updatedRows = 0;

@@ -384,20 +384,32 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
-  app.get('/api/hosts/profile', authenticateToken, requireHostOrAdmin, async (req, res) => {
+  app.get('/api/hosts/profile', async (req, res) => {
     try {
-      const user = (req as any).user;
-      let email = user.email;
-      if (user.role === 'admin') {
-        const queryEmail = cleanText(req.query.email);
-        email = queryEmail || email;
+      let email = '';
+      const authHeader = req.headers['authorization'];
+      if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        try {
+          const decoded = jwt.verify(token, JWT_SECRET) as any;
+          if (decoded?.email) {
+            email = cleanText(decoded.email);
+          }
+        } catch {
+          // Ignore invalid token and allow fallback to query email
+        }
       }
+
+      if (!email) {
+        email = cleanText(req.query.email);
+      }
+
       if (!email) {
         res.status(400).json({ error: 'Email host không hợp lệ' });
         return;
       }
 
-      const profile = await db.getHostProfileByEmail(email);
+      const profile = await db.getHostProfileByEmail(email.toLowerCase());
       res.json(profile);
     } catch (e: any) { handleError(res, e); }
   });
