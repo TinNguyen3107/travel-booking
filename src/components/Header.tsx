@@ -104,11 +104,11 @@ export default function Header({
   const { lang, setLang, t } = useLanguage();
 
   const adminLabels = {
-    dashboard: 'Bảng điều khiển',
-    preview: 'Tour đang mở bán',
-    logout: 'Đăng xuất',
-    darkOn: 'Chuyển giao diện tối',
-    darkOff: 'Chuyển giao diện sáng'
+    dashboard: t('nav_dashboard'),
+    preview: t('nav_preview'),
+    logout: t('nav_logout'),
+    darkOn: t('nav_dark_on'),
+    darkOff: t('nav_dark_off')
   };
 
   const navItems = adminMode
@@ -213,7 +213,6 @@ export default function Header({
           </button>
 
           {/* Language toggle */}
-          {(!adminMode || user?.role === 'host') && (
             <button
               type="button"
               onClick={() => setLang(lang === 'vi' ? 'en' : 'vi')}
@@ -224,7 +223,6 @@ export default function Header({
               {lang === 'vi' ? <FlagUK /> : <FlagVN />}
               <span className="hidden sm:inline">{lang === 'vi' ? 'EN' : 'VI'}</span>
             </button>
-          )}
 
           {user ? (
             <>
@@ -324,7 +322,6 @@ export default function Header({
               {getDarkLabel()}
             </button>
             {/* Mobile language toggle */}
-            {(!adminMode || user?.role === 'host') && (
               <button
                 type="button"
                 onClick={() => setLang(lang === 'vi' ? 'en' : 'vi')}
@@ -333,7 +330,6 @@ export default function Header({
                 {lang === 'vi' ? <FlagUK /> : <FlagVN />}
                 {t('lang_toggle')}
               </button>
-            )}
             {user ? (
               <button
                 type="button"

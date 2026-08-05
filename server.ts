@@ -1111,9 +1111,7 @@ app.use(async (req, res, next) => {
       }
 
       const updatedHost = await db.updateHostProfile(email, { name, phone, address, id_number, experience_location, description, avatar });
-      if (avatar) {
-        await db.updateUserProfile(email, { avatar });
-      }
+      await db.updateUserProfile(email, { fullname: name, phone, address, ...(avatar && { avatar }) });
       res.json(updatedHost);
     } catch (e: any) { handleError(res, e); }
   });
