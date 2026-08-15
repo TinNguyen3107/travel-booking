@@ -388,7 +388,7 @@ class RelationalDatabase {
       CREATE TABLE IF NOT EXISTS experience_daily_quotas (
         id INT AUTO_INCREMENT PRIMARY KEY,
         experience_id INT NOT NULL,
-        booking_date DATE NOT NULL,
+        booking_date DATE NOT NULL, 
         max_capacity INT NOT NULL,
         booked_count INT NOT NULL DEFAULT 0,
         UNIQUE KEY unique_exp_date (experience_id, booking_date),
