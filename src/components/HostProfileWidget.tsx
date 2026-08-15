@@ -161,19 +161,7 @@ export default function HostProfileWidget({ email }: { email: string }) {
                   </div>
                 )}
 
-                {profile.id_number && (
-                  <div className="flex items-start gap-3 p-4 rounded-2xl bg-zinc-50 dark:bg-slate-800/50 border border-zinc-100 dark:border-slate-700">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
-                      <CreditCard className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">{t('host_profile_id')}</h4>
-                      <p className="mt-1 text-sm font-semibold text-zinc-900 dark:text-slate-200">
-                        {profile.id_number}
-                      </p>
-                    </div>
-                  </div>
-                )}
+
 
                 {profile.description && (
                   <div className="flex items-start gap-3 p-4 rounded-2xl bg-zinc-50 dark:bg-slate-800/50 border border-zinc-100 dark:border-slate-700">
