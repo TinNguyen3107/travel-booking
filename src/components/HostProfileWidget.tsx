@@ -49,7 +49,7 @@ export default function HostProfileWidget({ email }: { email: string }) {
 
   return (
     <>
-      <button 
+      <button
         type="button"
         onClick={() => setShowModal(true)}
         className="w-full text-left rounded-2xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg p-5 flex items-center gap-4 hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:border-emerald-500/50 dark:hover:bg-slate-800/80 transition-all group"
@@ -82,8 +82,8 @@ export default function HostProfileWidget({ email }: { email: string }) {
       </button>
 
       {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm transition-all">
-          <div 
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm transition-all">
+          <div
             className="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
@@ -109,7 +109,7 @@ export default function HostProfileWidget({ email }: { email: string }) {
                   className="w-24 h-24 rounded-full object-cover shadow-lg border-4 border-white dark:border-slate-800 mb-4"
                 />
                 <h3 className="text-2xl font-black text-zinc-900 dark:text-slate-50 mb-1">{profile.host_name}</h3>
-                
+
                 <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-medium text-zinc-600 dark:text-slate-400 mt-2">
                   <span className="flex items-center gap-1.5 bg-zinc-100 dark:bg-slate-800 px-3 py-1 rounded-full">
                     <Star className="h-4 w-4 text-emerald-500" />
@@ -190,7 +190,7 @@ export default function HostProfileWidget({ email }: { email: string }) {
                 )}
               </div>
             </div>
-            
+
           </div>
           {/* Invisible backdrop click handler */}
           <div className="absolute inset-0 z-[-1]" onClick={() => setShowModal(false)}></div>
