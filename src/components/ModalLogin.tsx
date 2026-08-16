@@ -9,7 +9,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 interface ModalLoginProps {
   onClose: () => void;
-  onLoginSuccess: (user: { email: string; fullname: string; role: 'user' | 'admin' | 'host' }) => void;
+  onLoginSuccess: (user: { email: string; fullname: string; role: 'user' | 'admin' | 'host'; token?: string }) => void;
 }
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
