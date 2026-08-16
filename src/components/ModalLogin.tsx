@@ -27,7 +27,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const GOOGLE_CLIENT_ID = (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID || '';
+  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
   
   const handleGoogleCredentialResponse = async (response: any) => {
     try {
