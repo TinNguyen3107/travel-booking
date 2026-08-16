@@ -55,13 +55,18 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
     const initGoogle = () => {
       const google = (window as any).google;
       if (google && google.accounts && document.getElementById('googleSignInDiv')) {
+        // Prevent multiple initialization errors by checking if button already rendered
+        if (document.getElementById('googleSignInDiv')?.innerHTML !== '') {
+          return;
+        }
+
         google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: handleGoogleCredentialResponse
         });
         google.accounts.id.renderButton(
           document.getElementById('googleSignInDiv'),
-          { theme: 'outline', size: 'large', width: '100%', text: isRegisterMode ? 'signup_with' : 'signin_with' }
+          { theme: 'outline', size: 'large', text: isRegisterMode ? 'signup_with' : 'signin_with' }
         );
       }
     };
