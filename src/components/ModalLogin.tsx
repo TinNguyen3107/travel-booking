@@ -298,7 +298,7 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
             </button>
           </form>
 
-          {!isForgotPassword && GOOGLE_CLIENT_ID && (
+          {!isForgotPassword && (
             <>
               <div className="relative mt-6">
                 <div className="absolute inset-0 flex items-center">
@@ -312,8 +312,13 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
               </div>
 
               <div className="mt-6 flex justify-center w-full">
-                {/* Google Sign In Button Container */}
-                <div id="googleSignInDiv" className="w-full flex justify-center"></div>
+                {!GOOGLE_CLIENT_ID ? (
+                  <div className="text-xs text-red-500 p-2 border border-red-200 rounded text-center">
+                    ⚠️ Thiếu VITE_GOOGLE_CLIENT_ID trong biến môi trường
+                  </div>
+                ) : (
+                  <div id="googleSignInDiv" className="w-full flex justify-center"></div>
+                )}
               </div>
             </>
           )}
