@@ -314,6 +314,10 @@ export const translations = {
     auth_password_new_ph: 'Mật khẩu mới (tối thiểu 6 ký tự)',
     auth_password_confirm_ph: 'Nhập lại mật khẩu mới',
     auth_reset_btn: 'Đổi mật khẩu',
+    auth_or_continue_with: 'Hoặc tiếp tục với',
+    auth_google_error: 'Đăng nhập Google thất bại',
+    auth_google_cancel: 'Bạn đã huỷ đăng nhập Google',
+    auth_google_email_exists: 'Email này đã được đăng ký. Đang đăng nhập...',
 
     // User Profile
     profile_title: 'Thông tin cá nhân',
@@ -826,6 +830,10 @@ export const translations = {
     auth_password_new_ph: 'New password (at least 6 characters)',
     auth_password_confirm_ph: 'Re-enter new password',
     auth_reset_btn: 'Reset Password',
+    auth_or_continue_with: 'Or continue with',
+    auth_google_error: 'Google sign-in failed',
+    auth_google_cancel: 'You cancelled Google sign-in',
+    auth_google_email_exists: 'This email is already registered. Signing in...',
 
     // User Profile
     profile_title: 'Personal Information',

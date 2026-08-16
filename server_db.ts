@@ -653,6 +653,29 @@ class RelationalDatabase {
     };
   }
 
+  public async registerGoogleUser(email: string, fullname: string, avatar: string): Promise<UserTable> {
+    const normalizedEmail = email.trim().toLowerCase();
+    const existing = await this.findUser(normalizedEmail);
+
+    if (existing) {
+      throw new Error('Email đã được đăng ký trên hệ thống');
+    }
+
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      'INSERT INTO users (email, password, role, fullname, avatar) VALUES (?, ?, ?, ?, ?)',
+      [normalizedEmail, '', 'user', fullname.trim(), avatar]
+    );
+
+    return {
+      id: result.insertId,
+      email: normalizedEmail,
+      password: '',
+      fullname: fullname.trim(),
+      role: 'user',
+      avatar: avatar
+    } as UserTable;
+  }
+
   public async updateUserProfile(email: string, payload: any): Promise<boolean> {
     if (payload.password) {
       payload.password = await bcrypt.hash(payload.password, 10);

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertCircle, Lock, LogIn, Mail, User, X, Eye, EyeOff } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -26,6 +26,50 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const GOOGLE_CLIENT_ID = (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID || '';
+  
+  const handleGoogleCredentialResponse = async (response: any) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: response.credential })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || t('auth_google_error'));
+      
+      localStorage.setItem('auth_token', data.token);
+      onLoginSuccess({ email: data.email, fullname: data.fullname, role: data.role });
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return;
+
+    const initGoogle = () => {
+      const google = (window as any).google;
+      if (google && google.accounts && document.getElementById('googleSignInDiv')) {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleCredentialResponse
+        });
+        google.accounts.id.renderButton(
+          document.getElementById('googleSignInDiv'),
+          { theme: 'outline', size: 'large', width: '100%', text: isRegisterMode ? 'signup_with' : 'signin_with' }
+        );
+      }
+    };
+    
+    const timer = setTimeout(initGoogle, 300);
+    return () => clearTimeout(timer);
+  }, [isRegisterMode, GOOGLE_CLIENT_ID]);
+
   const validateForm = () => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = fullname.trim();
@@ -248,6 +292,26 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
               )}
             </button>
           </form>
+
+          {!isForgotPassword && GOOGLE_CLIENT_ID && (
+            <>
+              <div className="relative mt-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-zinc-200 dark:border-slate-700"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-white px-2 text-zinc-500 dark:bg-slate-900 dark:text-slate-400">
+                    {t('auth_or_continue_with')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-center w-full">
+                {/* Google Sign In Button Container */}
+                <div id="googleSignInDiv" className="w-full flex justify-center"></div>
+              </div>
+            </>
+          )}
 
           <div className="mt-5 text-center text-sm text-zinc-500 dark:text-slate-400">
             {isForgotPassword ? (

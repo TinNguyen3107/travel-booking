@@ -16,7 +16,15 @@ import crypto from 'crypto';
 if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
   console.warn('WARNING: JWT_SECRET is not defined. Tokens will be invalidated on restart.');
 }
-const JWT_SECRET = process.env.JWT_SECRET || 'travel_booking_fallback_secret_key_12345_do_not_use_in_production_unless_set';
+const JWT_SECRET = process.env.JWT_SECRET || 'viet_tour_secret_key_2024';
+
+// Mock Email Service
+const sendConfirmationEmail = async (email: string, fullname: string) => {
+  console.log(`\n[EMAIL SERVICE] Sending registration confirmation to ${email}`);
+  console.log(`[EMAIL SERVICE] Subject: Chào mừng ${fullname} đến với VietTour!`);
+  console.log(`[EMAIL SERVICE] Body: Kính chào ${fullname},\nTài khoản của bạn đã được đăng ký thành công thông qua Google. Email của bạn là ${email}.\nCảm ơn bạn đã sử dụng hệ thống của chúng tôi.\n`);
+  return true;
+};
 
 const PORT = 3000;
 const FALLBACK_IMAGE =
@@ -149,6 +157,12 @@ app.use(async (req, res, next) => {
         return;
       }
 
+      // Google-registered users must use Google sign-in
+      if (!user.password) {
+        res.status(401).json({ error: 'Tài khoản này được đăng ký qua Google. Vui lòng đăng nhập bằng Google.' });
+        return;
+      }
+
       // Hỗ trợ migration: nếu password độ dài bình thường và chưa hash, so sánh trực tiếp, sau đó hash lại nếu đúng
       let passwordMatch = false;
       if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$') || user.password.startsWith('$2y$')) {
@@ -181,6 +195,67 @@ app.use(async (req, res, next) => {
         avatar: user.avatar || '',
         token
       });
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.post('/api/auth/google', async (req, res) => {
+    try {
+      const { credential } = req.body;
+      if (!credential) {
+        return res.status(400).json({ error: 'Token is required' });
+      }
+
+      // Verify token with Google's endpoint
+      const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+      if (!response.ok) {
+        return res.status(401).json({ error: 'Google OAuth failed or token is invalid' });
+      }
+
+      const payload = await response.json();
+      const email = payload.email?.toLowerCase();
+      const fullname = payload.name;
+      const avatar = payload.picture;
+
+      if (!email) {
+        return res.status(400).json({ error: 'Không thể lấy email từ tài khoản Google' });
+      }
+
+      let user = await db.findUser(email);
+      let isNewUser = false;
+
+      if (!user) {
+        // Register new Google user
+        user = await db.registerGoogleUser(email, fullname, avatar || '');
+        isNewUser = true;
+      } else {
+        // Update avatar and name if user exists but missing
+        if (avatar && !user.avatar) {
+          await db.updateUserProfile(email, { avatar, fullname: user.fullname || fullname });
+          user = await db.findUser(email) || user;
+        }
+      }
+
+      // Generate JWT
+      const token = jwt.sign(
+        { id: user.id, email: user.email, role: user.role },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      // Send confirmation email
+      if (isNewUser) {
+        await sendConfirmationEmail(email, user.fullname);
+      }
+
+      res.json({
+        id: user.id,
+        email: user.email,
+        fullname: user.fullname,
+        role: user.role,
+        avatar: user.avatar,
+        token
+      });
+
     } catch (e: any) { handleError(res, e); }
   });
 
