@@ -41,8 +41,8 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || t('auth_google_error'));
       
-      localStorage.setItem('auth_token', data.token);
-      onLoginSuccess({ email: data.email, fullname: data.fullname, role: data.role });
+      // Pass token inside the user object so App.tsx handleLoginSuccess saves it correctly
+      onLoginSuccess({ email: data.email, fullname: data.fullname, role: data.role, token: data.token });
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
