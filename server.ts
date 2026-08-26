@@ -18,14 +18,6 @@ if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
 }
 const JWT_SECRET = process.env.JWT_SECRET || 'viet_tour_secret_key_2024';
 
-// Mock Email Service
-const sendConfirmationEmail = async (email: string, fullname: string) => {
-  console.log(`\n[EMAIL SERVICE] Sending registration confirmation to ${email}`);
-  console.log(`[EMAIL SERVICE] Subject: Chào mừng ${fullname} đến với VietTour!`);
-  console.log(`[EMAIL SERVICE] Body: Kính chào ${fullname},\nTài khoản của bạn đã được đăng ký thành công thông qua Google. Email của bạn là ${email}.\nCảm ơn bạn đã sử dụng hệ thống của chúng tôi.\n`);
-  return true;
-};
-
 const PORT = 3000;
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1761127138372-cad230082b19?q=80&w=1200&auto=format&fit=crop';
@@ -241,11 +233,6 @@ app.use(async (req, res, next) => {
         JWT_SECRET,
         { expiresIn: '24h' }
       );
-
-      // Send confirmation email
-      if (isNewUser) {
-        await sendConfirmationEmail(email, user.fullname);
-      }
 
       res.json({
         id: user.id,
