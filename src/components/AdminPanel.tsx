@@ -75,6 +75,7 @@ const statusLabels: Record<string, string> = {
   confirmed: 'Đã xác nhận',
   checked_in: 'Đã check-in',
   completed: 'Đã hoàn tất',
+  no_show: 'Vắng mặt',
   cancelled: 'Đã hủy',
   approved: 'Đã duyệt',
   rejected: 'Đã từ chối',
@@ -85,7 +86,7 @@ const statusClass = (status: string) => {
   if (status === 'confirmed' || status === 'checked_in' || status === 'completed' || status === 'approved') {
     return 'bg-emerald-50 text-emerald-700 border-emerald-100';
   }
-  if (status === 'cancelled' || status === 'rejected') {
+  if (status === 'cancelled' || status === 'no_show' || status === 'rejected') {
     return 'bg-red-50 text-red-700 border-red-100';
   }
   if (status === 'suspended') {

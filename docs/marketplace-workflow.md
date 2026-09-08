@@ -40,14 +40,16 @@ This document is the source of truth for the core VietTour marketplace flow.
 
 ## Booking lifecycle
 
-Current states are `pending`, `confirmed`, `checked_in`, `completed`, and
-`cancelled`.
+Current states are `pending`, `confirmed`, `checked_in`, `completed`,
+`no_show`, and `cancelled`.
 
 - A host or admin may confirm or cancel a pending booking.
 - A confirmed booking can be checked in from its departure start date; it can
   then be marked completed only after the departure ends.
-- Completed and cancelled bookings are final. They cannot be reopened through
-  the ordinary status flow.
+- A confirmed booking can be marked no-show from the departure start date when
+  the guest does not arrive at the meeting point.
+- Completed, no-show, and cancelled bookings are final. They cannot be
+  reopened through the ordinary status flow.
 - Guest and host reviews require a completed booking, preventing reviews for a
   booking that was merely accepted.
 

@@ -74,7 +74,7 @@ export interface BookingTable {
   contact_phone: string;
   note: string;
   total_price: number;
-  status: 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled';
   created_at: string;
   schedule_id?: number;
   payment_status?: 'unpaid' | 'paid' | 'refunded';

@@ -1110,16 +1110,17 @@ app.use(async (req, res, next) => {
       if (!booking || !(await verifyExperienceOwnership(req, res, booking.experience_id))) return;
       const status = cleanText(req.body.status);
 
-      if (!['pending', 'confirmed', 'checked_in', 'completed', 'cancelled'].includes(status)) {
+      if (!['pending', 'confirmed', 'checked_in', 'completed', 'no_show', 'cancelled'].includes(status)) {
         res.status(400).json({ error: 'Trạng thái không hợp lệ' });
         return;
       }
 
       const allowedTransitions: Record<string, string[]> = {
         pending: ['confirmed', 'cancelled'],
-        confirmed: ['checked_in', 'cancelled'],
+        confirmed: ['checked_in', 'no_show', 'cancelled'],
         checked_in: ['completed'],
         completed: [],
+        no_show: [],
         cancelled: []
       };
       if (booking.status !== status && !allowedTransitions[booking.status]?.includes(status)) {
@@ -1127,20 +1128,20 @@ app.use(async (req, res, next) => {
         return;
       }
 
-      if (status === 'checked_in' || status === 'completed') {
+      if (status === 'checked_in' || status === 'completed' || status === 'no_show') {
         if (!booking.schedule_id) {
           res.status(400).json({ error: 'Đơn đặt tour cần có lịch khởi hành trước khi cập nhật trạng thái tham gia' });
           return;
         }
         const schedule = await db.findScheduleById(booking.schedule_id);
         const today = todayInVietnamIso();
-        if (!schedule || (status === 'checked_in' && schedule.start_date > today) || (status === 'completed' && schedule.end_date > today)) {
-          res.status(400).json({ error: status === 'checked_in' ? 'Chỉ có thể check-in từ ngày khởi hành của tour' : 'Chỉ có thể hoàn tất khi lịch tour đã kết thúc' });
+        if (!schedule || ((status === 'checked_in' || status === 'no_show') && schedule.start_date > today) || (status === 'completed' && schedule.end_date > today)) {
+          res.status(400).json({ error: status === 'checked_in' ? 'Chỉ có thể check-in từ ngày khởi hành của tour' : status === 'no_show' ? 'Chỉ có thể ghi nhận vắng mặt từ ngày khởi hành của tour' : 'Chỉ có thể hoàn tất khi lịch tour đã kết thúc' });
           return;
         }
       }
 
-      const updatedBooking = await db.updateBookingStatus(id, status as 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'cancelled');
+      const updatedBooking = await db.updateBookingStatus(id, status as 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'no_show' | 'cancelled');
       if (booking.status !== status) {
         const notification = status === 'confirmed'
           ? { title: 'Đơn đặt tour đã được xác nhận', message: `Host đã xác nhận đơn #${booking.id}. Vui lòng có mặt đúng giờ tại điểm tập trung.` , type: 'success' as const }
@@ -1148,7 +1149,9 @@ app.use(async (req, res, next) => {
             ? { title: 'Bạn đã check-in tour', message: `Host đã ghi nhận bạn check-in cho đơn #${booking.id}.`, type: 'success' as const }
             : status === 'completed'
               ? { title: 'Tour đã hoàn tất', message: `Đơn #${booking.id} đã hoàn tất. Bạn có thể để lại đánh giá về trải nghiệm.`, type: 'success' as const }
-          : status === 'cancelled'
+              : status === 'no_show'
+                ? { title: 'Đơn đặt tour được ghi nhận vắng mặt', message: `Host đã ghi nhận bạn không có mặt cho đơn #${booking.id}. Vui lòng xem chính sách hủy của tour hoặc liên hệ hỗ trợ nếu cần.`, type: 'warning' as const }
+            : status === 'cancelled'
             ? { title: 'Đơn đặt tour đã bị hủy', message: `Đơn #${booking.id} đã được cập nhật sang trạng thái đã hủy.`, type: 'warning' as const }
             : { title: 'Đơn đặt tour được cập nhật', message: `Đơn #${booking.id} đang chờ xử lý.`, type: 'info' as const };
         await db.createNotification(booking.user_email, notification.title, notification.message, notification.type);

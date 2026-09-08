@@ -96,6 +96,7 @@ const getStatusLabel = (status: string, t: any) => {
     confirmed: t('host_opt_confirmed'),
     checked_in: t('host_opt_checked_in'),
     completed: t('host_opt_completed'),
+    no_show: t('host_opt_no_show'),
     cancelled: t('host_opt_cancelled'),
     approved: t('host_status_approved'),
     rejected: t('host_status_rejected'),
@@ -107,9 +108,10 @@ const getStatusLabel = (status: string, t: any) => {
 const getAllowedBookingStatuses = (status: BookingTable['status']): BookingTable['status'][] => {
   const transitions: Record<BookingTable['status'], BookingTable['status'][]> = {
     pending: ['pending', 'confirmed', 'cancelled'],
-    confirmed: ['confirmed', 'checked_in', 'cancelled'],
+    confirmed: ['confirmed', 'checked_in', 'no_show', 'cancelled'],
     checked_in: ['checked_in', 'completed'],
     completed: ['completed'],
+    no_show: ['no_show'],
     cancelled: ['cancelled']
   };
   return transitions[status];
@@ -119,7 +121,7 @@ const statusClass = (status: string) => {
   if (status === 'confirmed' || status === 'checked_in' || status === 'completed' || status === 'approved') {
     return 'bg-emerald-50 text-emerald-700 border-emerald-100';
   }
-  if (status === 'cancelled' || status === 'rejected') {
+  if (status === 'cancelled' || status === 'no_show' || status === 'rejected') {
     return 'bg-red-50 text-red-700 border-red-100';
   }
   if (status === 'suspended') {

@@ -134,6 +134,7 @@ export default function UserProfile({ user, onClose, onProfileUpdated }: { user:
       confirmed: <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-xs font-bold">{t('booking_status_confirmed')}</span>,
       checked_in: <span className="bg-sky-100 text-sky-800 px-2 py-1 rounded text-xs font-bold">{t('booking_status_checked_in')}</span>,
       completed: <span className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded text-xs font-bold">{t('booking_status_completed')}</span>,
+      no_show: <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-bold">{t('booking_status_no_show')}</span>,
       cancelled: <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold">{t('booking_status_cancelled')}</span>
     };
     return map[status] || status;
