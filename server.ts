@@ -1108,6 +1108,10 @@ app.use(async (req, res, next) => {
         res.status(403).json({ error: 'Bạn không có quyền hủy đơn của người khác' });
         return;
       }
+      if (booking.status !== 'pending') {
+        res.status(400).json({ error: 'Chỉ có thể hủy đơn khi đang chờ xử lý. Vui lòng liên hệ hỗ trợ để thay đổi đơn đã xác nhận.' });
+        return;
+      }
       res.json(await db.updateBookingStatus(id, 'cancelled'));
     } catch (e: any) { handleError(res, e); }
   });
