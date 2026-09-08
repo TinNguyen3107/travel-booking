@@ -52,7 +52,8 @@ Current states are `pending`, `confirmed`, `checked_in`, `completed`,
 - Completed, no-show, and cancelled bookings are final. They cannot be
   reopened through the ordinary status flow.
 - Guest and host reviews require a completed booking, preventing reviews for a
-  booking that was merely accepted.
+  booking that was merely accepted. A guest can publish only one review for
+  each tour, and any attached review images are stored with that review.
 
 Payment is intentionally deferred. A later payment iteration should add a
 separate payment/escrow lifecycle and derive refund, commission, and host

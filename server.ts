@@ -1379,6 +1379,11 @@ app.use(async (req, res, next) => {
         return;
       }
 
+      if (await db.hasReview(experienceId, userEmail)) {
+        res.status(409).json({ error: 'Bạn đã đánh giá tour này' });
+        return;
+      }
+
       res.status(201).json(await db.addReview({
         experience_id: experienceId,
         user_email: userEmail,

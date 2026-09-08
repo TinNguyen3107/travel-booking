@@ -321,9 +321,12 @@ class RelationalDatabase {
         fullname VARCHAR(255) NOT NULL,
         rating TINYINT NOT NULL,
         comment TEXT NOT NULL,
+        images TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
+    try { await pool.query("ALTER TABLE reviews ADD COLUMN images TEXT NULL AFTER comment"); } catch (e: any) { }
+    try { await pool.query('ALTER TABLE reviews ADD UNIQUE KEY unique_user_experience (user_email, experience_id)'); } catch (e: any) { }
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS wishlists (
@@ -1344,13 +1347,21 @@ class RelationalDatabase {
     return rows.map(normalizeReview);
   }
 
+  public async hasReview(experienceId: number, userEmail: string): Promise<boolean> {
+    const [rows] = await pool.query<ReviewRow[]>(
+      'SELECT id FROM reviews WHERE experience_id = ? AND LOWER(user_email) = LOWER(?) LIMIT 1',
+      [experienceId, userEmail]
+    );
+    return rows.length > 0;
+  }
+
   public async addReview(
     review: Omit<ReviewTable, 'id' | 'created_at'>
   ): Promise<ReviewTable> {
     const [result] = await pool.query<mysql.ResultSetHeader>(
-      `INSERT INTO reviews (experience_id, user_email, fullname, rating, comment)
-       VALUES (?, ?, ?, ?, ?)`,
-      [review.experience_id, review.user_email, review.fullname, review.rating, review.comment]
+      `INSERT INTO reviews (experience_id, user_email, fullname, rating, comment, images)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [review.experience_id, review.user_email, review.fullname, review.rating, review.comment, review.images]
     );
 
     await pool.query(
