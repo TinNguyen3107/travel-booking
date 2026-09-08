@@ -348,6 +348,34 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
               </div>
             </div>
 
+            {experience.meeting_point && (
+              <div className="mt-6 rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 p-5">
+                <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100">Điểm tập trung</h3>
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-zinc-600 dark:text-slate-300">{tDynamic(experience.meeting_point)}</p>
+              </div>
+            )}
+
+            {experience.itinerary && (
+              <div className="mt-6">
+                <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">Lịch trình chi tiết</h3>
+                <div className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-600 dark:text-slate-300">{tDynamic(experience.itinerary)}</div>
+              </div>
+            )}
+
+            {(experience.included || experience.excluded) && (
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                {experience.included && <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-5"><h3 className="font-black text-emerald-900">Bao gồm</h3><p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-emerald-800">{tDynamic(experience.included)}</p></div>}
+                {experience.excluded && <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-5"><h3 className="font-black text-amber-900">Không bao gồm</h3><p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-amber-800">{tDynamic(experience.excluded)}</p></div>}
+              </div>
+            )}
+
+            {experience.cancellation_policy && (
+              <div className="mt-6 rounded-xl border border-rose-100 bg-rose-50/50 p-5">
+                <h3 className="font-black text-rose-900">Chính sách hủy</h3>
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-rose-800">{tDynamic(experience.cancellation_policy)}</p>
+              </div>
+            )}
+
             <div className="mt-6">
               <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100 mb-3">{t('detail_map')}</h3>
               <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-slate-700">

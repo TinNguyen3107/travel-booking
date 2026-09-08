@@ -71,6 +71,11 @@ const EMPTY_FORM = {
   image: '',
   category: 'Thiên nhiên',
   description: '',
+  meeting_point: '',
+  itinerary: '',
+  included: '',
+  excluded: '',
+  cancellation_policy: '',
   max_guests: 50,
   daily_capacity_max: 50,
   booking_open_date: todayIso(),
@@ -354,6 +359,11 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       image: experience.image || '',
       category: experience.category,
       description: experience.description || '',
+      meeting_point: experience.meeting_point || '',
+      itinerary: experience.itinerary || '',
+      included: experience.included || '',
+      excluded: experience.excluded || '',
+      cancellation_policy: experience.cancellation_policy || '',
       max_guests: Number(experience.max_guests) || 50,
       daily_capacity_max: Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests) || 50,
       booking_open_date: experience.booking_open_date || todayIso(),
@@ -408,6 +418,11 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       image: form.image.trim() || FALLBACK_IMAGE,
       category: form.category.trim(),
       description: form.description.trim(),
+      meeting_point: form.meeting_point.trim(),
+      itinerary: form.itinerary.trim(),
+      included: form.included.trim(),
+      excluded: form.excluded.trim(),
+      cancellation_policy: form.cancellation_policy.trim(),
       max_guests: maxGuests,
       daily_capacity_max: Number(form.daily_capacity_max) || maxGuests,
       booking_open_date: form.booking_open_date,
@@ -985,6 +1000,26 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                 <label className="block lg:col-span-4">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">{t('host_form_desc')}</span>
                   <textarea value={form.description} onChange={(event) => updateForm('description', event.target.value)} placeholder={t('host_form_desc_ph')} rows={3} className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <label className="block lg:col-span-2">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Điểm tập trung</span>
+                  <textarea value={form.meeting_point} onChange={(event) => updateForm('meeting_point', event.target.value)} rows={3} placeholder="Địa chỉ, giờ có mặt và cách nhận diện" className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <label className="block lg:col-span-3">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Lịch trình chi tiết</span>
+                  <textarea value={form.itinerary} onChange={(event) => updateForm('itinerary', event.target.value)} rows={4} placeholder="Các chặng, thời gian và hoạt động chính" className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <label className="block lg:col-span-3">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Bao gồm</span>
+                  <textarea value={form.included} onChange={(event) => updateForm('included', event.target.value)} rows={4} placeholder="Ví dụ: xe đưa đón, vé tham quan, bữa ăn" className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <label className="block lg:col-span-3">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Không bao gồm</span>
+                  <textarea value={form.excluded} onChange={(event) => updateForm('excluded', event.target.value)} rows={3} placeholder="Các chi phí khách cần tự chuẩn bị" className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <label className="block lg:col-span-3">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Chính sách hủy</span>
+                  <textarea value={form.cancellation_policy} onChange={(event) => updateForm('cancellation_policy', event.target.value)} rows={3} placeholder="Mốc hủy và điều kiện hỗ trợ khách" className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <div className="flex items-end justify-end gap-2 lg:col-span-6">
                   <button type="submit" className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-bold text-white hover:bg-emerald-700">

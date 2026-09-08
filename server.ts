@@ -587,6 +587,11 @@ app.use(async (req, res, next) => {
       const image = cleanText(req.body.image) || FALLBACK_IMAGE;
       const category = cleanText(req.body.category);
       const description = cleanText(req.body.description);
+      const meeting_point = cleanText(req.body.meeting_point);
+      const itinerary = cleanText(req.body.itinerary);
+      const included = cleanText(req.body.included);
+      const excluded = cleanText(req.body.excluded);
+      const cancellation_policy = cleanText(req.body.cancellation_policy);
       const max_guests = req.body.max_guests ? Number(req.body.max_guests) : 50;
       const daily_capacity_max = req.body.daily_capacity_max ? Number(req.body.daily_capacity_max) : max_guests;
       const booking_open_date = cleanText(req.body.booking_open_date);
@@ -604,6 +609,11 @@ app.use(async (req, res, next) => {
 
       if (!title || !location || !duration || !category || !description) {
         res.status(400).json({ error: 'Vui lòng nhập đầy đủ thông tin trải nghiệm' });
+        return;
+      }
+
+      if ([meeting_point, itinerary, included, excluded, cancellation_policy].some((value) => value.length > 2000)) {
+        res.status(400).json({ error: 'Thông tin chi tiết tour không được vượt quá 2.000 ký tự mỗi mục' });
         return;
       }
 
@@ -643,6 +653,11 @@ app.use(async (req, res, next) => {
         image,
         category,
         description,
+        meeting_point,
+        itinerary,
+        included,
+        excluded,
+        cancellation_policy,
         rating: 0,
         host_count: 1,
         reviews_count: 0,
@@ -675,11 +690,15 @@ app.use(async (req, res, next) => {
 
       const payload: Record<string, string | number> = {};
 
-      for (const field of ['title', 'location', 'duration', 'category', 'description', 'host_email'] as const) {
+      for (const field of ['title', 'location', 'duration', 'category', 'description', 'meeting_point', 'itinerary', 'included', 'excluded', 'cancellation_policy', 'host_email'] as const) {
         if (req.body[field] !== undefined) {
           const value = cleanText(req.body[field]);
-          if (!value && field !== 'host_email') {
+          if (!value && !['host_email', 'meeting_point', 'itinerary', 'included', 'excluded', 'cancellation_policy'].includes(field)) {
             res.status(400).json({ error: 'Thông tin trải nghiệm không được để trống' });
+            return;
+          }
+          if (value.length > 2000) {
+            res.status(400).json({ error: 'Thông tin chi tiết tour không được vượt quá 2.000 ký tự mỗi mục' });
             return;
           }
           payload[field] = value;

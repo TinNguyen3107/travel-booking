@@ -362,6 +362,11 @@ class RelationalDatabase {
     try { await pool.query('ALTER TABLE experiences ADD COLUMN beds INT NOT NULL DEFAULT 0'); } catch (e: any) { }
     try { await pool.query("ALTER TABLE experiences ADD COLUMN amenities TEXT"); } catch (e: any) { }
     try { await pool.query("ALTER TABLE experiences ADD COLUMN images TEXT"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN meeting_point TEXT NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN itinerary TEXT NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN included TEXT NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN excluded TEXT NULL"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE experiences ADD COLUMN cancellation_policy TEXT NULL"); } catch (e: any) { }
     await pool.query("UPDATE experiences SET amenities = '[]' WHERE amenities IS NULL");
     await pool.query("UPDATE experiences SET images = '[]' WHERE images IS NULL");
     try { await pool.query("ALTER TABLE experiences ADD COLUMN allow_children BOOLEAN DEFAULT TRUE"); } catch (e: any) { }
@@ -752,8 +757,8 @@ class RelationalDatabase {
     const dailyCapMax = exp.daily_capacity_max ?? exp.daily_capacity ?? exp.max_guests ?? 50;
     const [result] = await pool.query<mysql.ResultSetHeader>(
       `INSERT INTO experiences
-        (title, location, duration, price, image, category, description, rating, host_count, reviews_count, max_guests, daily_capacity, daily_capacity_max, booking_open_date, booking_close_date, host_email, rooms, beds, amenities, images, status, allow_children, min_age, child_max_age, child_price)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (title, location, duration, price, image, category, description, meeting_point, itinerary, included, excluded, cancellation_policy, rating, host_count, reviews_count, max_guests, daily_capacity, daily_capacity_max, booking_open_date, booking_close_date, host_email, rooms, beds, amenities, images, status, allow_children, min_age, child_max_age, child_price)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         exp.title,
         exp.location,
@@ -762,6 +767,11 @@ class RelationalDatabase {
         exp.image,
         exp.category,
         exp.description || DEFAULT_DESCRIPTION,
+        exp.meeting_point ?? null,
+        exp.itinerary ?? null,
+        exp.included ?? null,
+        exp.excluded ?? null,
+        exp.cancellation_policy ?? null,
         exp.rating,
         exp.host_count,
         exp.reviews_count,
@@ -801,6 +811,11 @@ class RelationalDatabase {
       'image',
       'category',
       'description',
+      'meeting_point',
+      'itinerary',
+      'included',
+      'excluded',
+      'cancellation_policy',
       'rating',
       'host_count',
       'reviews_count',

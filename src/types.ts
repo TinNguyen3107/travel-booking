@@ -24,6 +24,11 @@ export interface ExperienceTable {
   image: string;
   category: string;
   description: string;
+  meeting_point?: string;
+  itinerary?: string;
+  included?: string;
+  excluded?: string;
+  cancellation_policy?: string;
   rating: number;
   host_count: number;
   reviews_count: number;
