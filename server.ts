@@ -589,6 +589,7 @@ app.use(async (req, res, next) => {
 
   app.post('/api/experiences', authenticateToken, requireHostOrAdmin, async (req, res) => {
     try {
+      const actor = (req as any).user;
       const title = cleanText(req.body.title);
       const location = cleanText(req.body.location);
       const duration = cleanText(req.body.duration);
@@ -599,7 +600,11 @@ app.use(async (req, res, next) => {
       const daily_capacity_max = req.body.daily_capacity_max ? Number(req.body.daily_capacity_max) : max_guests;
       const booking_open_date = cleanText(req.body.booking_open_date);
       const booking_close_date = cleanText(req.body.booking_close_date);
-      const host_email = cleanText(req.body.host_email) || '';
+      // A host can only create tours for their own account.  Only an admin may
+      // explicitly assign a tour to another approved host.
+      const host_email = actor.role === 'host'
+        ? actor.email.toLowerCase()
+        : cleanText(req.body.host_email).toLowerCase();
       const rooms = req.body.rooms !== undefined ? Number(req.body.rooms) : 0;
       const beds = req.body.beds !== undefined ? Number(req.body.beds) : 0;
       const amenities = Array.isArray(req.body.amenities) ? JSON.stringify(req.body.amenities) : (cleanText(req.body.amenities) || '[]');
@@ -912,17 +917,14 @@ app.use(async (req, res, next) => {
 
   app.get('/api/bookings', authenticateToken, async (req, res) => {
     try {
-      const email = cleanText(req.query.email).toLowerCase();
-      const role = cleanText(req.query.role);
+      const actor = (req as any).user;
 
-      if (role === 'admin') {
+      if (actor.role === 'admin') {
         res.json(await db.getBookings());
-      } else if (role === 'host' && email) {
-        res.json(await db.getHostBookings(email));
-      } else if (email) {
-        res.json(await db.getBookings(email));
+      } else if (actor.role === 'host') {
+        res.json(await db.getHostBookings(actor.email));
       } else {
-        res.json([]);
+        res.json(await db.getBookings(actor.email));
       }
     } catch (e: any) { handleError(res, e); }
   });
@@ -1283,13 +1285,18 @@ app.use(async (req, res, next) => {
   // Phase 6: Host reviews
   app.get('/api/host_reviews', authenticateToken, async (req, res) => {
     try {
-      const email = cleanText(req.query.email);
+      const actor = (req as any).user;
       const role = req.query.role === 'host' ? 'host' : 'guest';
-      if (!email) {
-        res.json([]);
+      const email = actor.role === 'admin'
+        ? cleanText(req.query.email).toLowerCase()
+        : actor.email.toLowerCase();
+
+      if (actor.role === 'host' && role !== 'host') {
+        res.status(403).json({ error: 'Host chỉ có thể xem đánh giá dành cho tài khoản host của mình' });
         return;
       }
-      res.json(await db.getHostReviews(email, role));
+
+      res.json(email ? await db.getHostReviews(email, role) : []);
     } catch (e: any) { handleError(res, e); }
   });
 
@@ -1303,6 +1310,22 @@ app.use(async (req, res, next) => {
 
       if (!bookingId || !hostEmail || !guestEmail || !comment) {
         res.status(400).json({ error: 'Vui lòng nhập đầy đủ đánh giá' });
+        return;
+      }
+
+      if (!Number.isInteger(rating) || rating < 1 || rating > 5 || comment.length < 5 || comment.length > 500) {
+        res.status(400).json({ error: 'Đánh giá phải từ 1 đến 5 sao và bình luận từ 5 đến 500 ký tự' });
+        return;
+      }
+
+      const booking = await db.findBookingById(bookingId);
+      if (!booking || booking.status !== 'confirmed') {
+        res.status(400).json({ error: 'Chỉ có thể đánh giá khách của đơn đã được xác nhận' });
+        return;
+      }
+      const experience = await db.findExperienceById(booking.experience_id);
+      if (!experience || experience.host_email?.toLowerCase() !== hostEmail || booking.user_email.toLowerCase() !== guestEmail) {
+        res.status(403).json({ error: 'Thông tin đánh giá không khớp với đơn đặt tour' });
         return;
       }
       
@@ -1623,5 +1646,4 @@ if (!process.env.VERCEL) {
 }
 
 export default app;
-
 
