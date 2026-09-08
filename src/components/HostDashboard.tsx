@@ -117,6 +117,9 @@ const getAllowedBookingStatuses = (status: BookingTable['status']): BookingTable
   return transitions[status];
 };
 
+const isExpectedSettlementBooking = (status: BookingTable['status']) =>
+  ['confirmed', 'checked_in', 'completed'].includes(status);
+
 const statusClass = (status: string) => {
   if (status === 'confirmed' || status === 'checked_in' || status === 'completed' || status === 'approved') {
     return 'bg-emerald-50 text-emerald-700 border-emerald-100';
@@ -191,14 +194,14 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
 
   const stats = useMemo(() => {
     const pendingBookings = bookings.filter((booking) => booking.status === 'pending').length;
-    const confirmedRevenue = bookings
-      .filter((booking) => booking.status === 'confirmed')
+    const expectedRevenue = bookings
+      .filter((booking) => isExpectedSettlementBooking(booking.status))
       .reduce((sum, booking) => sum + Number(booking.host_earnings || 0), 0);
 
     // Prepare revenue data for the chart (daily revenue)
     const revenueByDate: Record<string, number> = {};
     bookings
-      .filter(b => b.status === 'confirmed')
+      .filter(b => isExpectedSettlementBooking(b.status))
       .forEach(b => {
         const date = new Date(b.created_at || new Date()).toISOString().split('T')[0];
         if (!revenueByDate[date]) revenueByDate[date] = 0;
@@ -222,7 +225,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       tours: experiences.length,
       reviews: reviews.length,
       pendingBookings,
-      confirmedRevenue,
+      expectedRevenue,
       chartData
     };
   }, [bookings, experiences, reviews]);
@@ -779,7 +782,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
               <StatCard icon={FileCheck2} label={t('host_stat_tours')} value={stats.tours} tone="emerald" />
               <StatCard icon={Star} label={t('host_stat_reviews')} value={stats.reviews} tone="sky" />
               <StatCard icon={Clock3} label={t('host_stat_pending')} value={stats.pendingBookings} tone="amber" />
-              <StatCard icon={TrendingUp} label={t('host_stat_revenue')} value={formatVnd(stats.confirmedRevenue)} tone="emerald" />
+              <StatCard icon={TrendingUp} label={t('host_stat_revenue')} value={formatVnd(stats.expectedRevenue)} tone="emerald" />
             </div>
 
             <div className="rounded-2xl border border-zinc-200 dark:border-slate-700 p-6">

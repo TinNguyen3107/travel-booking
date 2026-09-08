@@ -60,6 +60,8 @@ separate payment/escrow lifecycle and derive refund, commission, and host
 earnings from settled payment records rather than from booking creation.
 Until then, hosts cannot mark a booking paid or complete a refund themselves;
 only an admin may record a manually reconciled payment state.
+Any commission or host-payout figures shown before reconciliation are estimates
+for confirmed, checked-in, or completed bookings, never settled revenue.
 
 ## Access invariants
 

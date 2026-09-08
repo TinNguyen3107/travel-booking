@@ -95,6 +95,9 @@ const statusClass = (status: string) => {
   return 'bg-amber-50 text-amber-700 border-amber-100';
 };
 
+const isExpectedSettlementBooking = (status: BookingTable['status']) =>
+  ['confirmed', 'checked_in', 'completed'].includes(status);
+
 export default function AdminPanel({ onExperiencesChange, activeSection, currentUser }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [experiences, setExperiences] = useState<ExperienceTable[]>([]);
@@ -179,8 +182,8 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
 
   const stats = useMemo(() => {
     const pendingBookings = bookings.filter((booking) => booking.status === 'pending').length;
-    const confirmedRevenue = bookings
-      .filter((booking) => booking.status === 'confirmed')
+    const expectedCommission = bookings
+      .filter((booking) => isExpectedSettlementBooking(booking.status))
       .reduce((sum, booking) => sum + Number(booking.commission_amount || 0), 0);
     const pendingHosts = hosts.filter((host) => host.status === 'pending').length;
 
@@ -189,7 +192,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
       users: users.length,
       pendingBookings,
       pendingHosts,
-      confirmedRevenue
+      expectedCommission
     };
   }, [bookings, experiences, hosts, users]);
 
@@ -748,7 +751,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
               <StatCard icon={Users} label="Người dùng" value={stats.users} tone="zinc" />
               <StatCard icon={Clock3} label="Đơn chờ duyệt" value={stats.pendingBookings} tone="amber" />
               <StatCard icon={ShieldCheck} label="Host chờ duyệt" value={stats.pendingHosts} tone="sky" />
-              <StatCard icon={CheckCircle2} label="Doanh thu Admin (Hoa hồng)" value={formatVnd(stats.confirmedRevenue)} tone="emerald" />
+              <StatCard icon={CheckCircle2} label="Hoa hồng dự kiến" value={formatVnd(stats.expectedCommission)} tone="emerald" />
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
@@ -1092,8 +1095,8 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                     <td className="px-4 py-3">
                       <div className="font-bold text-emerald-700">{formatVnd(booking.total_price)}</div>
                       <div className="mt-1 flex flex-col gap-0.5 text-xs">
-                        {!isHost && <div className="font-semibold text-amber-600">Hoa hồng: {formatVnd(booking.commission_amount || 0)}</div>}
-                        <div className="font-semibold text-sky-600">Thực nhận: {formatVnd(booking.host_earnings || 0)}</div>
+                        {!isHost && <div className="font-semibold text-amber-600">Hoa hồng dự kiến: {formatVnd(booking.commission_amount || 0)}</div>}
+                        <div className="font-semibold text-sky-600">Dự kiến trả host: {formatVnd(booking.host_earnings || 0)}</div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
