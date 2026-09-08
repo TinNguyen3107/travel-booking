@@ -32,18 +32,9 @@ const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
 
 const isValidMaxGuests = (value: number) => Number.isInteger(value) && value >= 1 && value <= 1000;
 
-const isTourOpenOn = (experience: { booking_open_date?: string; booking_close_date?: string }, date: string) => {
-  const openDate = experience.booking_open_date || date;
+const isBookingOpenToday = (experience: { booking_open_date?: string; booking_close_date?: string }, today: string) => {
+  const openDate = experience.booking_open_date || '0000-01-01';
   const closeDate = experience.booking_close_date || '9999-12-31';
-  return openDate <= date && date <= closeDate;
-};
-
-const isRegistrationOpen = (experience: { registration_open_date?: string; registration_close_date?: string }, today: string) => {
-  const regOpen = experience.registration_open_date;
-  const regClose = experience.registration_close_date;
-  if (!regOpen && !regClose) return true;
-  const openDate = regOpen || '0000-01-01';
-  const closeDate = regClose || '9999-12-31';
   return openDate <= today && today <= closeDate;
 };
 
@@ -864,7 +855,7 @@ app.use(async (req, res, next) => {
         res.status(400).json({ error: 'Vui lòng nhập đầy đủ thông tin lịch khởi hành' });
         return;
       }
-      if (end_date < start_date) {
+      if (!isoDatePattern.test(start_date) || !isoDatePattern.test(end_date) || end_date < start_date || !Number.isInteger(max_slots) || max_slots < 1) {
         res.status(400).json({ error: 'Ngày kết thúc không hợp lệ' });
         return;
       }
@@ -881,7 +872,14 @@ app.use(async (req, res, next) => {
       if (req.body.start_date !== undefined) payload.start_date = cleanText(req.body.start_date);
       if (req.body.end_date !== undefined) payload.end_date = cleanText(req.body.end_date);
       if (req.body.max_slots !== undefined) payload.max_slots = Number(req.body.max_slots);
-      if (req.body.remaining_slots !== undefined) payload.remaining_slots = Number(req.body.remaining_slots);
+      const startDate = payload.start_date || schedule.start_date;
+      const endDate = payload.end_date || schedule.end_date;
+      if (!isoDatePattern.test(startDate) || !isoDatePattern.test(endDate) || endDate < startDate) {
+        return res.status(400).json({ error: 'Ngày khởi hành hoặc kết thúc không hợp lệ' });
+      }
+      if (payload.max_slots !== undefined && (!Number.isInteger(payload.max_slots) || payload.max_slots < schedule.max_slots - schedule.remaining_slots)) {
+        return res.status(400).json({ error: 'Số chỗ mới không được thấp hơn số khách đã đặt' });
+      }
 
       res.json(await db.updateSchedule(id, payload));
     } catch (e: any) { handleError(res, e); }
@@ -936,11 +934,13 @@ app.use(async (req, res, next) => {
       const scheduleId = req.body.schedule_id ? Number(req.body.schedule_id) : undefined;
       const bookingDate = cleanText(req.body.booking_date);
       const guests = Number(req.body.guests);
+      const adults = Number(req.body.adults);
+      const children = Number(req.body.children || 0);
       const contactName = cleanText(req.body.contact_name);
       const contactPhone = cleanText(req.body.contact_phone);
       const note = cleanText(req.body.note);
 
-      if (!userEmail || !experienceId || !bookingDate || !contactName || !contactPhone) {
+      if (!userEmail || !experienceId || !scheduleId || !bookingDate || !contactName || !contactPhone) {
         res.status(400).json({ error: 'Thiếu thông tin đặt tour bắt buộc' });
         return;
       }
@@ -950,19 +950,12 @@ app.use(async (req, res, next) => {
         return;
       }
 
-      if (!Number.isInteger(guests) || guests < 1) {
+      if (!Number.isInteger(guests) || guests < 1 || !Number.isInteger(adults) || adults < 1 || !Number.isInteger(children) || children < 0 || adults + children !== guests) {
         res.status(400).json({ error: 'Số khách phải từ 1 trở lên' });
         return;
       }
 
       const today = todayInVietnamIso();
-      const bookingDateTime = new Date(bookingDate).getTime();
-      const todayTime = new Date(today).getTime();
-      if (bookingDateTime < todayTime) {
-        res.status(400).json({ error: 'Ngày đặt tour không được ở trong quá khứ' });
-        return;
-      }
-
       const experience = (await db.getExperiences()).find((item) => item.id === experienceId);
       if (!experience) {
         res.status(404).json({ error: 'Không tìm thấy tour cần đặt' });
@@ -974,19 +967,8 @@ app.use(async (req, res, next) => {
         return;
       }
 
-      if (!isTourOpenOn(experience, bookingDate)) {
+      if (!isBookingOpenToday(experience, today)) {
         res.status(400).json({ error: 'Tour này chưa mở hoặc đã hết thời gian đặt.' });
-        return;
-      }
-
-      if (!isRegistrationOpen(experience, today)) {
-        res.status(400).json({ error: 'Tour này chưa mở đăng ký hoặc đã hết thời gian đăng ký.' });
-        return;
-      }
-
-      const maxGuests = Number(experience.max_guests || 50);
-      if (guests > maxGuests) {
-        res.status(400).json({ error: `Tour nÃ y chá»‰ nháº­n tá»‘i Ä‘a ${maxGuests} khÃ¡ch cho má»™t ngÃ y.` });
         return;
       }
 
@@ -995,6 +977,10 @@ app.use(async (req, res, next) => {
         const schedule = schedules.find(s => s.id === scheduleId);
         if (!schedule) {
           res.status(404).json({ error: 'Không tìm thấy lịch khởi hành.' });
+          return;
+        }
+        if (schedule.start_date !== bookingDate || schedule.start_date < today) {
+          res.status(400).json({ error: 'Ngày khởi hành không hợp lệ.' });
           return;
         }
         if (schedule.remaining_slots < guests) {
@@ -1009,7 +995,14 @@ app.use(async (req, res, next) => {
         }
       }
 
-      const basePrice = guests * experience.price;
+      if (!experience.allow_children && children > 0) {
+        res.status(400).json({ error: 'Tour này không nhận trẻ em.' });
+        return;
+      }
+
+      const childDiscountPercent = Math.min(100, Math.max(0, Number(experience.child_price || 0)));
+      const childUnitPrice = Number(experience.price) * (1 - childDiscountPercent / 100);
+      const basePrice = adults * Number(experience.price) + children * childUnitPrice;
       let totalPrice = basePrice;
       const promoCode = cleanText(req.body.promo_code);
 
@@ -1038,6 +1031,8 @@ app.use(async (req, res, next) => {
         schedule_id: scheduleId,
         booking_date: bookingDate,
         guests,
+        adults,
+        children,
         contact_name: contactName,
         contact_phone: contactPhone,
         note,
@@ -1646,4 +1641,3 @@ if (!process.env.VERCEL) {
 }
 
 export default app;
-

@@ -40,10 +40,7 @@ export default function ModalBooking({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [schedules, setSchedules] = useState<TourScheduleTable[]>([]);
-  const validSchedules = schedules.filter(s =>
-    s.start_date >= experience.booking_open_date &&
-    (!experience.booking_close_date || s.start_date <= experience.booking_close_date)
-  );
+  const validSchedules = schedules.filter(s => s.start_date >= today && s.remaining_slots > 0);
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | ''>('');
   const [availability, setAvailability] = useState<{ totalRemaining: number, dailyRemaining: number, isAvailable: boolean } | null>(null);
 
@@ -264,7 +261,7 @@ export default function ModalBooking({
                 </label>
               </div>
 
-              {validSchedules.length > 0 ? (
+              {(
                 <label className="block">
                   <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Calendar className="inline h-3 w-3" /> {t('booking_select_schedule')}</span>
                   <select
@@ -280,19 +277,6 @@ export default function ModalBooking({
                       </option>
                     ))}
                   </select>
-                </label>
-              ) : (
-                <label className="block">
-                  <span className="mb-1 block text-xs font-bold text-zinc-600 dark:text-slate-300"><Calendar className="inline h-3 w-3" /> {t('booking_departure_date')}</span>
-                  <input
-                    type="date"
-                    value={bookingDate}
-                    min={minBookingDate}
-                    max={maxBookingDate || undefined}
-                    onChange={(e) => setBookingDate(e.target.value)}
-                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                    required
-                  />
                 </label>
               )}
 
@@ -412,6 +396,7 @@ export default function ModalBooking({
                   disabled={
                     loading ||
                     !isBookableWindow ||
+                    validSchedules.length === 0 ||
                     (validSchedules.length === 0 && availability && (!availability.isAvailable || guests > availability.dailyRemaining || guests > availability.totalRemaining))
                   }
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-400 sm:w-2/3"

@@ -900,28 +900,34 @@ class RelationalDatabase {
       const exp = await this.findExperienceById(booking.experience_id);
       if (!exp) throw new Error('Không tìm thấy tour cần đặt');
 
-      let query = 'SELECT SUM(guests) as total FROM bookings WHERE experience_id = ? AND status != "cancelled"';
-      const params: any[] = [booking.experience_id];
-
-      if (exp.booking_open_date && exp.booking_close_date) {
-        query += ' AND booking_date >= ? AND booking_date <= ?';
-        params.push(exp.booking_open_date, exp.booking_close_date);
+      if (!booking.schedule_id) {
+        throw new Error('Mỗi đơn đặt tour phải chọn một lịch khởi hành');
+      }
+      const [scheduleRows] = await connection.query<ScheduleRow[]>(
+        'SELECT * FROM tour_schedules WHERE id = ? AND experience_id = ? FOR UPDATE',
+        [booking.schedule_id, booking.experience_id]
+      );
+      const schedule = scheduleRows[0];
+      if (!schedule) throw new Error('Không tìm thấy lịch khởi hành của tour này');
+      if (toDateString(schedule.start_date) !== booking.booking_date) {
+        throw new Error('Ngày khởi hành không khớp với lịch đã chọn');
+      }
+      if (Number(schedule.remaining_slots) < booking.guests) {
+        throw new Error('Lịch khởi hành không còn đủ chỗ trống');
       }
 
-      if (exp.registration_open_date) {
-        query += ' AND created_at >= ?';
-        params.push(exp.registration_open_date + ' 00:00:00');
-      }
+      let query = 'SELECT SUM(guests) as total FROM bookings WHERE schedule_id = ? AND status != "cancelled"';
+      const params: any[] = [booking.schedule_id];
 
       const [totalRows] = await connection.query<RowDataPacket[]>(query, params);
       const totalBooked = Number(totalRows[0]?.total || 0);
-      if (totalBooked + booking.guests > (exp.max_guests || 50)) {
+      if (totalBooked + booking.guests > Number(schedule.max_slots)) {
         throw new Error('Đã vượt quá tổng số khách cho phép của tour này.');
       }
 
       await connection.query(
         'INSERT IGNORE INTO experience_daily_quotas (experience_id, booking_date, max_capacity, booked_count) VALUES (?, ?, ?, 0)',
-        [booking.experience_id, booking.booking_date, exp.daily_capacity_max || exp.daily_capacity || exp.max_guests || 50]
+        [booking.experience_id, booking.booking_date, Number(schedule.max_slots)]
       );
 
       const [dailyRows] = await connection.query<RowDataPacket[]>(
@@ -991,7 +997,7 @@ class RelationalDatabase {
         const [totalAfterRows] = await pool.query<RowDataPacket[]>(closeQuery, closeParams);
         const totalAfterBooked = Number(totalAfterRows[0]?.total || 0);
 
-        if (totalAfterBooked >= (refreshed.max_guests || 50)) {
+        if (!booking.schedule_id && totalAfterBooked >= (refreshed.max_guests || 50)) {
           await pool.query(
             "UPDATE experiences SET status = 'closed' WHERE id = ? AND status = 'active'",
             [booking.experience_id]
@@ -1537,14 +1543,23 @@ class RelationalDatabase {
     id: number,
     fields: Partial<Pick<TourScheduleTable, 'start_date' | 'end_date' | 'max_slots' | 'remaining_slots'>>
   ): Promise<TourScheduleTable> {
+    const current = await this.findScheduleById(id);
+    if (!current) throw new Error('Không tìm thấy lịch khởi hành');
+
+    const bookedSlots = current.max_slots - current.remaining_slots;
+    if (fields.max_slots !== undefined) {
+      if (!Number.isInteger(fields.max_slots) || fields.max_slots < bookedSlots) {
+        throw new Error('Số chỗ mới không được thấp hơn số khách đã đặt');
+      }
+      fields.remaining_slots = fields.max_slots - bookedSlots;
+    }
+
     const allowed = ['start_date', 'end_date', 'max_slots', 'remaining_slots'] as const;
     const entries = allowed
       .filter(f => fields[f] !== undefined)
       .map(f => [f, fields[f]] as const);
 
     if (entries.length === 0) {
-      const current = await this.findScheduleById(id);
-      if (!current) throw new Error('Không tìm thấy lịch khởi hành');
       return current;
     }
 
@@ -1775,4 +1790,3 @@ class RelationalDatabase {
 }
 
 export const db = new RelationalDatabase();
-
