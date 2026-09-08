@@ -58,6 +58,8 @@ Current states are `pending`, `confirmed`, `checked_in`, `completed`,
 Payment is intentionally deferred. A later payment iteration should add a
 separate payment/escrow lifecycle and derive refund, commission, and host
 earnings from settled payment records rather than from booking creation.
+Until then, hosts cannot mark a booking paid or complete a refund themselves;
+only an admin may record a manually reconciled payment state.
 
 ## Access invariants
 

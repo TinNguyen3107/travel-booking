@@ -1160,11 +1160,14 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
-  app.put('/api/bookings/:id/payment_status', authenticateToken, requireHostOrAdmin, async (req, res) => {
+  app.put('/api/bookings/:id/payment_status', authenticateToken, requireAdmin, async (req, res) => {
     try {
       const id = Number(req.params.id);
       const booking = await db.findBookingById(id);
-      if (!booking || !(await verifyExperienceOwnership(req, res, booking.experience_id))) return;
+      if (!booking) {
+        res.status(404).json({ error: 'Không tìm thấy đơn đặt tour' });
+        return;
+      }
       const payment_status = cleanText(req.body.payment_status);
 
       if (!['unpaid', 'paid', 'refunded'].includes(payment_status)) {
@@ -1206,11 +1209,14 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
-  app.put('/api/bookings/:id/refund_complete', authenticateToken, requireHostOrAdmin, async (req, res) => {
+  app.put('/api/bookings/:id/refund_complete', authenticateToken, requireAdmin, async (req, res) => {
     try {
       const id = Number(req.params.id);
       const booking = await db.findBookingById(id);
-      if (!booking || !(await verifyExperienceOwnership(req, res, booking.experience_id))) return;
+      if (!booking) {
+        res.status(404).json({ error: 'Không tìm thấy đơn đặt tour' });
+        return;
+      }
       res.json(await db.completeRefund(id));
     } catch (e: any) { handleError(res, e); }
   });

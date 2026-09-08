@@ -547,33 +547,6 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
     }
   };
 
-  const updateBookingPaymentStatus = async (
-    id: number,
-    payment_status: BookingTable['payment_status']
-  ) => {
-    try {
-      await fetchJson<BookingTable>(`/api/bookings/${id}/payment_status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payment_status })
-      });
-      await fetchAllData();
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  const handleRefundComplete = async (id: number) => {
-    if (!confirm(t('host_refund_confirm'))) return;
-    try {
-      await fetchJson(`/api/bookings/${id}/refund_complete`, { method: 'PUT' });
-      await fetchAllData();
-      alert(t('host_refund_success'));
-    } catch (err: any) {
-      alert(err.message || t('host_refund_error'));
-    }
-  };
-
   const updateHostStatus = async (
     id: number,
     status: HostApplicationTable['status']
@@ -1164,33 +1137,9 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                             <option key={status} value={status}>{getStatusLabel(status, t)}</option>
                           ))}
                         </select>
-                        <select
-                          value={booking.payment_status || 'unpaid'}
-                          onChange={(event) => updateBookingPaymentStatus(booking.id, event.target.value as BookingTable['payment_status'])}
-                          className={`w-full rounded-lg border px-2 py-1.5 text-xs font-bold outline-none ${booking.payment_status === 'paid' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : booking.payment_status === 'refunded' ? 'border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 text-zinc-600 dark:text-slate-300' : 'border-rose-200 bg-rose-50 text-rose-700'}`}
-                        >
-                          <option value="unpaid">{t('host_opt_unpaid')}</option>
-                          <option value="paid">{t('host_opt_paid')}</option>
-                          <option value="refunded">{t('host_refunded')}</option>
-                        </select>
-
-                        {booking.refund_status === 'pending' && (
-                          <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-center">
-                            <span className="block text-xs font-bold text-amber-700 mb-1">{t('host_refund_req')}</span>
-                            <button
-                              onClick={() => handleRefundComplete(booking.id)}
-                              className="w-full rounded bg-amber-600 py-1 text-xs font-bold text-white hover:bg-amber-700"
-                            >
-                              {t('host_refunded')}
-                            </button>
-                          </div>
-                        )}
-
-                        {booking.refund_status === 'completed' && (
-                          <div className="mt-2 text-center text-xs font-bold text-zinc-500 dark:text-slate-400 bg-zinc-100 dark:bg-slate-800 py-1 rounded">
-                            {t('host_refunded')}
-                          </div>
-                        )}
+                        <div className="rounded-lg border border-sky-100 bg-sky-50 px-2 py-1.5 text-center text-xs font-semibold text-sky-700">
+                          {t('host_payment_reconciliation')}
+                        </div>
 
                         {booking.status === 'completed' && (
                           <button
