@@ -5,14 +5,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, BadgeCheck, Calendar, MessageSquare, Phone, User, Users, X, Tag, Building2, CreditCard, Copy, CheckCircle2, Loader2 } from 'lucide-react';
-import { ExperienceTable, TourScheduleTable, formatDateVi, formatVnd, todayIso } from '../types';
+import { BookingTable, ExperienceTable, TourScheduleTable, formatDateVi, formatVnd, todayIso } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface ModalBookingProps {
   experience: ExperienceTable;
   userEmail: string;
   onClose: () => void;
-  onBookingSuccess: () => void;
+  onBookingSuccess: (booking: BookingTable) => void;
 }
 
 const phonePattern = /^(0|\+84)[0-9\s.-]{8,13}$/;
@@ -177,7 +177,7 @@ export default function ModalBooking({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || t('booking_submit_error'));
-      onBookingSuccess();
+      onBookingSuccess(data as BookingTable);
       onClose();
     } catch (err: any) {
       setError(err.message);
@@ -235,6 +235,10 @@ export default function ModalBooking({
                   {t('detail_booking_open')}: {formatDateVi(experience.booking_open_date)} - {formatDateVi(experience.booking_close_date)}
                 </span>
               </div>
+            </div>
+
+            <div className="mx-6 sm:mx-8 mb-1 rounded-xl border border-sky-100 bg-sky-50 p-3 text-xs leading-relaxed text-sky-800">
+              <strong>Di chuyển tự túc:</strong> Giá tour không bao gồm vé máy bay, tàu xe hoặc chi phí đến {tDynamic(experience.location)}. Bạn cần tự sắp xếp phương tiện và có mặt đúng giờ tại điểm tập trung của tour.
             </div>
 
             <form onSubmit={handleBookingSubmit} className="space-y-4">

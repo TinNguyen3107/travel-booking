@@ -919,9 +919,16 @@ export default function App() {
           experience={selectedExperience}
           userEmail={user.email}
           onClose={() => setSelectedExperience(null)}
-          onBookingSuccess={() => {
+          onBookingSuccess={(booking) => {
             fetchExperiences();
-            scrollToSection('community');
+            setConfirmConfig({
+              title: 'Đã gửi yêu cầu đặt tour',
+              message: `Lịch khởi hành của bạn là ${formatDateVi(booking.booking_date)}. ${selectedExperience.meeting_point ? `Điểm tập trung: ${selectedExperience.meeting_point}. ` : ''}Vé máy bay, tàu xe và chi phí di chuyển đến ${selectedExperience.location} do bạn tự sắp xếp. Vui lòng kiểm tra Hồ sơ để theo dõi trạng thái đơn.`,
+              confirmText: 'Đã hiểu',
+              cancelText: 'Đóng',
+              isDanger: false,
+              onConfirm: () => setConfirmConfig(null)
+            });
           }}
         />
       )}
@@ -1015,4 +1022,3 @@ function HeroStat({
     </div>
   );
 }
-
