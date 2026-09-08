@@ -18,8 +18,9 @@ This document is the source of truth for the core VietTour marketplace flow.
   capacity.
 - Before a host can submit a tour for approval, it must include a meeting
   point, itinerary, included services, excluded services, and a cancellation
-  policy. This is particularly important because guests arrange their own
-  transport to the tour location.
+  policy, plus at least one future departure with remaining capacity. This is
+  particularly important because guests arrange their own transport to the
+  tour location.
 - `booking_open_date` and `booking_close_date` are the sales window. They are
   not travel dates.
 - Every new booking must select one future departure. A booking never creates

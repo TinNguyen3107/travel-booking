@@ -842,6 +842,12 @@ app.use(async (req, res, next) => {
         if (missingFields.length > 0) {
           res.status(400).json({ error: `Cần bổ sung ${missingFields.join(', ')} trước khi gửi tour duyệt` }); return;
         }
+        const hasBookableDeparture = (await db.getSchedules(id)).some((schedule) =>
+          schedule.start_date >= todayInVietnamIso() && schedule.remaining_slots > 0
+        );
+        if (!hasBookableDeparture) {
+          res.status(400).json({ error: 'Cần có ít nhất một lịch khởi hành còn chỗ trước khi gửi tour duyệt' }); return;
+        }
         res.json(await db.updateExperience(id, { status: 'pending_review' }));
         return;
       }
@@ -861,6 +867,12 @@ app.use(async (req, res, next) => {
         const missingFields = getMissingTourPublishFields(exp);
         if (missingFields.length > 0) {
           res.status(400).json({ error: `Không thể công khai tour khi thiếu ${missingFields.join(', ')}` }); return;
+        }
+        const hasBookableDeparture = (await db.getSchedules(id)).some((schedule) =>
+          schedule.start_date >= todayInVietnamIso() && schedule.remaining_slots > 0
+        );
+        if (!hasBookableDeparture) {
+          res.status(400).json({ error: 'Không thể công khai tour khi chưa có lịch khởi hành còn chỗ' }); return;
         }
       }
 
