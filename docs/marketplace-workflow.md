@@ -27,6 +27,9 @@ This document is the source of truth for the core VietTour marketplace flow.
   an ad-hoc departure date.
 - Capacity is reserved and released per departure. The tour template does not
   share one capacity across its departures.
+- A departure cannot begin in the past. Once it has active bookings, its
+  start/end dates are locked so guests can rely on their travel arrangements;
+  only its capacity may be increased within the existing booking rules.
 - The platform does not sell airfare, train, or intercity transport. Guests
   receive the departure date and meeting point, arrange their own travel, and
   are subject to the tour's stated cancellation/no-show policy.

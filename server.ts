@@ -916,7 +916,7 @@ app.use(async (req, res, next) => {
         res.status(400).json({ error: 'Vui lòng nhập đầy đủ thông tin lịch khởi hành' });
         return;
       }
-      if (!isoDatePattern.test(start_date) || !isoDatePattern.test(end_date) || end_date < start_date || !Number.isInteger(max_slots) || max_slots < 1) {
+      if (!isoDatePattern.test(start_date) || !isoDatePattern.test(end_date) || start_date < todayInVietnamIso() || end_date < start_date || !Number.isInteger(max_slots) || max_slots < 1) {
         res.status(400).json({ error: 'Ngày kết thúc không hợp lệ' });
         return;
       }
@@ -935,8 +935,12 @@ app.use(async (req, res, next) => {
       if (req.body.max_slots !== undefined) payload.max_slots = Number(req.body.max_slots);
       const startDate = payload.start_date || schedule.start_date;
       const endDate = payload.end_date || schedule.end_date;
-      if (!isoDatePattern.test(startDate) || !isoDatePattern.test(endDate) || endDate < startDate) {
+      if (!isoDatePattern.test(startDate) || !isoDatePattern.test(endDate) || startDate < todayInVietnamIso() || endDate < startDate) {
         return res.status(400).json({ error: 'Ngày khởi hành hoặc kết thúc không hợp lệ' });
+      }
+      const bookedSlots = schedule.max_slots - schedule.remaining_slots;
+      if (bookedSlots > 0 && (startDate !== schedule.start_date || endDate !== schedule.end_date)) {
+        return res.status(400).json({ error: 'Không thể đổi ngày lịch khởi hành khi đã có khách đặt tour' });
       }
       if (payload.max_slots !== undefined && (!Number.isInteger(payload.max_slots) || payload.max_slots < schedule.max_slots - schedule.remaining_slots)) {
         return res.status(400).json({ error: 'Số chỗ mới không được thấp hơn số khách đã đặt' });

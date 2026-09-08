@@ -1549,6 +1549,12 @@ class RelationalDatabase {
     if (!current) throw new Error('Không tìm thấy lịch khởi hành');
 
     const bookedSlots = current.max_slots - current.remaining_slots;
+    if (bookedSlots > 0 && (
+      (fields.start_date !== undefined && fields.start_date !== current.start_date) ||
+      (fields.end_date !== undefined && fields.end_date !== current.end_date)
+    )) {
+      throw new Error('Không thể đổi ngày lịch khởi hành khi đã có khách đặt tour');
+    }
     if (fields.max_slots !== undefined) {
       if (!Number.isInteger(fields.max_slots) || fields.max_slots < bookedSlots) {
         throw new Error('Số chỗ mới không được thấp hơn số khách đã đặt');
