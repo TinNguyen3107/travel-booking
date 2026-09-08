@@ -1058,6 +1058,15 @@ app.use(async (req, res, next) => {
         total_price: totalPrice
       });
 
+      if (experience.host_email) {
+        await db.createNotification(
+          experience.host_email,
+          'Có đơn đặt tour mới',
+          `Khách ${contactName} đã gửi yêu cầu đặt tour "${experience.title}" cho lịch ${bookingDate}.`,
+          'info'
+        );
+      }
+
       res.status(201).json(newBooking);
     } catch (e: any) { handleError(res, e); }
   });
@@ -1076,7 +1085,16 @@ app.use(async (req, res, next) => {
         return;
       }
 
-      res.json(await db.updateBookingStatus(id, status as 'pending' | 'confirmed' | 'cancelled'));
+      const updatedBooking = await db.updateBookingStatus(id, status as 'pending' | 'confirmed' | 'cancelled');
+      if (booking.status !== status) {
+        const notification = status === 'confirmed'
+          ? { title: 'Đơn đặt tour đã được xác nhận', message: `Host đã xác nhận đơn #${booking.id}. Vui lòng có mặt đúng giờ tại điểm tập trung.` , type: 'success' as const }
+          : status === 'cancelled'
+            ? { title: 'Đơn đặt tour đã bị hủy', message: `Đơn #${booking.id} đã được cập nhật sang trạng thái đã hủy.`, type: 'warning' as const }
+            : { title: 'Đơn đặt tour được cập nhật', message: `Đơn #${booking.id} đang chờ xử lý.`, type: 'info' as const };
+        await db.createNotification(booking.user_email, notification.title, notification.message, notification.type);
+      }
+      res.json(updatedBooking);
     } catch (e: any) { handleError(res, e); }
   });
 
@@ -1112,7 +1130,17 @@ app.use(async (req, res, next) => {
         res.status(400).json({ error: 'Chỉ có thể hủy đơn khi đang chờ xử lý. Vui lòng liên hệ hỗ trợ để thay đổi đơn đã xác nhận.' });
         return;
       }
-      res.json(await db.updateBookingStatus(id, 'cancelled'));
+      const updatedBooking = await db.updateBookingStatus(id, 'cancelled');
+      const experience = await db.findExperienceById(booking.experience_id);
+      if (experience?.host_email) {
+        await db.createNotification(
+          experience.host_email,
+          'Khách đã hủy đơn đặt tour',
+          `Khách đã hủy đơn #${booking.id} của tour "${experience.title}".`,
+          'warning'
+        );
+      }
+      res.json(updatedBooking);
     } catch (e: any) { handleError(res, e); }
   });
 
