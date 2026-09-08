@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, MapPin, Star, X, CalendarCheck, Users, Bed, Home, CheckCircle2, Calendar, AlertCircle } from 'lucide-react';
-import { ExperienceTable, TourScheduleTable, formatDateVi, formatVnd, isExperienceOpen } from '../types';
+import { ExperienceTable, TourScheduleTable, formatDateVi, formatVnd, isExperienceOpen, todayIso } from '../types';
 import HostProfileWidget from './HostProfileWidget';
 
 interface ModalExperienceDetailProps {
@@ -16,10 +16,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
   const { lang, t, tCategory, tDynamic } = useLanguage();
   const isOpen = isExperienceOpen(experience);
   const [schedules, setSchedules] = useState<TourScheduleTable[]>([]);
-  const validSchedules = schedules.filter(s =>
-    s.start_date >= experience.booking_open_date &&
-    (!experience.booking_close_date || s.start_date <= experience.booking_close_date)
-  );
+  const validSchedules = schedules.filter(s => s.start_date >= todayIso() && s.remaining_slots > 0);
   const [availability, setAvailability] = useState<{ totalRemaining: number, dailyRemaining: number, isAvailable: boolean } | null>(null);
 
   useEffect(() => {
