@@ -1135,7 +1135,7 @@ app.use(async (req, res, next) => {
         }
         const schedule = await db.findScheduleById(booking.schedule_id);
         const today = todayInVietnamIso();
-        if (!schedule || ((status === 'checked_in' || status === 'no_show') && schedule.start_date > today) || (status === 'completed' && schedule.end_date > today)) {
+        if (!schedule || ((status === 'checked_in' || status === 'no_show') && schedule.start_date > today) || (status === 'completed' && schedule.end_date >= today)) {
           res.status(400).json({ error: status === 'checked_in' ? 'Chỉ có thể check-in từ ngày khởi hành của tour' : status === 'no_show' ? 'Chỉ có thể ghi nhận vắng mặt từ ngày khởi hành của tour' : 'Chỉ có thể hoàn tất khi lịch tour đã kết thúc' });
           return;
         }
@@ -1365,7 +1365,7 @@ app.use(async (req, res, next) => {
       const hasCompletedSchedule = userBookings.some(b => {
         if (!b.schedule_id) return false;
         const schedule = schedules.find(s => s.id === b.schedule_id);
-        return schedule && schedule.end_date <= today;
+        return schedule && schedule.end_date < today;
       });
 
       if (!hasCompletedSchedule) {
@@ -1475,7 +1475,7 @@ app.use(async (req, res, next) => {
         let hasCompletedTour = false;
         for (const b of userBookings) {
           const schedule = await db.findScheduleById(b.schedule_id!);
-          if (schedule && schedule.end_date <= today) {
+          if (schedule && schedule.end_date < today) {
             hasCompletedTour = true;
             break;
           }

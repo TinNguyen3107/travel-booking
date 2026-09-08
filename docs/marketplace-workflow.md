@@ -44,8 +44,9 @@ Current states are `pending`, `confirmed`, `checked_in`, `completed`,
 `no_show`, and `cancelled`.
 
 - A host or admin may confirm or cancel a pending booking.
-- A confirmed booking can be checked in from its departure start date; it can
-  then be marked completed only after the departure ends.
+- A confirmed booking can be checked in from its departure start date; because
+  departures currently have dates but no end time, it can be marked completed
+  from the calendar day after the departure end date.
 - A confirmed booking can be marked no-show from the departure start date when
   the guest does not arrive at the meeting point.
 - Completed, no-show, and cancelled bookings are final. They cannot be
