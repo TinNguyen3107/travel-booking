@@ -280,7 +280,7 @@ class RelationalDatabase {
         contact_phone VARCHAR(30) NOT NULL,
         note TEXT,
         total_price DECIMAL(12, 0) NOT NULL DEFAULT 0,
-        status ENUM('pending', 'confirmed', 'cancelled') NOT NULL DEFAULT 'pending',
+        status ENUM('pending', 'confirmed', 'checked_in', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
@@ -311,6 +311,7 @@ class RelationalDatabase {
     try { await pool.query("ALTER TABLE bookings ADD COLUMN payment_status ENUM('unpaid', 'paid', 'refunded') NOT NULL DEFAULT 'unpaid' AFTER status"); } catch (e: any) { }
     try { await pool.query("ALTER TABLE bookings ADD COLUMN commission_amount DECIMAL(12, 0) NOT NULL DEFAULT 0 AFTER total_price"); } catch (e: any) { }
     try { await pool.query("ALTER TABLE bookings ADD COLUMN host_earnings DECIMAL(12, 0) NOT NULL DEFAULT 0 AFTER commission_amount"); } catch (e: any) { }
+    try { await pool.query("ALTER TABLE bookings MODIFY COLUMN status ENUM('pending', 'confirmed', 'checked_in', 'completed', 'cancelled') NOT NULL DEFAULT 'pending'"); } catch (e: any) { }
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS reviews (
@@ -1033,7 +1034,7 @@ class RelationalDatabase {
 
   public async updateBookingStatus(
     id: number,
-    status: 'pending' | 'confirmed' | 'cancelled'
+    status: 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'cancelled'
   ): Promise<BookingTable> {
     const current = await this.findBookingById(id);
     if (!current) throw new Error('Không tìm thấy đơn đặt tour này');

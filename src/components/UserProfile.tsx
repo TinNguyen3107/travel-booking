@@ -132,6 +132,8 @@ export default function UserProfile({ user, onClose, onProfileUpdated }: { user:
     const map: any = {
       pending: <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs font-bold">{t('booking_status_pending')}</span>,
       confirmed: <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-xs font-bold">{t('booking_status_confirmed')}</span>,
+      checked_in: <span className="bg-sky-100 text-sky-800 px-2 py-1 rounded text-xs font-bold">{t('booking_status_checked_in')}</span>,
+      completed: <span className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded text-xs font-bold">{t('booking_status_completed')}</span>,
       cancelled: <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold">{t('booking_status_cancelled')}</span>
     };
     return map[status] || status;

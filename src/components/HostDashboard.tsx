@@ -94,6 +94,8 @@ const getStatusLabel = (status: string, t: any) => {
   const labels: Record<string, string> = {
     pending: t('host_opt_pending'),
     confirmed: t('host_opt_confirmed'),
+    checked_in: t('host_opt_checked_in'),
+    completed: t('host_opt_completed'),
     cancelled: t('host_opt_cancelled'),
     approved: t('host_status_approved'),
     rejected: t('host_status_rejected'),
@@ -102,8 +104,19 @@ const getStatusLabel = (status: string, t: any) => {
   return labels[status] || status;
 };
 
+const getAllowedBookingStatuses = (status: BookingTable['status']): BookingTable['status'][] => {
+  const transitions: Record<BookingTable['status'], BookingTable['status'][]> = {
+    pending: ['pending', 'confirmed', 'cancelled'],
+    confirmed: ['confirmed', 'checked_in', 'cancelled'],
+    checked_in: ['checked_in', 'completed'],
+    completed: ['completed'],
+    cancelled: ['cancelled']
+  };
+  return transitions[status];
+};
+
 const statusClass = (status: string) => {
-  if (status === 'confirmed' || status === 'approved') {
+  if (status === 'confirmed' || status === 'checked_in' || status === 'completed' || status === 'approved') {
     return 'bg-emerald-50 text-emerald-700 border-emerald-100';
   }
   if (status === 'cancelled' || status === 'rejected') {
@@ -1145,9 +1158,9 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                           onChange={(event) => updateBookingStatus(booking.id, event.target.value as BookingTable['status'])}
                           className={`w-full rounded-lg border px-2 py-1.5 text-xs font-bold outline-none ${statusClass(booking.status)}`}
                         >
-                          <option value="pending">{t('host_opt_pending')}</option>
-                          <option value="confirmed">{t('host_opt_confirmed')}</option>
-                          <option value="cancelled">{t('host_opt_cancelled')}</option>
+                          {getAllowedBookingStatuses(booking.status).map((status) => (
+                            <option key={status} value={status}>{getStatusLabel(status, t)}</option>
+                          ))}
                         </select>
                         <select
                           value={booking.payment_status || 'unpaid'}
@@ -1177,7 +1190,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                           </div>
                         )}
 
-                        {booking.status === 'confirmed' && (
+                        {booking.status === 'completed' && (
                           <button
                             onClick={() => {
                               setEvaluatingBooking(booking);

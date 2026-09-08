@@ -238,7 +238,7 @@ export default function ModalBooking({
             </div>
 
             <div className="mx-6 sm:mx-8 mb-1 rounded-xl border border-sky-100 bg-sky-50 p-3 text-xs leading-relaxed text-sky-800">
-              <strong>Di chuyển tự túc:</strong> Giá tour không bao gồm vé máy bay, tàu xe hoặc chi phí đến {tDynamic(experience.location)}. Bạn cần tự sắp xếp phương tiện và có mặt đúng giờ tại điểm tập trung của tour.
+              <strong>Di chuyển tự túc:</strong> Giá tour không bao gồm vé máy bay, tàu xe hoặc chi phí đến {tDynamic(experience.location)}. Bạn cần tự sắp xếp phương tiện và có mặt đúng giờ tại điểm tập trung của tour. Việc vắng mặt/trễ giờ được xử lý theo chính sách hủy của tour.
             </div>
 
             <form onSubmit={handleBookingSubmit} className="space-y-4">

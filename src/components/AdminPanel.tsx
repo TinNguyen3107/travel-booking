@@ -73,6 +73,8 @@ const EMPTY_FORM = {
 const statusLabels: Record<string, string> = {
   pending: 'Chờ xử lý',
   confirmed: 'Đã xác nhận',
+  checked_in: 'Đã check-in',
+  completed: 'Đã hoàn tất',
   cancelled: 'Đã hủy',
   approved: 'Đã duyệt',
   rejected: 'Đã từ chối',
@@ -80,7 +82,7 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusClass = (status: string) => {
-  if (status === 'confirmed' || status === 'approved') {
+  if (status === 'confirmed' || status === 'checked_in' || status === 'completed' || status === 'approved') {
     return 'bg-emerald-50 text-emerald-700 border-emerald-100';
   }
   if (status === 'cancelled' || status === 'rejected') {
@@ -1098,7 +1100,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                         <div
                           className={`w-full rounded-lg border px-2 py-1.5 text-xs font-bold text-center ${statusClass(booking.status)}`}
                         >
-                          {booking.status === 'pending' ? 'Chờ xử lý' : booking.status === 'confirmed' ? 'Đã xác nhận' : 'Đã hủy'}
+                          {statusLabels[booking.status] || booking.status}
                         </div>
                         <div
                           className={`w-full rounded-lg border px-2 py-1.5 text-xs font-bold text-center ${booking.payment_status === 'paid' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : booking.payment_status === 'refunded' ? 'border-zinc-200 dark:border-slate-700 bg-zinc-50 dark:bg-slate-900/50 text-zinc-600 dark:text-slate-300' : 'border-rose-200 bg-rose-50 text-rose-700'}`}
