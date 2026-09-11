@@ -4,8 +4,8 @@ This document is the source of truth for the core VietTour marketplace flow.
 
 ## Roles
 
-- A guest can browse tours, create bookings for their own account, cancel a
-  pending booking, and review a completed tour once.
+- A guest can browse tours, create bookings for their own account, cancel an
+  eligible booking, and review a completed tour once.
 - A host can manage only their own approved tours, departures, and bookings.
 - An admin verifies hosts, moderates tours, handles disputes, and reconciles
   payments. The admin is the only role with global reporting access.
@@ -14,22 +14,24 @@ This document is the source of truth for the core VietTour marketplace flow.
 
 - A tour is reusable content owned by one host: description, price, child
   policy, images, and booking-sales window.
-- A departure is one actual run of a tour. It owns its start/end dates and its
-  capacity.
+- A departure is one actual run of a tour. It owns its start/end dates, exact
+  meeting time, and capacity.
 - Before a host can submit a tour for approval, it must include a meeting
-  point, itinerary, included services, excluded services, and a cancellation
-  policy, plus at least one future departure with remaining capacity. This is
-  particularly important because guests arrange their own transport to the
-  tour location.
+  point, itinerary, included services, excluded services, a cancellation
+  policy, a no-show policy, and at least one future departure with remaining
+  capacity. This is particularly important because guests arrange their own
+  transport to the tour location.
 - `booking_open_date` and `booking_close_date` are the sales window. They are
   not travel dates.
 - Every new booking must select one future departure. A booking never creates
   an ad-hoc departure date.
 - Capacity is reserved and released per departure. The tour template does not
   share one capacity across its departures.
-- A departure cannot begin in the past. Once it has active bookings, its
-  start/end dates are locked so guests can rely on their travel arrangements;
-  only its capacity may be increased within the existing booking rules.
+- A departure cannot begin before its stated meeting time. A host may reset an
+  unused sample departure to a new future date and meeting time. Once it has
+  active bookings, its start/end dates and meeting time are locked so guests
+  can rely on their travel arrangements; only its capacity may be increased
+  within the existing booking rules.
 - The platform does not sell airfare, train, or intercity transport. Guests
   receive the departure date and meeting point, arrange their own travel, and
   are subject to the tour's stated cancellation/no-show policy.
@@ -48,6 +50,10 @@ Current states are `pending`, `confirmed`, `checked_in`, `completed`,
 `no_show`, and `cancelled`.
 
 - A host or admin may confirm or cancel a pending booking.
+- A guest can cancel a pending booking. A confirmed booking can be cancelled
+  by the guest only before the host-defined cutoff (0-168 hours before the
+  departure meeting time); after that cutoff, the guest must contact the host
+  or platform support.
 - A confirmed booking can be checked in from its departure start date; because
   departures currently have dates but no end time, it can be marked completed
   from the calendar day after the departure end date.
