@@ -24,7 +24,6 @@ const FALLBACK_IMAGE =
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phonePattern = /^(0|\+84)[0-9\s.-]{8,13}$/;
-const maskedIdentityPattern = /^\*{8}\d{4}$/;
 
 const cleanText = (value: unknown) => String(value ?? '').trim();
 
@@ -1327,10 +1326,6 @@ app.use(async (req, res, next) => {
 
       if (!email || !name || !phone || !address || !id_number || !experience_location || !description) {
         res.status(400).json({ error: 'Vui lòng nhập đầy đủ thông tin' });
-        return;
-      }
-      if (!/^\d{12}$/.test(id_number) && !maskedIdentityPattern.test(id_number)) {
-        res.status(400).json({ error: 'Số CCCD phải gồm 12 chữ số hoặc giữ nguyên giá trị đã che' });
         return;
       }
 

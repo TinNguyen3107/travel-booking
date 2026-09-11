@@ -5,7 +5,6 @@
 
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 import type { RowDataPacket } from 'mysql2';
 import dotenv from 'dotenv';
 import {
@@ -82,16 +81,6 @@ const toDateTimeString = (value: unknown) => {
   return String(value ?? '');
 };
 
-const hostIdentityHashKey = process.env.HOST_ID_HASH_SECRET || process.env.JWT_SECRET || 'development-host-id-secret';
-const maskHostIdentity = (last4?: unknown) => {
-  const suffix = String(last4 ?? '').replace(/\D/g, '').slice(-4);
-  return suffix ? `********${suffix}` : '';
-};
-const protectHostIdentity = (idNumber: string) => ({
-  hash: crypto.createHmac('sha256', hostIdentityHashKey).update(idNumber).digest('hex'),
-  last4: idNumber.slice(-4)
-});
-
 const normalizeExperience = (row: ExperienceRow): ExperienceTable => {
   const reviewsCount = toNumber(row.reviews_count);
   const maxGuests = toNumber(row.max_guests) || 50;
@@ -148,8 +137,6 @@ const normalizeBooking = (row: BookingRow): BookingTable => ({
 const normalizeHost = (row: HostApplicationRow): HostApplicationTable => ({
   ...row,
   id: toNumber(row.id),
-  id_number: maskHostIdentity(row.id_number_last4),
-  id_number_last4: String(row.id_number_last4 ?? '').slice(-4),
   created_at: toDateTimeString(row.created_at)
 });
 
@@ -306,8 +293,7 @@ class RelationalDatabase {
         email VARCHAR(255) NOT NULL,
         phone VARCHAR(30) NOT NULL,
         address VARCHAR(500) NOT NULL DEFAULT '',
-        id_number VARCHAR(128) NOT NULL DEFAULT '',
-        id_number_last4 VARCHAR(4) NULL,
+        id_number VARCHAR(20) NOT NULL DEFAULT '',
         experience_location VARCHAR(500) NOT NULL DEFAULT '',
         description TEXT NOT NULL,
         status ENUM('pending', 'approved', 'rejected', 'suspended') NOT NULL DEFAULT 'pending',
@@ -318,19 +304,8 @@ class RelationalDatabase {
     // Migration: add new host columns for existing databases
     try { await pool.query("ALTER TABLE hosts ADD COLUMN address VARCHAR(500) NOT NULL DEFAULT '' AFTER phone"); } catch (e: any) { }
     try { await pool.query("ALTER TABLE hosts ADD COLUMN id_number VARCHAR(20) NOT NULL DEFAULT '' AFTER address"); } catch (e: any) { }
-    try { await pool.query("ALTER TABLE hosts MODIFY COLUMN id_number VARCHAR(128) NOT NULL DEFAULT ''"); } catch (e: any) { }
-    try { await pool.query("ALTER TABLE hosts ADD COLUMN id_number_last4 VARCHAR(4) NULL AFTER id_number"); } catch (e: any) { }
     try { await pool.query("ALTER TABLE hosts ADD COLUMN experience_location VARCHAR(500) NOT NULL DEFAULT '' AFTER id_number"); } catch (e: any) { }
     try { await pool.query("ALTER TABLE hosts MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'suspended') NOT NULL DEFAULT 'pending'"); } catch (e: any) { }
-    try {
-      const [legacyHosts] = await pool.query<RowDataPacket[]>(
-        "SELECT id, id_number FROM hosts WHERE (id_number_last4 IS NULL OR id_number_last4 = '') AND id_number REGEXP '^[0-9]{12}$'"
-      );
-      for (const legacyHost of legacyHosts) {
-        const identity = protectHostIdentity(String(legacyHost.id_number));
-        await pool.query('UPDATE hosts SET id_number = ?, id_number_last4 = ? WHERE id = ?', [identity.hash, identity.last4, legacyHost.id]);
-      }
-    } catch (e: any) { console.error('Host identity migration error:', e.message); }
 
     // Migration: add new booking columns for Phase 3
     try { await pool.query("ALTER TABLE bookings ADD COLUMN schedule_id INT DEFAULT NULL AFTER experience_id"); } catch (e: any) { }
@@ -1160,7 +1135,7 @@ class RelationalDatabase {
   public async getPrivateHostProfileByEmail(email: string): Promise<any> {
     const normalizedEmail = email.trim().toLowerCase();
     const [hostRows] = await pool.query<RowDataPacket[]>(
-      'SELECT name, description, avatar, phone, address, id_number_last4, experience_location FROM hosts WHERE LOWER(email) = ? LIMIT 1',
+      'SELECT name, description, avatar, phone, address, id_number, experience_location FROM hosts WHERE LOWER(email) = ? LIMIT 1',
       [normalizedEmail]
     );
     const [statsRows] = await pool.query<RowDataPacket[]>(
@@ -1182,7 +1157,7 @@ class RelationalDatabase {
       avatar: host?.avatar || '',
       phone: host?.phone || '',
       address: host?.address || '',
-      id_number: maskHostIdentity(host?.id_number_last4),
+      id_number: host?.id_number || '',
       experience_location: host?.experience_location || '',
       total_experiences: toNumber(stats?.total_experiences),
       total_reviews: toNumber(stats?.total_reviews),
@@ -1267,19 +1242,18 @@ class RelationalDatabase {
   public async addHostApplication(
     app: Omit<HostApplicationTable, 'id' | 'created_at' | 'status'>
   ): Promise<HostApplicationTable> {
-    const identity = protectHostIdentity(app.id_number);
     const [existing] = await pool.query<HostApplicationRow[]>(
       'SELECT id FROM hosts WHERE email = ? OR id_number = ?',
-      [app.email, identity.hash]
+      [app.email, app.id_number]
     );
     if (existing.length > 0) {
       throw new Error('Email hoặc số CCCD/Passport này đã được đăng ký làm host');
     }
 
     const [result] = await pool.query<mysql.ResultSetHeader>(
-      `INSERT INTO hosts (name, email, phone, address, id_number, id_number_last4, experience_location, description, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-      [app.name, app.email, app.phone, app.address, identity.hash, identity.last4, app.experience_location, app.description]
+      `INSERT INTO hosts (name, email, phone, address, id_number, experience_location, description, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')`,
+      [app.name, app.email, app.phone, app.address, app.id_number, app.experience_location, app.description]
     );
 
     const created = await this.findHostById(result.insertId);
@@ -1323,17 +1297,6 @@ class RelationalDatabase {
   ): Promise<HostApplicationTable> {
     const normalizedEmail = email.trim().toLowerCase();
     const avatarValue = profile.avatar ? profile.avatar : null;
-    const [currentRows] = await pool.query<HostApplicationRow[]>(
-      'SELECT id_number, id_number_last4 FROM hosts WHERE LOWER(email) = LOWER(?) LIMIT 1',
-      [normalizedEmail]
-    );
-    const isMaskedIdentity = /^\*{8}\d{4}$/.test(profile.id_number);
-    if (isMaskedIdentity && !currentRows[0]) {
-      throw new Error('Không tìm thấy hồ sơ host để giữ nguyên số CCCD đã che');
-    }
-    const identity = isMaskedIdentity
-      ? { hash: currentRows[0].id_number, last4: String(currentRows[0].id_number_last4 ?? '').slice(-4) }
-      : protectHostIdentity(profile.id_number);
 
     try {
       await pool.query('ALTER TABLE hosts ADD COLUMN avatar LONGTEXT NULL');
@@ -1350,18 +1313,18 @@ class RelationalDatabase {
     try {
       const [result] = await pool.query<mysql.ResultSetHeader>(
         `UPDATE hosts 
-         SET name = ?, phone = ?, address = ?, id_number = ?, id_number_last4 = ?, experience_location = ?, description = ?, avatar = COALESCE(?, avatar)
+         SET name = ?, phone = ?, address = ?, id_number = ?, experience_location = ?, description = ?, avatar = COALESCE(?, avatar)
          WHERE LOWER(email) = LOWER(?)`,
-        [profile.name, profile.phone, profile.address, identity.hash, identity.last4, profile.experience_location, profile.description, avatarValue, normalizedEmail]
+        [profile.name, profile.phone, profile.address, profile.id_number, profile.experience_location, profile.description, avatarValue, normalizedEmail]
       );
       updatedRows = result.affectedRows;
     } catch (e: any) {
       if (String(e.message || '').toLowerCase().includes('unknown column')) {
         const [result] = await pool.query<mysql.ResultSetHeader>(
           `UPDATE hosts 
-           SET name = ?, phone = ?, address = ?, id_number = ?, id_number_last4 = ?, experience_location = ?, description = ?
+           SET name = ?, phone = ?, address = ?, id_number = ?, experience_location = ?, description = ?
            WHERE LOWER(email) = LOWER(?)`,
-          [profile.name, profile.phone, profile.address, identity.hash, identity.last4, profile.experience_location, profile.description, normalizedEmail]
+          [profile.name, profile.phone, profile.address, profile.id_number, profile.experience_location, profile.description, normalizedEmail]
         );
         updatedRows = result.affectedRows;
       } else {
@@ -1370,14 +1333,14 @@ class RelationalDatabase {
     }
 
     if (updatedRows === 0) {
-      const insertColumns = ['name', 'email', 'phone', 'address', 'id_number', 'id_number_last4', 'experience_location', 'description', 'status'];
-      const insertValues: Array<string | null> = [profile.name, normalizedEmail, profile.phone, profile.address, identity.hash, identity.last4, profile.experience_location, profile.description, 'approved'];
-      let insertStatement = `INSERT INTO hosts (${insertColumns.join(', ')}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const insertColumns = ['name', 'email', 'phone', 'address', 'id_number', 'experience_location', 'description', 'status'];
+      const insertValues: Array<string | null> = [profile.name, normalizedEmail, profile.phone, profile.address, profile.id_number, profile.experience_location, profile.description, 'approved'];
+      let insertStatement = `INSERT INTO hosts (${insertColumns.join(', ')}) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
       if (avatarValue !== null) {
         insertColumns.push('avatar');
         insertValues.push(avatarValue);
-        insertStatement = `INSERT INTO hosts (${insertColumns.join(', ')}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        insertStatement = `INSERT INTO hosts (${insertColumns.join(', ')}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
       }
 
       let insertResult: mysql.ResultSetHeader;
@@ -1387,9 +1350,9 @@ class RelationalDatabase {
       } catch (e: any) {
         if (avatarValue !== null && String(e.message || '').toLowerCase().includes('unknown column')) {
           const [result] = await pool.query<mysql.ResultSetHeader>(
-            `INSERT INTO hosts (name, email, phone, address, id_number, id_number_last4, experience_location, description, status)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [profile.name, normalizedEmail, profile.phone, profile.address, identity.hash, identity.last4, profile.experience_location, profile.description, 'approved']
+            `INSERT INTO hosts (name, email, phone, address, id_number, experience_location, description, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [profile.name, normalizedEmail, profile.phone, profile.address, profile.id_number, profile.experience_location, profile.description, 'approved']
           );
           insertResult = result;
         } else {
