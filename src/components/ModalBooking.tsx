@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, BadgeCheck, Calendar, MessageSquare, Phone, User, Users, X, Tag, Building2, CreditCard, Copy, CheckCircle2, Loader2 } from 'lucide-react';
-import { BookingTable, ExperienceTable, TourScheduleTable, formatDateVi, formatVnd, todayIso } from '../types';
+import { BookingTable, ExperienceTable, TourScheduleTable, formatDateVi, formatVnd, isScheduleBookable, todayIso } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface ModalBookingProps {
@@ -40,7 +40,7 @@ export default function ModalBooking({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [schedules, setSchedules] = useState<TourScheduleTable[]>([]);
-  const validSchedules = schedules.filter(s => s.start_date >= today && s.remaining_slots > 0);
+  const validSchedules = schedules.filter(s => isScheduleBookable(s) && s.remaining_slots > 0);
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | ''>('');
   const [availability, setAvailability] = useState<{ totalRemaining: number, dailyRemaining: number, isAvailable: boolean } | null>(null);
 
@@ -277,7 +277,7 @@ export default function ModalBooking({
                     <option value="">{t('booking_select_schedule_ph')}</option>
                     {validSchedules.map(s => (
                       <option key={s.id} value={s.id}>
-                        {formatDateVi(s.start_date)} → {formatDateVi(s.end_date)} ({s.remaining_slots} {t('booking_slot_left')})
+                        {formatDateVi(s.start_date)} → {formatDateVi(s.end_date)} • {t('schedule_meeting_time')} {s.meeting_time} ({s.remaining_slots} {t('booking_slot_left')})
                       </option>
                     ))}
                   </select>

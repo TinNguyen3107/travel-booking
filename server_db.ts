@@ -115,8 +115,9 @@ const normalizeSchedule = (row: ScheduleRow): TourScheduleTable => ({
   max_slots: toNumber(row.max_slots),
   remaining_slots: toNumber(row.remaining_slots),
   start_date: toDateString(row.start_date),
-  end_date: toDateString(row.end_date),
-  created_at: toDateTimeString(row.created_at)
+    end_date: toDateString(row.end_date),
+    meeting_time: String(row.meeting_time ?? '08:00').slice(0, 5),
+    created_at: toDateTimeString(row.created_at)
 });
 
 const normalizeBooking = (row: BookingRow): BookingTable => ({
@@ -443,6 +444,7 @@ class RelationalDatabase {
         experience_id INT NOT NULL,
         start_date DATE NOT NULL,
         end_date DATE NOT NULL,
+        meeting_time TIME NOT NULL DEFAULT '08:00:00',
         max_slots INT NOT NULL DEFAULT 20,
         remaining_slots INT NOT NULL DEFAULT 20,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -450,6 +452,7 @@ class RelationalDatabase {
         CONSTRAINT fk_schedule_experience FOREIGN KEY (experience_id) REFERENCES experiences(id) ON DELETE CASCADE
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
+    try { await pool.query("ALTER TABLE tour_schedules ADD COLUMN meeting_time TIME NOT NULL DEFAULT '08:00:00' AFTER end_date"); } catch (e: any) { }
     // Phase 6: host_reviews table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS host_reviews (
@@ -1559,9 +1562,9 @@ class RelationalDatabase {
     schedule: Omit<TourScheduleTable, 'id' | 'created_at' | 'remaining_slots'>
   ): Promise<TourScheduleTable> {
     const [result] = await pool.query<mysql.ResultSetHeader>(
-      `INSERT INTO tour_schedules (experience_id, start_date, end_date, max_slots, remaining_slots)
-       VALUES (?, ?, ?, ?, ?)`,
-      [schedule.experience_id, schedule.start_date, schedule.end_date, schedule.max_slots, schedule.max_slots]
+      `INSERT INTO tour_schedules (experience_id, start_date, end_date, meeting_time, max_slots, remaining_slots)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [schedule.experience_id, schedule.start_date, schedule.end_date, schedule.meeting_time, schedule.max_slots, schedule.max_slots]
     );
     const scheduleId = result.insertId;
 
@@ -1572,7 +1575,7 @@ class RelationalDatabase {
 
   public async updateSchedule(
     id: number,
-    fields: Partial<Pick<TourScheduleTable, 'start_date' | 'end_date' | 'max_slots' | 'remaining_slots'>>
+    fields: Partial<Pick<TourScheduleTable, 'start_date' | 'end_date' | 'meeting_time' | 'max_slots' | 'remaining_slots'>>
   ): Promise<TourScheduleTable> {
     const current = await this.findScheduleById(id);
     if (!current) throw new Error('Không tìm thấy lịch khởi hành');
@@ -1580,7 +1583,8 @@ class RelationalDatabase {
     const bookedSlots = current.max_slots - current.remaining_slots;
     if (bookedSlots > 0 && (
       (fields.start_date !== undefined && fields.start_date !== current.start_date) ||
-      (fields.end_date !== undefined && fields.end_date !== current.end_date)
+      (fields.end_date !== undefined && fields.end_date !== current.end_date) ||
+      (fields.meeting_time !== undefined && fields.meeting_time !== current.meeting_time)
     )) {
       throw new Error('Không thể đổi ngày lịch khởi hành khi đã có khách đặt tour');
     }
@@ -1591,7 +1595,7 @@ class RelationalDatabase {
       fields.remaining_slots = fields.max_slots - bookedSlots;
     }
 
-    const allowed = ['start_date', 'end_date', 'max_slots', 'remaining_slots'] as const;
+    const allowed = ['start_date', 'end_date', 'meeting_time', 'max_slots', 'remaining_slots'] as const;
     const entries = allowed
       .filter(f => fields[f] !== undefined)
       .map(f => [f, fields[f]] as const);

@@ -57,6 +57,7 @@ export interface TourScheduleTable {
   experience_id: number;
   start_date: string;
   end_date: string;
+  meeting_time: string;
   max_slots: number;
   remaining_slots: number;
   created_at: string;
@@ -196,6 +197,18 @@ export const todayIso = () => {
   const date = new Date();
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return localDate.toISOString().slice(0, 10);
+};
+
+export const isScheduleBookable = (schedule: TourScheduleTable) => {
+  const now = new Date();
+  const vietnamDate = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(now);
+  if (schedule.start_date !== vietnamDate) return schedule.start_date > vietnamDate;
+  const vietnamTime = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', hour12: false
+  }).format(now);
+  return (schedule.meeting_time || '08:00') > vietnamTime;
 };
 
 export const formatDateVi = (value?: string) => {

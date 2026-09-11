@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, MapPin, Star, X, CalendarCheck, Users, Bed, Home, CheckCircle2, Calendar, AlertCircle } from 'lucide-react';
-import { ExperienceTable, TourScheduleTable, formatDateVi, formatVnd, isExperienceOpen, todayIso } from '../types';
+import { ExperienceTable, TourScheduleTable, formatDateVi, formatVnd, isExperienceOpen, isScheduleBookable, todayIso } from '../types';
 import HostProfileWidget from './HostProfileWidget';
 
 interface ModalExperienceDetailProps {
@@ -16,7 +16,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
   const { lang, t, tCategory, tDynamic } = useLanguage();
   const isOpen = isExperienceOpen(experience);
   const [schedules, setSchedules] = useState<TourScheduleTable[]>([]);
-  const validSchedules = schedules.filter(s => s.start_date >= todayIso() && s.remaining_slots > 0);
+  const validSchedules = schedules.filter(s => isScheduleBookable(s) && s.remaining_slots > 0);
   const [availability, setAvailability] = useState<{ totalRemaining: number, dailyRemaining: number, isAvailable: boolean } | null>(null);
 
   useEffect(() => {
@@ -321,7 +321,7 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
                           {formatDateVi(schedule.start_date)} - {formatDateVi(schedule.end_date)}
                         </div>
                         <div className="text-xs font-semibold text-emerald-700">
-                          {t('detail_available')} {schedule.remaining_slots} {t('detail_slots')}
+                          {t('schedule_meeting_time')}: {schedule.meeting_time} • {t('detail_available')} {schedule.remaining_slots} {t('detail_slots')}
                         </div>
                       </div>
                     </div>

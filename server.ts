@@ -29,6 +29,7 @@ const cleanText = (value: unknown) => String(value ?? '').trim();
 
 const isValidPrice = (price: number) => Number.isFinite(price) && price >= 1000;
 const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
+const isoTimePattern = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 
 const isValidMaxGuests = (value: number) => Number.isInteger(value) && value >= 1 && value <= 1000;
 
@@ -64,6 +65,9 @@ const todayInVietnamIso = () =>
     month: '2-digit',
     day: '2-digit'
   }).format(new Date());
+
+const hasDepartureStarted = (startDate: string, meetingTime: string) =>
+  Date.now() >= Date.parse(`${startDate}T${meetingTime}:00+07:00`);
 
 async function initDb() {
   await db.ensureSchema();
@@ -894,17 +898,18 @@ app.use(async (req, res, next) => {
       if (!(await verifyExperienceOwnership(req, res, experience_id))) return;
       const start_date = cleanText(req.body.start_date);
       const end_date = cleanText(req.body.end_date);
+      const meeting_time = cleanText(req.body.meeting_time);
       const max_slots = Number(req.body.max_slots);
 
-      if (!experience_id || !start_date || !end_date || !max_slots) {
+      if (!experience_id || !start_date || !end_date || !meeting_time || !max_slots) {
         res.status(400).json({ error: 'Vui lòng nhập đầy đủ thông tin lịch khởi hành' });
         return;
       }
-      if (!isoDatePattern.test(start_date) || !isoDatePattern.test(end_date) || start_date < todayInVietnamIso() || end_date < start_date || !Number.isInteger(max_slots) || max_slots < 1) {
+      if (!isoDatePattern.test(start_date) || !isoDatePattern.test(end_date) || !isoTimePattern.test(meeting_time) || start_date < todayInVietnamIso() || end_date < start_date || !Number.isInteger(max_slots) || max_slots < 1 || hasDepartureStarted(start_date, meeting_time)) {
         res.status(400).json({ error: 'Ngày kết thúc không hợp lệ' });
         return;
       }
-      res.status(201).json(await db.addSchedule({ experience_id, start_date, end_date, max_slots }));
+      res.status(201).json(await db.addSchedule({ experience_id, start_date, end_date, meeting_time, max_slots }));
     } catch (e: any) { handleError(res, e); }
   });
 
@@ -916,14 +921,16 @@ app.use(async (req, res, next) => {
       const payload: any = {};
       if (req.body.start_date !== undefined) payload.start_date = cleanText(req.body.start_date);
       if (req.body.end_date !== undefined) payload.end_date = cleanText(req.body.end_date);
+      if (req.body.meeting_time !== undefined) payload.meeting_time = cleanText(req.body.meeting_time);
       if (req.body.max_slots !== undefined) payload.max_slots = Number(req.body.max_slots);
       const startDate = payload.start_date || schedule.start_date;
       const endDate = payload.end_date || schedule.end_date;
-      if (!isoDatePattern.test(startDate) || !isoDatePattern.test(endDate) || startDate < todayInVietnamIso() || endDate < startDate) {
+      const meetingTime = payload.meeting_time || schedule.meeting_time;
+      if (!isoDatePattern.test(startDate) || !isoDatePattern.test(endDate) || !isoTimePattern.test(meetingTime) || startDate < todayInVietnamIso() || endDate < startDate || hasDepartureStarted(startDate, meetingTime)) {
         return res.status(400).json({ error: 'Ngày khởi hành hoặc kết thúc không hợp lệ' });
       }
       const bookedSlots = schedule.max_slots - schedule.remaining_slots;
-      if (bookedSlots > 0 && (startDate !== schedule.start_date || endDate !== schedule.end_date)) {
+      if (bookedSlots > 0 && (startDate !== schedule.start_date || endDate !== schedule.end_date || meetingTime !== schedule.meeting_time)) {
         return res.status(400).json({ error: 'Không thể đổi ngày lịch khởi hành khi đã có khách đặt tour' });
       }
       if (payload.max_slots !== undefined && (!Number.isInteger(payload.max_slots) || payload.max_slots < schedule.max_slots - schedule.remaining_slots)) {
@@ -1028,7 +1035,7 @@ app.use(async (req, res, next) => {
           res.status(404).json({ error: 'Không tìm thấy lịch khởi hành.' });
           return;
         }
-        if (schedule.start_date !== bookingDate || schedule.start_date < today) {
+        if (schedule.start_date !== bookingDate || schedule.start_date < today || hasDepartureStarted(schedule.start_date, schedule.meeting_time)) {
           res.status(400).json({ error: 'Ngày khởi hành không hợp lệ.' });
           return;
         }
