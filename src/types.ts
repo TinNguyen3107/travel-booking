@@ -29,6 +29,8 @@ export interface ExperienceTable {
   included?: string;
   excluded?: string;
   cancellation_policy?: string;
+  cancellation_cutoff_hours?: number;
+  no_show_policy?: string;
   rating: number;
   host_count: number;
   reviews_count: number;

@@ -39,13 +39,15 @@ const getMissingTourPublishFields = (experience: {
   included?: string;
   excluded?: string;
   cancellation_policy?: string;
+  no_show_policy?: string;
 }) => {
   const requiredFields: Array<[keyof typeof experience, string]> = [
     ['meeting_point', 'điểm tập trung'],
     ['itinerary', 'lịch trình'],
     ['included', 'dịch vụ bao gồm'],
     ['excluded', 'dịch vụ không bao gồm'],
-    ['cancellation_policy', 'chính sách hủy']
+    ['cancellation_policy', 'chính sách hủy'],
+    ['no_show_policy', 'chính sách khách vắng mặt']
   ];
   return requiredFields
     .filter(([field]) => !cleanText(experience[field]))
@@ -599,6 +601,8 @@ app.use(async (req, res, next) => {
       const included = cleanText(req.body.included);
       const excluded = cleanText(req.body.excluded);
       const cancellation_policy = cleanText(req.body.cancellation_policy);
+      const no_show_policy = cleanText(req.body.no_show_policy);
+      const cancellation_cutoff_hours = req.body.cancellation_cutoff_hours === undefined ? 24 : Number(req.body.cancellation_cutoff_hours);
       const max_guests = req.body.max_guests ? Number(req.body.max_guests) : 50;
       const daily_capacity_max = req.body.daily_capacity_max ? Number(req.body.daily_capacity_max) : max_guests;
       const booking_open_date = cleanText(req.body.booking_open_date);
@@ -619,7 +623,7 @@ app.use(async (req, res, next) => {
         return;
       }
 
-      if ([meeting_point, itinerary, included, excluded, cancellation_policy].some((value) => value.length > 2000)) {
+      if ([meeting_point, itinerary, included, excluded, cancellation_policy, no_show_policy].some((value) => value.length > 2000)) {
         res.status(400).json({ error: 'Thông tin chi tiết tour không được vượt quá 2.000 ký tự mỗi mục' });
         return;
       }
@@ -652,6 +656,11 @@ app.use(async (req, res, next) => {
         return;
       }
 
+      if (!Number.isInteger(cancellation_cutoff_hours) || cancellation_cutoff_hours < 0 || cancellation_cutoff_hours > 168) {
+        res.status(400).json({ error: 'Mốc tự hủy phải từ 0 đến 168 giờ trước giờ tập trung' });
+        return;
+      }
+
       const newExp = await db.addExperience({
         title,
         location,
@@ -665,6 +674,8 @@ app.use(async (req, res, next) => {
         included,
         excluded,
         cancellation_policy,
+        cancellation_cutoff_hours,
+        no_show_policy,
         rating: 0,
         host_count: 1,
         reviews_count: 0,
@@ -697,10 +708,10 @@ app.use(async (req, res, next) => {
 
       const payload: Record<string, string | number> = {};
 
-      for (const field of ['title', 'location', 'duration', 'category', 'description', 'meeting_point', 'itinerary', 'included', 'excluded', 'cancellation_policy', 'host_email'] as const) {
+      for (const field of ['title', 'location', 'duration', 'category', 'description', 'meeting_point', 'itinerary', 'included', 'excluded', 'cancellation_policy', 'no_show_policy', 'host_email'] as const) {
         if (req.body[field] !== undefined) {
           const value = cleanText(req.body[field]);
-          if (!value && !['host_email', 'meeting_point', 'itinerary', 'included', 'excluded', 'cancellation_policy'].includes(field)) {
+          if (!value && !['host_email', 'meeting_point', 'itinerary', 'included', 'excluded', 'cancellation_policy', 'no_show_policy'].includes(field)) {
             res.status(400).json({ error: 'Thông tin trải nghiệm không được để trống' });
             return;
           }
@@ -710,6 +721,15 @@ app.use(async (req, res, next) => {
           }
           payload[field] = value;
         }
+      }
+
+      if (req.body.cancellation_cutoff_hours !== undefined) {
+        const cancellationCutoffHours = Number(req.body.cancellation_cutoff_hours);
+        if (!Number.isInteger(cancellationCutoffHours) || cancellationCutoffHours < 0 || cancellationCutoffHours > 168) {
+          res.status(400).json({ error: 'Mốc tự hủy phải từ 0 đến 168 giờ trước giờ tập trung' });
+          return;
+        }
+        payload.cancellation_cutoff_hours = cancellationCutoffHours;
       }
 
       if (req.body.amenities !== undefined) {
@@ -831,7 +851,7 @@ app.use(async (req, res, next) => {
           res.status(400).json({ error: `Cần bổ sung ${missingFields.join(', ')} trước khi gửi tour duyệt` }); return;
         }
         const hasBookableDeparture = (await db.getSchedules(id)).some((schedule) =>
-          schedule.start_date >= todayInVietnamIso() && schedule.remaining_slots > 0
+          schedule.remaining_slots > 0 && !hasDepartureStarted(schedule.start_date, schedule.meeting_time)
         );
         if (!hasBookableDeparture) {
           res.status(400).json({ error: 'Cần có ít nhất một lịch khởi hành còn chỗ trước khi gửi tour duyệt' }); return;
@@ -857,7 +877,7 @@ app.use(async (req, res, next) => {
           res.status(400).json({ error: `Không thể công khai tour khi thiếu ${missingFields.join(', ')}` }); return;
         }
         const hasBookableDeparture = (await db.getSchedules(id)).some((schedule) =>
-          schedule.start_date >= todayInVietnamIso() && schedule.remaining_slots > 0
+          schedule.remaining_slots > 0 && !hasDepartureStarted(schedule.start_date, schedule.meeting_time)
         );
         if (!hasBookableDeparture) {
           res.status(400).json({ error: 'Không thể công khai tour khi chưa có lịch khởi hành còn chỗ' }); return;
@@ -1198,9 +1218,23 @@ app.use(async (req, res, next) => {
         res.status(403).json({ error: 'Bạn không có quyền hủy đơn của người khác' });
         return;
       }
-      if (booking.status !== 'pending') {
-        res.status(400).json({ error: 'Chỉ có thể hủy đơn khi đang chờ xử lý. Vui lòng liên hệ hỗ trợ để thay đổi đơn đã xác nhận.' });
+      if (!['pending', 'confirmed'].includes(booking.status)) {
+        res.status(400).json({ error: 'Đơn này không còn đủ điều kiện để tự hủy.' });
         return;
+      }
+      if (booking.status === 'confirmed') {
+        const experience = await db.findExperienceById(booking.experience_id);
+        const schedule = booking.schedule_id ? await db.findScheduleById(booking.schedule_id) : undefined;
+        const cutoffHours = Number(experience?.cancellation_cutoff_hours ?? 24);
+        if (!schedule || cutoffHours === 0) {
+          res.status(400).json({ error: 'Đơn đã xác nhận không hỗ trợ tự hủy. Vui lòng liên hệ host hoặc hỗ trợ.' });
+          return;
+        }
+        const cancellationDeadline = Date.parse(`${schedule.start_date}T${schedule.meeting_time}:00+07:00`) - cutoffHours * 60 * 60 * 1000;
+        if (Date.now() >= cancellationDeadline) {
+          res.status(400).json({ error: `Đã qua hạn tự hủy ${cutoffHours} giờ trước giờ tập trung. Vui lòng liên hệ host hoặc hỗ trợ.` });
+          return;
+        }
       }
       const updatedBooking = await db.updateBookingStatus(id, 'cancelled');
       const experience = await db.findExperienceById(booking.experience_id);

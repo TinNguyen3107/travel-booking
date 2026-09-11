@@ -369,10 +369,12 @@ export default function ModalExperienceDetail({ experience, onClose, onBook }: M
               </div>
             )}
 
-            {experience.cancellation_policy && (
+            {(experience.cancellation_policy || experience.no_show_policy) && (
               <div className="mt-6 rounded-xl border border-rose-100 bg-rose-50/50 p-5">
                 <h3 className="font-black text-rose-900">Chính sách hủy</h3>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-rose-800">{tDynamic(experience.cancellation_policy)}</p>
+                <p className="mt-2 text-sm font-bold leading-relaxed text-rose-800">Đơn đã xác nhận có thể tự hủy đến {experience.cancellation_cutoff_hours ?? 24} giờ trước giờ tập trung.</p>
+                {experience.cancellation_policy && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-rose-800">{tDynamic(experience.cancellation_policy)}</p>}
+                {experience.no_show_policy && <p className="mt-3 whitespace-pre-wrap border-t border-rose-200 pt-3 text-sm leading-relaxed text-rose-800"><strong>Khách vắng mặt:</strong> {tDynamic(experience.no_show_policy)}</p>}
               </div>
             )}
 

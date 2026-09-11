@@ -295,8 +295,8 @@ export default function UserProfile({ user, onClose, onProfileUpdated }: { user:
                     <div className="font-black text-emerald-700 text-xl">{formatVnd(booking.total_price)}</div>
                     <div className="flex items-center gap-3">
                       {renderStatus(booking.status)}
-                      {booking.status === 'pending' && activeTab === 'history' && (
-                        <button onClick={() => handleCancelBooking(booking.id)} className="text-xs font-bold text-red-600 hover:underline">Cancel</button>
+                      {['pending', 'confirmed'].includes(booking.status) && activeTab === 'history' && (
+                        <button onClick={() => handleCancelBooking(booking.id)} className="text-xs font-bold text-red-600 hover:underline">{t('booking_cancel')}</button>
                       )}
                     </div>
                   </div>

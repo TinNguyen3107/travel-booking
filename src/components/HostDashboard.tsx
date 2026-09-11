@@ -76,6 +76,8 @@ const EMPTY_FORM = {
   included: '',
   excluded: '',
   cancellation_policy: '',
+  cancellation_cutoff_hours: 24,
+  no_show_policy: '',
   max_guests: 50,
   daily_capacity_max: 50,
   booking_open_date: todayIso(),
@@ -382,6 +384,8 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       included: experience.included || '',
       excluded: experience.excluded || '',
       cancellation_policy: experience.cancellation_policy || '',
+      cancellation_cutoff_hours: Number(experience.cancellation_cutoff_hours ?? 24),
+      no_show_policy: experience.no_show_policy || '',
       max_guests: Number(experience.max_guests) || 50,
       daily_capacity_max: Number(experience.daily_capacity_max ?? experience.daily_capacity ?? experience.max_guests) || 50,
       booking_open_date: experience.booking_open_date || todayIso(),
@@ -441,6 +445,8 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       included: form.included.trim(),
       excluded: form.excluded.trim(),
       cancellation_policy: form.cancellation_policy.trim(),
+      cancellation_cutoff_hours: Number(form.cancellation_cutoff_hours),
+      no_show_policy: form.no_show_policy.trim(),
       max_guests: maxGuests,
       daily_capacity_max: Number(form.daily_capacity_max) || maxGuests,
       booking_open_date: form.booking_open_date,
@@ -1010,7 +1016,19 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                 </label>
                 <label className="block lg:col-span-3">
                   <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Chính sách hủy</span>
-                  <textarea value={form.cancellation_policy} onChange={(event) => updateForm('cancellation_policy', event.target.value)} rows={3} placeholder="Mốc hủy và điều kiện hỗ trợ khách" className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                  <textarea value={form.cancellation_policy} onChange={(event) => updateForm('cancellation_policy', event.target.value)} rows={3} placeholder="Nêu rõ điều kiện hoàn tiền hoặc hỗ trợ sau khi hủy" className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                </label>
+                <label className="block lg:col-span-2">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Hạn tự hủy đơn đã xác nhận</span>
+                  <div className="flex items-center gap-2">
+                    <input type="number" min="0" max="168" value={form.cancellation_cutoff_hours} onChange={(event) => updateForm('cancellation_cutoff_hours', Number(event.target.value))} className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
+                    <span className="text-sm font-semibold text-zinc-500">giờ</span>
+                  </div>
+                  <p className="mt-1 text-xs text-zinc-500">0 giờ: khách cần liên hệ host hoặc hỗ trợ.</p>
+                </label>
+                <label className="block lg:col-span-4">
+                  <span className="mb-1 block text-xs font-bold text-zinc-500 dark:text-slate-400">Chính sách khách vắng mặt</span>
+                  <textarea value={form.no_show_policy} onChange={(event) => updateForm('no_show_policy', event.target.value)} rows={2} placeholder="Nêu rõ cách xử lý khi khách không có mặt đúng giờ tập trung" className="w-full resize-none rounded-xl border border-zinc-200 dark:border-slate-700 bg-white/80 backdrop-blur-lg dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-emerald-500" />
                 </label>
                 <div className="flex items-end justify-end gap-2 lg:col-span-6">
                   <button type="submit" className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-bold text-white hover:bg-emerald-700">
