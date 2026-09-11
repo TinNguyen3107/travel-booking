@@ -114,6 +114,7 @@ export interface HostApplicationTable {
   phone: string;
   address: string;
   id_number: string;
+  id_number_last4?: string;
   experience_location: string;
   description: string;
   status: 'pending' | 'approved' | 'rejected' | 'suspended';

@@ -1392,7 +1392,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                 <tr>
                   <th className="px-4 py-3 text-left">Người đăng ký</th>
                   <th className="px-4 py-3 text-left">Liên hệ</th>
-                  <th className="px-4 py-3 text-left">Địa chỉ & CCCD</th>
+                  <th className="px-4 py-3 text-left">Địa chỉ & CCCD đã che</th>
                   <th className="px-4 py-3 text-left">Địa điểm & Mô tả</th>
                   <th className="px-4 py-3 text-right">Trạng thái</th>
                 </tr>

@@ -81,5 +81,7 @@ for confirmed, checked-in, or completed bookings, never settled revenue.
 - A host review must point to a completed booking that belongs to that host and
   guest. One booking can have at most one host review.
 - Public host profiles expose only public identity and reputation data. Contact
-  details, home address, and identity-document numbers are private to the host
-  and platform administrators.
+  details and home addresses are private to the host and platform
+  administrators. The platform stores a host identity number as a one-way
+  protected value plus only its masked last four digits, so no interface can
+  retrieve the full document number after registration.

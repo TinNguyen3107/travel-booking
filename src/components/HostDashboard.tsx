@@ -1252,9 +1252,11 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                   <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">{t('host_profile_id')}</span>
                   <input
                     value={profileForm.id_number}
-                    onChange={(e) => setProfileForm({ ...profileForm, id_number: e.target.value })}
-                    className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2 outline-none focus:border-emerald-500"
+                    readOnly
+                    title="CCCD is stored in protected form and cannot be edited here."
+                    className="w-full cursor-not-allowed rounded-xl border border-zinc-200 dark:border-slate-700 bg-zinc-100 px-4 py-2 text-zinc-500 outline-none"
                   />
+                  <p className="mt-1 text-xs text-zinc-500">Chỉ hiển thị 4 số cuối; hệ thống không lưu lại số CCCD dạng văn bản.</p>
                 </label>
                 <label className="block sm:col-span-2">
                   <span className="mb-1 block text-sm font-bold text-zinc-700 dark:text-slate-200">{t('host_profile_address')}</span>
