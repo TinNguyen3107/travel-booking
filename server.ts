@@ -456,32 +456,16 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
-  app.get('/api/hosts/profile', async (req, res) => {
+  app.get('/api/hosts/profile', authenticateToken, requireHostOrAdmin, async (req, res) => {
     try {
-      let email = '';
-      const authHeader = req.headers['authorization'];
-      if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.split(' ')[1];
-        try {
-          const decoded = jwt.verify(token, JWT_SECRET) as any;
-          if (decoded?.email) {
-            email = cleanText(decoded.email);
-          }
-        } catch {
-          // Ignore invalid token and allow fallback to query email
-        }
-      }
-
-      if (!email) {
-        email = cleanText(req.query.email);
-      }
-
-      if (!email) {
-        res.status(400).json({ error: 'Email host không hợp lệ' });
+      const actor = (req as any).user;
+      const requestedEmail = cleanText(req.query.email).toLowerCase();
+      if (actor.role !== 'admin' && requestedEmail && requestedEmail !== actor.email.toLowerCase()) {
+        res.status(403).json({ error: 'Bạn chỉ có thể xem hồ sơ host của chính mình' });
         return;
       }
-
-      const profile = await db.getHostProfileByEmail(email.toLowerCase());
+      const email = actor.role === 'admin' && requestedEmail ? requestedEmail : actor.email.toLowerCase();
+      const profile = await db.getPrivateHostProfileByEmail(email);
       res.json(profile);
     } catch (e: any) { handleError(res, e); }
   });
@@ -489,7 +473,7 @@ app.use(async (req, res, next) => {
   app.get('/api/hosts/profile/:email', async (req, res) => {
     try {
       const email = cleanText(req.params.email);
-      const profile = await db.getHostProfileByEmail(email);
+      const profile = await db.getPublicHostProfileByEmail(email);
       if (!profile) {
         res.status(404).json({ error: 'Không tìm thấy thông tin host' });
         return;

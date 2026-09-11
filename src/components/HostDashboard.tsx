@@ -286,7 +286,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
         fetchJson<{ id: number; name: string }[]>('/api/categories'),
         fetchJson<any[]>('/api/reviews'),
         isAdmin ? fetchJson<HostApplicationTable[]>('/api/hosts') : Promise.resolve([]),
-        currentUser?.role === 'host' ? fetchJson<any>(`/api/hosts/profile/${encodeURIComponent(currentUser.email)}`) : Promise.resolve(null)
+        currentUser?.role === 'host' ? fetchJson<any>('/api/hosts/profile') : Promise.resolve(null)
       ]);
 
       const hostExperiences = isAdmin ? (experienceData || []) : (experienceData || []).filter(e => e.host_email === currentUser?.email);

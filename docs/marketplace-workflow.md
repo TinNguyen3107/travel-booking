@@ -74,3 +74,6 @@ for confirmed, checked-in, or completed bookings, never settled revenue.
 - A host cannot create a tour for another host.
 - A host review must point to a completed booking that belongs to that host and
   guest. One booking can have at most one host review.
+- Public host profiles expose only public identity and reputation data. Contact
+  details, home address, and identity-document numbers are private to the host
+  and platform administrators.

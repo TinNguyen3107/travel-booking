@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Star, MapPin, X, ChevronRight, Phone, CreditCard, Home, Info } from 'lucide-react';
+import { Star, MapPin, X, ChevronRight, Info } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface HostProfile {
@@ -9,9 +9,6 @@ interface HostProfile {
   total_experiences: number;
   total_reviews: number;
   average_rating: number;
-  phone?: string;
-  address?: string;
-  id_number?: string;
   experience_location?: string;
 }
 
@@ -125,30 +122,6 @@ export default function HostProfileWidget({ email }: { email: string }) {
               </div>
 
               <div className="space-y-4">
-                {profile.phone && (
-                  <div className="flex items-start gap-3 p-4 rounded-2xl bg-zinc-50 dark:bg-slate-800/50 border border-zinc-100 dark:border-slate-700">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
-                      <Phone className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">{t('host_profile_phone')}</h4>
-                      <p className="mt-1 text-sm font-semibold text-zinc-900 dark:text-slate-200">{profile.phone}</p>
-                    </div>
-                  </div>
-                )}
-
-                {profile.address && (
-                  <div className="flex items-start gap-3 p-4 rounded-2xl bg-zinc-50 dark:bg-slate-800/50 border border-zinc-100 dark:border-slate-700">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
-                      <Home className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">{t('host_profile_address')}</h4>
-                      <p className="mt-1 text-sm font-semibold text-zinc-900 dark:text-slate-200">{profile.address}</p>
-                    </div>
-                  </div>
-                )}
-
                 {profile.experience_location && (
                   <div className="flex items-start gap-3 p-4 rounded-2xl bg-zinc-50 dark:bg-slate-800/50 border border-zinc-100 dark:border-slate-700">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">

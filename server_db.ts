@@ -1123,7 +1123,7 @@ class RelationalDatabase {
     return rows.map(normalizeHost);
   }
 
-  public async getHostProfileByEmail(email: string): Promise<any> {
+  public async getPrivateHostProfileByEmail(email: string): Promise<any> {
     const normalizedEmail = email.trim().toLowerCase();
     const [hostRows] = await pool.query<RowDataPacket[]>(
       'SELECT name, description, avatar, phone, address, id_number, experience_location FROM hosts WHERE LOWER(email) = ? LIMIT 1',
@@ -1150,6 +1150,35 @@ class RelationalDatabase {
       address: host?.address || '',
       id_number: host?.id_number || '',
       experience_location: host?.experience_location || '',
+      total_experiences: toNumber(stats?.total_experiences),
+      total_reviews: toNumber(stats?.total_reviews),
+      average_rating: Math.round((toNumber(stats?.average_rating) || 0) * 10) / 10
+    };
+  }
+
+  public async getPublicHostProfileByEmail(email: string): Promise<any> {
+    const normalizedEmail = email.trim().toLowerCase();
+    const [hostRows] = await pool.query<RowDataPacket[]>(
+      'SELECT name, description, avatar, experience_location FROM hosts WHERE LOWER(email) = ? LIMIT 1',
+      [normalizedEmail]
+    );
+    const [statsRows] = await pool.query<RowDataPacket[]>(
+      `SELECT
+        COUNT(*) as total_experiences,
+        COALESCE(SUM(e.reviews_count), 0) as total_reviews,
+        COALESCE(AVG(NULLIF(e.rating, 0)), 0) as average_rating
+       FROM experiences e
+       WHERE LOWER(e.host_email) = LOWER(?)`,
+      [normalizedEmail]
+    );
+    const host = hostRows[0];
+    const stats = statsRows[0];
+    if (!host) return null;
+    return {
+      host_name: host.name,
+      description: host.description || '',
+      avatar: host.avatar || '',
+      experience_location: host.experience_location || '',
       total_experiences: toNumber(stats?.total_experiences),
       total_reviews: toNumber(stats?.total_reviews),
       average_rating: Math.round((toNumber(stats?.average_rating) || 0) * 10) / 10
