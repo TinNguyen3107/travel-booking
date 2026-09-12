@@ -4,7 +4,7 @@
  */
 
 import { Compass, Mail, MapPin, Phone } from 'lucide-react';
-import logoImg from '@/logo/logo.png';
+import logoImg from '@/logo/logo.webp';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface FooterProps {

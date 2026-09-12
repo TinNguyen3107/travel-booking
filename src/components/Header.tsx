@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import ModalNotifications from './ModalNotifications';
-import logoImg from '@/logo/logo.png';
+import logoImg from '@/logo/logo.webp';
 import { useLanguage } from '../contexts/LanguageContext';
 
 type CurrentUser = { email: string; fullname: string; avatar?: string; role: 'user' | 'admin' | 'host' };

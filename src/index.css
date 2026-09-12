@@ -30,7 +30,7 @@ html.dark {
 }
 
 html.dark body {
-  background-image: url('../background/bg.jpg');
+  background-image: url('../background/bg.webp');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
