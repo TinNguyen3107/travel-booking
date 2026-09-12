@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import {
   Calendar,
   CheckCircle2,
@@ -25,18 +25,12 @@ import {
   ChevronLeft
 } from 'lucide-react';
 
-import AdminPanel from './components/AdminPanel';
 import CommunityFeed from './components/CommunityFeed';
-import HostDashboard from './components/HostDashboard';
 import FAQSection from './components/FAQSection';
 import Footer from './components/Footer';
 import Header from './components/Header';
-import ModalBooking from './components/ModalBooking';
-import ModalConfirm, { ConfirmConfig } from './components/ModalConfirm';
-import ModalExperienceDetail from './components/ModalExperienceDetail';
-import ModalLogin from './components/ModalLogin';
+import ModalConfirm, { type ConfirmConfig } from './components/ModalConfirm';
 import CustomSelect from './components/CustomSelect';
-import UserProfile from './components/UserProfile';
 import { useDarkMode } from './hooks/useDarkMode';
 import { useLanguage } from './contexts/LanguageContext';
 import { ExperienceTable, formatDateVi, formatVnd, isExperienceOpen, ReviewTable } from './types';
@@ -48,6 +42,13 @@ const HALONG_IMAGE =
 const FALLBACK_IMAGE = HALONG_IMAGE;
 const phonePattern = /^(0|\+84)[0-9\s.-]{8,13}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const AdminPanel = lazy(() => import('./components/AdminPanel'));
+const HostDashboard = lazy(() => import('./components/HostDashboard'));
+const ModalBooking = lazy(() => import('./components/ModalBooking'));
+const ModalExperienceDetail = lazy(() => import('./components/ModalExperienceDetail'));
+const ModalLogin = lazy(() => import('./components/ModalLogin'));
+const UserProfile = lazy(() => import('./components/UserProfile'));
 
 export default function App() {
   const { isDark, toggle: toggleDark } = useDarkMode();
@@ -417,13 +418,17 @@ export default function App() {
         <main id="dashboard" className="px-4 py-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-350">
             {activeSection !== 'hero' && user?.role === 'admin' && (
-              <AdminPanel key={user.email} onExperiencesChange={fetchExperiences} activeSection={activeSection === 'hero' ? 'dashboard' : activeSection} currentUser={user} />
+              <Suspense fallback={<DashboardLoading />}>
+                <AdminPanel key={user.email} onExperiencesChange={fetchExperiences} activeSection={activeSection === 'hero' ? 'dashboard' : activeSection} currentUser={user} />
+              </Suspense>
             )}
 
             {activeSection !== 'hero' && user?.role === 'host' && (
-              <HostDashboard key={user.email} onExperiencesChange={fetchExperiences} activeSection={activeSection === 'hero' ? 'dashboard' : activeSection} currentUser={user} onCurrentUserUpdated={(updatedUser) => {
-                setUser(updatedUser);
-              }} />
+              <Suspense fallback={<DashboardLoading />}>
+                <HostDashboard key={user.email} onExperiencesChange={fetchExperiences} activeSection={activeSection === 'hero' ? 'dashboard' : activeSection} currentUser={user} onCurrentUserUpdated={(updatedUser) => {
+                  setUser(updatedUser);
+                }} />
+              </Suspense>
             )}
           </div>
         </main>
@@ -462,10 +467,12 @@ export default function App() {
         </main>
 
         {showLoginModal && (
-          <ModalLogin
-            onClose={() => setShowLoginModal(false)}
-            onLoginSuccess={handleLoginSuccess}
-          />
+          <Suspense fallback={null}>
+            <ModalLogin
+              onClose={() => setShowLoginModal(false)}
+              onLoginSuccess={handleLoginSuccess}
+            />
+          </Suspense>
         )}
       </div>
     );
@@ -895,53 +902,61 @@ export default function App() {
       <Footer onNavigate={scrollToSection} />
 
       {showLoginModal && (
-        <ModalLogin
-          onClose={() => setShowLoginModal(false)}
-          onLoginSuccess={handleLoginSuccess}
-        />
+        <Suspense fallback={null}>
+          <ModalLogin
+            onClose={() => setShowLoginModal(false)}
+            onLoginSuccess={handleLoginSuccess}
+          />
+        </Suspense>
       )}
 
       {showUserProfile && user && (
-        <UserProfile
-          user={{ email: user.email, fullname: user.fullname }}
-          onClose={() => setShowUserProfile(false)}
-          onProfileUpdated={(updatedUser) => {
-            const newUser = { ...user, fullname: updatedUser.fullname, avatar: updatedUser.avatar };
-            setUser(newUser);
-            localStorage.setItem('currentUser', JSON.stringify(newUser));
-            window.location.reload(); // Tải lại trang để cập nhật tên và avatar mới ở mọi nơi
-          }}
-        />
+        <Suspense fallback={null}>
+          <UserProfile
+            user={{ email: user.email, fullname: user.fullname }}
+            onClose={() => setShowUserProfile(false)}
+            onProfileUpdated={(updatedUser) => {
+              const newUser = { ...user, fullname: updatedUser.fullname, avatar: updatedUser.avatar };
+              setUser(newUser);
+              localStorage.setItem('currentUser', JSON.stringify(newUser));
+              window.location.reload(); // Tải lại trang để cập nhật tên và avatar mới ở mọi nơi
+            }}
+          />
+        </Suspense>
       )}
 
       {selectedExperience && user && (
-        <ModalBooking
-          experience={selectedExperience}
-          userEmail={user.email}
-          onClose={() => setSelectedExperience(null)}
-          onBookingSuccess={(booking) => {
-            fetchExperiences();
-            setConfirmConfig({
-              title: 'Đã gửi yêu cầu đặt tour',
-              message: `Lịch khởi hành của bạn là ${formatDateVi(booking.booking_date)}. ${selectedExperience.meeting_point ? `Điểm tập trung: ${selectedExperience.meeting_point}. ` : ''}Vé máy bay, tàu xe và chi phí di chuyển đến ${selectedExperience.location} do bạn tự sắp xếp. Vui lòng kiểm tra Hồ sơ để theo dõi trạng thái đơn.`,
-              confirmText: 'Đã hiểu',
-              cancelText: 'Đóng',
-              isDanger: false,
-              onConfirm: () => setConfirmConfig(null)
-            });
-          }}
-        />
+        <Suspense fallback={null}>
+          <ModalBooking
+            experience={selectedExperience}
+            userEmail={user.email}
+            onClose={() => setSelectedExperience(null)}
+            onBookingSuccess={(booking) => {
+              fetchExperiences();
+              setConfirmConfig({
+                title: 'Đã gửi yêu cầu đặt tour',
+                message: `Lịch khởi hành của bạn là ${formatDateVi(booking.booking_date)}. ${selectedExperience.meeting_point ? `Điểm tập trung: ${selectedExperience.meeting_point}. ` : ''}Vé máy bay, tàu xe và chi phí di chuyển đến ${selectedExperience.location} do bạn tự sắp xếp. Vui lòng kiểm tra Hồ sơ để theo dõi trạng thái đơn.`,
+                confirmText: 'Đã hiểu',
+                cancelText: 'Đóng',
+                isDanger: false,
+                onConfirm: () => setConfirmConfig(null)
+              });
+            }}
+          />
+        </Suspense>
       )}
 
       {viewExperienceDetail && (
-        <ModalExperienceDetail
-          experience={viewExperienceDetail}
-          onClose={() => setViewExperienceDetail(null)}
-          onBook={() => {
-            setViewExperienceDetail(null);
-            handleBookClick(viewExperienceDetail);
-          }}
-        />
+        <Suspense fallback={null}>
+          <ModalExperienceDetail
+            experience={viewExperienceDetail}
+            onClose={() => setViewExperienceDetail(null)}
+            onBook={() => {
+              setViewExperienceDetail(null);
+              handleBookClick(viewExperienceDetail);
+            }}
+          />
+        </Suspense>
       )}
 
       {confirmConfig && (
@@ -968,6 +983,16 @@ function SectionHeader({
       <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">{eyebrow}</p>
       <h2 className="mt-2 text-3xl font-black tracking-tight text-zinc-950 dark:text-slate-50">{title}</h2>
       <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-slate-300">{description}</p>
+    </div>
+  );
+}
+
+function DashboardLoading() {
+  const { t } = useLanguage();
+
+  return (
+    <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center text-sm font-semibold text-zinc-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+      {t('preparing')}
     </div>
   );
 }
