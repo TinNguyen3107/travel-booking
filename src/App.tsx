@@ -173,7 +173,7 @@ export default function App() {
   };
 
   const visibleExperiences = useMemo(
-    () => experiences.filter((item) => item.status !== 'hidden' && item.status !== 'suspended'),
+    () => experiences.filter(isExperienceOpen),
     [experiences]
   );
 

@@ -21,7 +21,7 @@ export const translations = {
     // Hero section
     hero_eyebrow: 'Tour địa phương tại Việt Nam',
     hero_title: 'Đặt tour rõ giá, rõ lịch trình, có đánh giá thật từ người dùng.',
-    hero_desc: 'Khám phá Vịnh Hạ Long, Hội An, Bát Tràng, Sa Pa và nhiều trải nghiệm bản địa với quy trình đặt tour đơn giản, bình luận minh bạch.',
+    hero_desc: 'Khám phá các trải nghiệm bản địa do host địa phương tổ chức, với giá, lịch trình và đánh giá được công khai rõ ràng.',
     hero_cta_tours: 'Xem tour',
     hero_cta_host: 'Đăng ký làm host',
     hero_stat_safe: 'Bảo đảm an toàn',
@@ -31,18 +31,18 @@ export const translations = {
     // About section
     about_eyebrow: 'Về chúng tôi',
     about_title: 'Một quy trình đặt tour gọn, dễ kiểm soát',
-    about_desc: 'Khách xem tour và bình luận trước khi đăng nhập. Người dùng đã đăng nhập được đặt tour, hủy đơn đang chờ và gửi đánh giá.',
+    about_desc: 'Khách xem tour và bình luận trước khi đăng nhập. Người dùng đã đăng nhập được đặt tour, hủy đơn đủ điều kiện và gửi đánh giá sau chuyến đi.',
     about_f1_title: 'Tour rõ thông tin',
     about_f1_text: 'Mỗi tour có địa điểm, thời lượng, giá VNĐ, ảnh và danh mục để người dùng lọc nhanh.',
     about_f2_title: 'Host cộng đồng',
     about_f2_text: 'Kết nối du khách với các host và hướng dẫn viên địa phương đã được xác minh để mang lại trải nghiệm chân thực hơn.',
     about_f3_title: 'Thông tin đặt tour chính xác',
-    about_f3_text: 'Email, số điện thoại, ngày khởi hành và số lượng khách được kiểm tra tự động để hạn chế sai sót khi đặt tour.',
+    about_f3_text: 'Email, số điện thoại, lịch khởi hành, giờ tập trung và số lượng khách được kiểm tra tự động để hạn chế sai sót khi đặt tour.',
 
     // Experiences section
     exp_eyebrow: 'Trải nghiệm',
     exp_title: 'Tour đang mở bán',
-    exp_desc: 'Chi phí tour được niêm yết theo VNĐ và cập nhật trực tiếp trên hệ thống. Tour chưa có đánh giá sẽ hiển thị 0.0 sao.',
+    exp_desc: 'Chỉ các tour đang trong thời hạn nhận đặt mới hiển thị. Chi phí niêm yết theo VNĐ; tour chưa có đánh giá hiển thị 0.0 sao.',
     exp_search_placeholder: 'Tìm theo tên tour, địa điểm hoặc danh mục',
     exp_price_from: 'Giá từ...',
     exp_price_to: 'Đến giá...',
@@ -63,7 +63,7 @@ export const translations = {
     how_s1_title: 'Khám phá tour',
     how_s1_text: 'Duyệt danh sách các tour địa phương, xem đánh giá thực tế và chọn trải nghiệm phù hợp.',
     how_s2_title: 'Đặt chỗ dễ dàng',
-    how_s2_text: 'Chọn ngày, điền thông tin liên lạc và xác nhận đặt tour chỉ trong vài bước đơn giản.',
+    how_s2_text: 'Chọn lịch khởi hành, xem giờ tập trung, điền thông tin liên lạc và xác nhận đặt tour.',
     how_s3_title: 'Trải nghiệm thực tế',
     how_s3_text: 'Tham gia tour và chia sẻ đánh giá chân thực để giúp cộng đồng du lịch ngày càng tốt hơn.',
 
@@ -141,7 +141,7 @@ export const translations = {
     faq_q2: 'Số sao đánh giá được tính như thế nào?',
     faq_a2: 'Tour mới mặc định 0 sao. Khi người dùng gửi đánh giá, hệ thống tự tính điểm trung bình và tăng số lượt đánh giá.',
     faq_q3: 'Tôi có thể hủy đơn đã đặt không?',
-    faq_a3: 'Người dùng có thể hủy đơn khi đơn còn ở trạng thái chờ xử lý. Sau khi được xác nhận, bạn nên liên hệ hỗ trợ để thay đổi lịch.',
+    faq_a3: 'Đơn chờ xử lý có thể tự hủy. Đơn đã xác nhận chỉ tự hủy được trước hạn do host quy định (tính theo giờ tập trung); quá hạn, hãy liên hệ host hoặc hỗ trợ.',
 
     // Bookings (user profile)
     booking_my: 'Đơn đặt tour của tôi',
@@ -549,7 +549,7 @@ export const translations = {
     // Hero section
     hero_eyebrow: 'Local Tours in Vietnam',
     hero_title: 'Book tours with clear prices, schedules & real reviews.',
-    hero_desc: 'Discover Ha Long Bay, Hoi An, Bat Trang, Sa Pa and many local experiences with a simple booking process and transparent comments.',
+    hero_desc: 'Explore local experiences hosted by residents, with clearly published prices, itineraries, and reviews.',
     hero_cta_tours: 'View Tours',
     hero_cta_host: 'Become a Host',
     hero_stat_safe: 'Safe & Secure',
@@ -559,18 +559,18 @@ export const translations = {
     // About section
     about_eyebrow: 'About Us',
     about_title: 'A streamlined, easy-to-manage booking process',
-    about_desc: 'Guests can browse tours and comments before logging in. Logged-in users can book tours, cancel pending orders, and submit reviews.',
+    about_desc: 'Guests can browse tours and comments before logging in. Logged-in users can book tours, cancel eligible bookings, and review completed trips.',
     about_f1_title: 'Clear Tour Information',
     about_f1_text: 'Each tour includes location, duration, price in VND, photos and categories for quick filtering.',
     about_f2_title: 'Community Hosts',
     about_f2_text: 'Connect travelers with verified local hosts and guides for a more authentic experience.',
     about_f3_title: 'Accurate Booking Details',
-    about_f3_text: 'Email, phone number, departure date and guest count are automatically validated to minimize errors.',
+    about_f3_text: 'Email, phone number, departure schedule, meeting time and guest count are automatically validated to minimize errors.',
 
     // Experiences section
     exp_eyebrow: 'Experiences',
     exp_title: 'Tours Available Now',
-    exp_desc: 'Tour prices are listed in VND and updated in real-time. Tours with no reviews will show 0.0 stars.',
+    exp_desc: 'Only tours within their booking window are shown. Prices are listed in VND, and tours with no reviews show 0.0 stars.',
     exp_search_placeholder: 'Search by tour name, location or category',
     exp_price_from: 'Price from...',
     exp_price_to: 'Price to...',
@@ -591,7 +591,7 @@ export const translations = {
     how_s1_title: 'Discover Tours',
     how_s1_text: 'Browse local tours, read real reviews and choose the experience that fits you.',
     how_s2_title: 'Easy Booking',
-    how_s2_text: 'Select a date, fill in your contact details and confirm your booking in just a few simple steps.',
+    how_s2_text: 'Choose a departure schedule, check the meeting time, fill in your contact details, and confirm your booking.',
     how_s3_title: 'Real Experience',
     how_s3_text: 'Join the tour and share your honest review to help the travel community keep improving.',
 
@@ -669,7 +669,7 @@ export const translations = {
     faq_q2: 'How is the star rating calculated?',
     faq_a2: 'New tours default to 0 stars. When a user submits a review, the system automatically calculates the average score and increments the review count.',
     faq_q3: 'Can I cancel my booking?',
-    faq_a3: 'Users can cancel pending bookings. Once confirmed, you should contact support to reschedule.',
+    faq_a3: 'Pending bookings can be cancelled directly. Confirmed bookings can be cancelled only before the host-defined cutoff based on the meeting time; after that, contact the host or support.',
 
     // Bookings (user profile)
     booking_my: 'My Bookings',

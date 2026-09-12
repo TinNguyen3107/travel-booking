@@ -186,10 +186,10 @@ export default function ScheduleManager({ experienceId, experienceTitle, onClose
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button disabled={schedule.max_slots !== schedule.remaining_slots} onClick={() => editSchedule(schedule)} className="rounded-lg border border-emerald-100 p-2 text-emerald-600 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40">
+                    <button aria-label={t('schedule_edit')} title={t('schedule_edit')} disabled={schedule.max_slots !== schedule.remaining_slots} onClick={() => editSchedule(schedule)} className="rounded-lg border border-emerald-100 p-2 text-emerald-600 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40">
                       <Pencil className="h-4 w-4" />
                     </button>
-                    <button disabled={schedule.max_slots !== schedule.remaining_slots} onClick={() => deleteSchedule(schedule.id)} className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40">
+                    <button aria-label={t('schedule_delete_confirm')} title={t('schedule_delete_confirm')} disabled={schedule.max_slots !== schedule.remaining_slots} onClick={() => deleteSchedule(schedule.id)} className="rounded-lg border border-red-100 p-2 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
