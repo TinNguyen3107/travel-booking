@@ -16,6 +16,7 @@ import {
   PostReactionTable,
   PostTable,
   ReviewTable,
+  SupportTicketTable,
   TourScheduleTable,
   UserTable
 } from './src/types.js';
@@ -32,6 +33,7 @@ type ScheduleRow = TourScheduleTable & RowDataPacket;
 type PostRow = PostTable & RowDataPacket;
 type PostCommentRow = PostCommentTable & RowDataPacket;
 type PostReactionRow = PostReactionTable & RowDataPacket;
+type SupportTicketRow = SupportTicketTable & RowDataPacket;
 type ColumnCountRow = RowDataPacket & { count: number };
 
 const dbName = process.env.DB_DATABASE || 'local_experience_db';
@@ -180,6 +182,14 @@ const normalizePostReaction = (row: PostReactionRow): PostReactionTable => ({
   ...row,
   id: toNumber(row.id),
   post_id: toNumber(row.post_id)
+});
+
+const normalizeSupportTicket = (row: SupportTicketRow): SupportTicketTable => ({
+  ...row,
+  id: toNumber(row.id),
+  booking_id: toNumber(row.booking_id),
+  created_at: toDateTimeString(row.created_at),
+  updated_at: toDateTimeString(row.updated_at)
 });
 
 async function ensureDatabaseExists() {
@@ -435,6 +445,26 @@ class RelationalDatabase {
         is_read BOOLEAN NOT NULL DEFAULT FALSE,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         INDEX idx_email (user_email)
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS support_tickets (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        booking_id INT NOT NULL,
+        user_email VARCHAR(255) NOT NULL,
+        host_email VARCHAR(255) NULL,
+        subject VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        status ENUM('open', 'in_progress', 'resolved', 'closed') NOT NULL DEFAULT 'open',
+        priority ENUM('normal', 'urgent') NOT NULL DEFAULT 'normal',
+        admin_note TEXT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_ticket_booking (booking_id),
+        INDEX idx_ticket_user (user_email),
+        INDEX idx_ticket_host (host_email),
+        INDEX idx_ticket_status (status)
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
 
@@ -1805,6 +1835,83 @@ class RelationalDatabase {
   }
 
   // ─── Notifications ──────────────────────────────────────────────
+
+  public async getSupportTickets(filters: { role: 'admin' | 'host' | 'user'; email: string }): Promise<SupportTicketTable[]> {
+    const where =
+      filters.role === 'admin'
+        ? ''
+        : filters.role === 'host'
+          ? 'WHERE LOWER(st.host_email) = LOWER(?)'
+          : 'WHERE LOWER(st.user_email) = LOWER(?)';
+    const params = filters.role === 'admin' ? [] : [filters.email];
+    const [rows] = await pool.query<SupportTicketRow[]>(
+      `SELECT st.*,
+        COALESCE(e.title, 'Trai nghiem khong ten') AS experience_title,
+        b.contact_name,
+        b.status AS booking_status
+       FROM support_tickets st
+       INNER JOIN bookings b ON b.id = st.booking_id
+       LEFT JOIN experiences e ON e.id = b.experience_id
+       ${where}
+       ORDER BY
+        CASE st.status WHEN 'open' THEN 1 WHEN 'in_progress' THEN 2 WHEN 'resolved' THEN 3 ELSE 4 END,
+        st.updated_at DESC`,
+      params
+    );
+    return rows.map(normalizeSupportTicket);
+  }
+
+  public async addSupportTicket(ticket: Omit<SupportTicketTable, 'id' | 'status' | 'created_at' | 'updated_at'>): Promise<SupportTicketTable> {
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      `INSERT INTO support_tickets (booking_id, user_email, host_email, subject, message, priority)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        ticket.booking_id,
+        ticket.user_email,
+        ticket.host_email || null,
+        ticket.subject,
+        ticket.message,
+        ticket.priority || 'normal'
+      ]
+    );
+    const [rows] = await pool.query<SupportTicketRow[]>(
+      `SELECT st.*,
+        COALESCE(e.title, 'Trai nghiem khong ten') AS experience_title,
+        b.contact_name,
+        b.status AS booking_status
+       FROM support_tickets st
+       INNER JOIN bookings b ON b.id = st.booking_id
+       LEFT JOIN experiences e ON e.id = b.experience_id
+       WHERE st.id = ?`,
+      [result.insertId]
+    );
+    if (!rows[0]) throw new Error('Khong the tao yeu cau ho tro');
+    return normalizeSupportTicket(rows[0]);
+  }
+
+  public async updateSupportTicket(
+    id: number,
+    fields: Pick<SupportTicketTable, 'status'> & { admin_note?: string }
+  ): Promise<SupportTicketTable> {
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      'UPDATE support_tickets SET status = ?, admin_note = ? WHERE id = ?',
+      [fields.status, fields.admin_note || null, id]
+    );
+    if (result.affectedRows === 0) throw new Error('Khong tim thay yeu cau ho tro');
+    const [rows] = await pool.query<SupportTicketRow[]>(
+      `SELECT st.*,
+        COALESCE(e.title, 'Trai nghiem khong ten') AS experience_title,
+        b.contact_name,
+        b.status AS booking_status
+       FROM support_tickets st
+       INNER JOIN bookings b ON b.id = st.booking_id
+       LEFT JOIN experiences e ON e.id = b.experience_id
+       WHERE st.id = ?`,
+      [id]
+    );
+    if (!rows[0]) throw new Error('Khong tim thay yeu cau ho tro');
+    return normalizeSupportTicket(rows[0]);
+  }
 
   public async createNotification(userEmail: string, title: string, message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info'): Promise<void> {
     await pool.query(

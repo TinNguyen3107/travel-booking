@@ -1262,6 +1262,112 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
+  app.get('/api/support-tickets', authenticateToken, async (req, res) => {
+    try {
+      const actor = (req as any).user;
+      const role = actor.role === 'admin' || actor.role === 'host' ? actor.role : 'user';
+      res.json(await db.getSupportTickets({ role, email: actor.email }));
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.post('/api/support-tickets', authenticateToken, async (req, res) => {
+    try {
+      const actor = (req as any).user;
+      const bookingId = Number(req.body.booking_id);
+      const subject = cleanText(req.body.subject);
+      const message = cleanText(req.body.message);
+      const priority = cleanText(req.body.priority) === 'urgent' ? 'urgent' : 'normal';
+
+      if (!bookingId || !subject || !message) {
+        res.status(400).json({ error: 'Vui long nhap day du thong tin ho tro' });
+        return;
+      }
+
+      if (subject.length < 5 || subject.length > 120 || message.length < 10 || message.length > 1000) {
+        res.status(400).json({ error: 'Noi dung ho tro can ro rang hon' });
+        return;
+      }
+
+      const booking = await db.findBookingById(bookingId);
+      if (!booking) {
+        res.status(404).json({ error: 'Khong tim thay don dat tour' });
+        return;
+      }
+
+      const experience = await db.findExperienceById(booking.experience_id);
+      const isGuest = booking.user_email.toLowerCase() === actor.email.toLowerCase();
+      const isHost = actor.role === 'host' && experience?.host_email?.toLowerCase() === actor.email.toLowerCase();
+      if (actor.role !== 'admin' && !isGuest && !isHost) {
+        res.status(403).json({ error: 'Ban khong co quyen tao yeu cau cho don nay' });
+        return;
+      }
+
+      const ticket = await db.addSupportTicket({
+        booking_id: booking.id,
+        user_email: booking.user_email,
+        host_email: experience?.host_email,
+        subject,
+        message,
+        priority
+      });
+
+      const adminUsers = await db.getUsers();
+      await Promise.all(adminUsers
+        .filter(user => user.role === 'admin')
+        .map(user => db.createNotification(
+          user.email,
+          'Co yeu cau ho tro moi',
+          `Don #${booking.id}: ${subject}`,
+          priority === 'urgent' ? 'warning' : 'info'
+        )));
+
+      if (experience?.host_email && actor.email.toLowerCase() !== experience.host_email.toLowerCase()) {
+        await db.createNotification(
+          experience.host_email,
+          'Khach can ho tro ve don tour',
+          `Don #${booking.id}: ${subject}`,
+          priority === 'urgent' ? 'warning' : 'info'
+        );
+      }
+
+      res.status(201).json(ticket);
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.put('/api/support-tickets/:id', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const status = cleanText(req.body.status);
+      const adminNote = cleanText(req.body.admin_note);
+      if (!['open', 'in_progress', 'resolved', 'closed'].includes(status)) {
+        res.status(400).json({ error: 'Trang thai ho tro khong hop le' });
+        return;
+      }
+
+      const ticket = await db.updateSupportTicket(id, {
+        status: status as 'open' | 'in_progress' | 'resolved' | 'closed',
+        admin_note: adminNote
+      });
+
+      await db.createNotification(
+        ticket.user_email,
+        'Yeu cau ho tro da duoc cap nhat',
+        `Don #${ticket.booking_id}: trang thai ho tro hien la ${status}.`,
+        status === 'resolved' || status === 'closed' ? 'success' : 'info'
+      );
+      if (ticket.host_email) {
+        await db.createNotification(
+          ticket.host_email,
+          'Yeu cau ho tro da duoc cap nhat',
+          `Don #${ticket.booking_id}: trang thai ho tro hien la ${status}.`,
+          status === 'resolved' || status === 'closed' ? 'success' : 'info'
+        );
+      }
+
+      res.json(ticket);
+    } catch (e: any) { handleError(res, e); }
+  });
+
   app.get('/api/hosts', authenticateToken, requireAdmin, async (_req, res) => {
     try {
       res.json(await db.getHosts());

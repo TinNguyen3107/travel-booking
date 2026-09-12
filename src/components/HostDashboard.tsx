@@ -19,7 +19,8 @@ import {
   Users,
   Calendar,
   TrendingUp,
-  Eye
+  Eye,
+  LifeBuoy
 } from 'lucide-react';
 import {
   LineChart,
@@ -37,6 +38,7 @@ import {
   formatVnd,
   HostApplicationTable,
   isExperienceOpen,
+  SupportTicketTable,
   todayIso,
   UserTable
 } from '../types';
@@ -52,7 +54,7 @@ interface HostDashboardProps {
   onCurrentUserUpdated?: (updatedUser: any) => void;
 }
 
-type HostTab = 'overview' | 'experiences' | 'bookings' | 'profile' | 'reviews';
+type HostTab = 'overview' | 'experiences' | 'bookings' | 'support' | 'profile' | 'reviews';
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1200&auto=format&fit=crop';
@@ -139,6 +141,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
   const [activeTab, setActiveTab] = useState<HostTab>('overview');
   const [experiences, setExperiences] = useState<ExperienceTable[]>([]);
   const [bookings, setBookings] = useState<BookingTable[]>([]);
+  const [supportTickets, setSupportTickets] = useState<SupportTicketTable[]>([]);
   const [hosts, setHosts] = useState<HostApplicationTable[]>([]);
   const [dbCategories, setDbCategories] = useState<{ id: number; name: string }[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
@@ -170,6 +173,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
     { id: 'overview', label: t('host_tab_overview') },
     { id: 'experiences', label: t('host_tab_experiences') },
     { id: 'bookings', label: t('host_tab_bookings') },
+    { id: 'support', label: 'Ho tro' },
     { id: 'reviews', label: t('host_tab_reviews') },
     { id: 'profile', label: t('host_tab_profile') }
   ];
@@ -282,13 +286,14 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
 
     try {
       const isAdmin = currentUser?.role === 'admin';
-      const [experienceData, bookingsData, categoryData, reviewsData, hostsData, hostProfileData] = await Promise.all([
+      const [experienceData, bookingsData, categoryData, reviewsData, hostsData, hostProfileData, supportData] = await Promise.all([
         fetchJson<ExperienceTable[]>('/api/experiences'),
         fetchJson<BookingTable[]>(`/api/bookings?role=${currentUser?.role}&email=${encodeURIComponent(currentUser?.email)}`),
         fetchJson<{ id: number; name: string }[]>('/api/categories'),
         fetchJson<any[]>('/api/reviews'),
         isAdmin ? fetchJson<HostApplicationTable[]>('/api/hosts') : Promise.resolve([]),
-        currentUser?.role === 'host' ? fetchJson<any>('/api/hosts/profile') : Promise.resolve(null)
+        currentUser?.role === 'host' ? fetchJson<any>('/api/hosts/profile') : Promise.resolve(null),
+        fetchJson<SupportTicketTable[]>('/api/support-tickets')
       ]);
 
       const hostExperiences = isAdmin ? (experienceData || []) : (experienceData || []).filter(e => e.host_email === currentUser?.email);
@@ -296,6 +301,7 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
       setBookings(bookingsData || []);
       setHosts(hostsData || []);
       setDbCategories(categoryData || []);
+      setSupportTickets(supportData || []);
       setReviews((reviewsData || []).filter((r: any) => hostExperiences.some(e => e.id === r.experience_id)));
 
       if (currentUser?.role === 'host' && hostProfileData) {
@@ -1179,6 +1185,53 @@ export default function HostDashboard({ onExperiencesChange, activeSection, curr
                 ))}
                 {bookings.length === 0 && (
                   <tr><td colSpan={5}><EmptyRow text={t('host_no_bookings')} /></td></tr>
+                )}
+              </tbody>
+            </table>
+          </HostTable>
+        )}
+
+        {!loading && activeTab === 'support' && (
+          <HostTable title="Yeu cau ho tro lien quan tour">
+            <table className="min-w-full text-sm">
+              <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
+                <tr>
+                  <th className="px-4 py-3 text-left">Ticket</th>
+                  <th className="px-4 py-3 text-left">Don tour</th>
+                  <th className="px-4 py-3 text-left">Khach</th>
+                  <th className="px-4 py-3 text-left">Noi dung</th>
+                  <th className="px-4 py-3 text-left">Trang thai</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200">
+                {supportTickets.map((ticket) => (
+                  <tr key={ticket.id}>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2 font-black text-zinc-900 dark:text-slate-100">
+                        <LifeBuoy className="h-4 w-4 text-emerald-600" />
+                        #{ticket.id}
+                      </div>
+                      <div className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${ticket.priority === 'urgent' ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                        {ticket.priority === 'urgent' ? 'Gap' : 'Thuong'}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">
+                      <div className="font-bold text-zinc-900 dark:text-slate-100">Don #{ticket.booking_id}</div>
+                      <div className="mt-1 text-xs">{ticket.experience_title || 'Tour'} - {ticket.booking_status}</div>
+                    </td>
+                    <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">{ticket.user_email}</td>
+                    <td className="max-w-sm px-4 py-3 text-zinc-600 dark:text-slate-300">
+                      <div className="font-bold text-zinc-900 dark:text-slate-100">{ticket.subject}</div>
+                      <div className="mt-1 line-clamp-3 text-xs">{ticket.message}</div>
+                      {ticket.admin_note && <div className="mt-2 rounded-lg bg-zinc-50 dark:bg-slate-900 p-2 text-xs">Admin: {ticket.admin_note}</div>}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-lg border border-zinc-200 dark:border-slate-700 px-3 py-2 text-xs font-bold text-zinc-600 dark:text-slate-300">{ticket.status}</span>
+                    </td>
+                  </tr>
+                ))}
+                {supportTickets.length === 0 && (
+                  <tr><td colSpan={5}><EmptyRow text="Chua co yeu cau ho tro." /></td></tr>
                 )}
               </tbody>
             </table>

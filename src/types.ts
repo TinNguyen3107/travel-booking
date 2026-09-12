@@ -88,6 +88,23 @@ export interface BookingTable {
   host_email?: string;
 }
 
+export interface SupportTicketTable {
+  id: number;
+  booking_id: number;
+  user_email: string;
+  host_email?: string;
+  subject: string;
+  message: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  priority: 'normal' | 'urgent';
+  admin_note?: string;
+  created_at: string;
+  updated_at: string;
+  experience_title?: string;
+  contact_name?: string;
+  booking_status?: BookingTable['status'];
+}
+
 export interface WishlistTable {
   id: number;
   user_email: string;

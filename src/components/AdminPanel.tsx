@@ -16,6 +16,7 @@ import {
   Search,
   ShieldCheck,
   Star,
+  LifeBuoy,
   Trash2,
   Users,
   Calendar,
@@ -28,6 +29,7 @@ import {
   formatVnd,
   HostApplicationTable,
   isExperienceOpen,
+  SupportTicketTable,
   todayIso,
   UserTable
 } from '../types';
@@ -41,7 +43,7 @@ interface AdminPanelProps {
   currentUser?: any;
 }
 
-type AdminTab = 'overview' | 'categories' | 'experiences' | 'bookings' | 'users' | 'hosts' | 'promotions';
+type AdminTab = 'overview' | 'categories' | 'experiences' | 'bookings' | 'support' | 'users' | 'hosts' | 'promotions';
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1200&auto=format&fit=crop';
@@ -102,6 +104,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [experiences, setExperiences] = useState<ExperienceTable[]>([]);
   const [bookings, setBookings] = useState<BookingTable[]>([]);
+  const [supportTickets, setSupportTickets] = useState<SupportTicketTable[]>([]);
   const [users, setUsers] = useState<UserTable[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserTable | null>(null);
   const [selectedUserLoading, setSelectedUserLoading] = useState(false);
@@ -139,6 +142,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         { id: 'bookings', label: 'Đơn đặt' },
         { id: 'promotions', label: 'Khuyến mãi' },
         { id: 'users', label: 'Người dùng' },
+        { id: 'support', label: 'Ho tro' },
         { id: 'hosts', label: 'Host' }
       ];
 
@@ -228,13 +232,14 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
     setError(null);
 
     try {
-      const [experienceData, bookingData, userData, hostData, categoryData, promoData] = await Promise.all([
+      const [experienceData, bookingData, userData, hostData, categoryData, promoData, supportData] = await Promise.all([
         fetchJson<ExperienceTable[]>('/api/experiences'),
         fetchJson<BookingTable[]>(isHost ? `/api/bookings?role=host&email=${encodeURIComponent(currentUser?.email)}` : '/api/bookings?role=admin'),
         fetchJson<UserTable[]>('/api/users'),
         fetchJson<HostApplicationTable[]>('/api/hosts'),
         fetchJson<{ id: number; name: string }[]>('/api/categories'),
-        fetchJson<any[]>('/api/promotions')
+        fetchJson<any[]>('/api/promotions'),
+        fetchJson<SupportTicketTable[]>('/api/support-tickets')
       ]);
 
       setExperiences(isHost ? (experienceData || []).filter(e => e.host_email === currentUser?.email) : (experienceData || []));
@@ -243,6 +248,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
       setHosts(hostData || []);
       setDbCategories(categoryData || []);
       setPromotions(promoData || []);
+      setSupportTickets(supportData || []);
 
     } catch (err: any) {
       setError(err.message || 'Không thể tải dữ liệu quản trị');
@@ -475,6 +481,20 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ payment_status })
+      });
+      await fetchAllData();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const updateSupportTicket = async (id: number, status: SupportTicketTable['status'], currentNote?: string) => {
+    const adminNote = window.prompt('Ghi chu xu ly cho ticket nay:', currentNote || '') || '';
+    try {
+      await fetchJson<SupportTicketTable>(`/api/support-tickets/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, admin_note: adminNote })
       });
       await fetchAllData();
     } catch (err: any) {
@@ -1135,6 +1155,69 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                 ))}
                 {bookings.length === 0 && (
                   <tr><td colSpan={5}><EmptyRow text="Chưa có đơn đặt tour." /></td></tr>
+                )}
+              </tbody>
+            </table>
+          </AdminTable>
+        )}
+
+        {!loading && activeTab === 'support' && (
+          <AdminTable title="Xu ly ho tro">
+            <table className="min-w-full text-sm">
+              <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
+                <tr>
+                  <th className="px-4 py-3 text-left">Ticket</th>
+                  <th className="px-4 py-3 text-left">Don tour</th>
+                  <th className="px-4 py-3 text-left">Nguoi gui</th>
+                  <th className="px-4 py-3 text-left">Noi dung</th>
+                  <th className="px-4 py-3 text-left">Xu ly</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200">
+                {supportTickets.map((ticket) => (
+                  <tr key={ticket.id}>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2 font-black text-zinc-900 dark:text-slate-100">
+                        <LifeBuoy className="h-4 w-4 text-emerald-600" />
+                        #{ticket.id}
+                      </div>
+                      <div className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${ticket.priority === 'urgent' ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                        {ticket.priority === 'urgent' ? 'Gap' : 'Thuong'}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">
+                      <div className="font-bold text-zinc-900 dark:text-slate-100">Don #{ticket.booking_id}</div>
+                      <div className="mt-1 text-xs">{ticket.experience_title || 'Tour'} - {ticket.booking_status}</div>
+                    </td>
+                    <td className="px-4 py-3 text-zinc-600 dark:text-slate-300">
+                      <div>{ticket.user_email}</div>
+                      {ticket.host_email && <div className="mt-1 text-xs text-zinc-500 dark:text-slate-400">Host: {ticket.host_email}</div>}
+                    </td>
+                    <td className="max-w-sm px-4 py-3 text-zinc-600 dark:text-slate-300">
+                      <div className="font-bold text-zinc-900 dark:text-slate-100">{ticket.subject}</div>
+                      <div className="mt-1 line-clamp-3 text-xs">{ticket.message}</div>
+                      {ticket.admin_note && <div className="mt-2 rounded-lg bg-zinc-50 dark:bg-slate-900 p-2 text-xs">Admin: {ticket.admin_note}</div>}
+                    </td>
+                    <td className="px-4 py-3">
+                      {currentUser?.role === 'admin' ? (
+                        <select
+                          value={ticket.status}
+                          onChange={(event) => updateSupportTicket(ticket.id, event.target.value as SupportTicketTable['status'], ticket.admin_note)}
+                          className="w-full rounded-lg border border-zinc-200 dark:border-slate-700 px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500"
+                        >
+                          <option value="open">open</option>
+                          <option value="in_progress">in_progress</option>
+                          <option value="resolved">resolved</option>
+                          <option value="closed">closed</option>
+                        </select>
+                      ) : (
+                        <span className="rounded-lg border border-zinc-200 dark:border-slate-700 px-3 py-2 text-xs font-bold text-zinc-600 dark:text-slate-300">{ticket.status}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {supportTickets.length === 0 && (
+                  <tr><td colSpan={5}><EmptyRow text="Chua co yeu cau ho tro." /></td></tr>
                 )}
               </tbody>
             </table>
