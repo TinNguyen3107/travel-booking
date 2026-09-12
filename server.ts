@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import fs from 'fs';
 import bcrypt from 'bcryptjs';
+import { fileTypeFromBuffer } from 'file-type';
 
 import crypto from 'crypto';
 
@@ -105,15 +106,43 @@ const storage = multer.diskStorage({
   }
 });
 
+const allowedUploadTypes = new Map<string, string[]>([
+  ['image/jpeg', ['.jpg', '.jpeg']],
+  ['image/png', ['.png']],
+  ['image/webp', ['.webp']],
+  ['image/gif', ['.gif']],
+  ['video/mp4', ['.mp4', '.m4v']],
+  ['video/webm', ['.webm']],
+  ['video/quicktime', ['.mov']]
+]);
+const maxUploadSizeMb = 15;
+
 const fileFilter = (req: express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedExtensions = allowedUploadTypes.get(file.mimetype);
+  if (allowedExtensions?.includes(ext)) {
     cb(null, true);
   } else {
     cb(new Error('Chỉ cho phép tải lên file hình ảnh hoặc video!'));
   }
 };
 
-const upload = multer({ storage, fileFilter });
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: maxUploadSizeMb * 1024 * 1024 }
+});
+
+const uploadSingleFile = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  upload.single('file')(req, res, (err: any) => {
+    if (!err) return next();
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+      res.status(413).json({ error: `File toi da ${maxUploadSizeMb}MB.` });
+      return;
+    }
+    res.status(400).json({ error: err.message || 'File upload khong hop le' });
+  });
+};
 
 export const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -364,15 +393,27 @@ app.use(async (req, res, next) => {
     next();
   };
 
-  app.post('/api/upload', authenticateToken, upload.single('file'), (req, res) => {
+  app.post('/api/upload', authenticateToken, uploadSingleFile, async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'Không có file được tải lên' });
       }
       const filePath = req.file.path;
       const fileBuffer = fs.readFileSync(filePath);
-      const base64Image = fileBuffer.toString('base64');
       const mimeType = req.file.mimetype;
+      const detectedType = await fileTypeFromBuffer(fileBuffer);
+      const detectedMime = detectedType?.mime ?? null;
+      const isAllowedDetectedType = detectedMime ? allowedUploadTypes.has(detectedMime) : false;
+      const isDeclaredTypeCompatible =
+        detectedMime === mimeType ||
+        (mimeType === 'video/quicktime' && detectedMime === 'video/mp4');
+
+      if (!isAllowedDetectedType || !isDeclaredTypeCompatible) {
+        try { fs.unlinkSync(filePath); } catch (e) {}
+        return res.status(400).json({ error: 'Noi dung file khong khop dinh dang da khai bao.' });
+      }
+
+      const base64Image = fileBuffer.toString('base64');
       const fileUrl = `data:${mimeType};base64,${base64Image}`;
       
       // Dọn dẹp file tạm ở thư mục uploads
