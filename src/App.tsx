@@ -67,6 +67,7 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [reviewExperienceId, setReviewExperienceId] = useState<number | null>(null);
+  const [eligibleReviewExperiences, setEligibleReviewExperiences] = useState<ExperienceTable[]>([]);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [reviewMessage, setReviewMessage] = useState<string | null>(null);
@@ -116,10 +117,31 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (experiences.length > 0 && reviewExperienceId === null) {
-      setReviewExperienceId(experiences[0].id);
+    if (!user || user.role !== 'user') {
+      setEligibleReviewExperiences([]);
+      setReviewExperienceId(null);
+      return;
     }
-  }, [experiences, reviewExperienceId]);
+
+    fetch('/api/reviews/eligible-experiences', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+      cache: 'no-store'
+    })
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        const eligible = Array.isArray(data) ? data : [];
+        setEligibleReviewExperiences(eligible);
+        setReviewExperienceId(current =>
+          current && eligible.some((experience) => experience.id === current)
+            ? current
+            : eligible[0]?.id ?? null
+        );
+      })
+      .catch(() => {
+        setEligibleReviewExperiences([]);
+        setReviewExperienceId(null);
+      });
+  }, [user, reviews]);
 
   useEffect(() => {
     if (user && user.role === 'user') {
@@ -736,8 +758,8 @@ export default function App() {
               <CustomSelect
                 value={String(reviewExperienceId ?? '')}
                 onChange={(val) => setReviewExperienceId(Number(val))}
-                options={experiences.map(exp => ({ value: String(exp.id), label: tDynamic(exp.title) }))}
-                placeholder={t('review_select_tour')}
+                options={eligibleReviewExperiences.map(exp => ({ value: String(exp.id), label: tDynamic(exp.title) }))}
+                placeholder={user ? (eligibleReviewExperiences.length ? t('review_select_tour') : 'Chua co tour du dieu kien danh gia') : t('review_login_required')}
                 className="w-full"
               />
 
@@ -780,11 +802,11 @@ export default function App() {
 
               <button
                 type="submit"
-                disabled={reviewLoading}
+                disabled={reviewLoading || !user || eligibleReviewExperiences.length === 0}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-black text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-50 dark:bg-slate-900/500"
               >
                 <Send className="h-4 w-4" />
-                {user ? (reviewLoading ? t('review_submitting') : t('review_submit')) : t('review_login_required')}
+                {user ? (reviewLoading ? t('review_submitting') : eligibleReviewExperiences.length ? t('review_submit') : 'Chua co tour du dieu kien danh gia') : t('review_login_required')}
               </button>
             </form>
           </div>

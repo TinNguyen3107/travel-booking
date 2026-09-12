@@ -1479,6 +1479,38 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
+  app.get('/api/reviews/eligible-experiences', authenticateToken, async (req, res) => {
+    try {
+      const actor = (req as any).user;
+      if (actor.role !== 'user') {
+        res.json([]);
+        return;
+      }
+
+      const bookings = await db.getBookings(actor.email);
+      const completedBookings = bookings.filter(booking => booking.status === 'completed');
+      if (completedBookings.length === 0) {
+        res.json([]);
+        return;
+      }
+
+      const experiences = await db.getExperiences();
+      const schedules = await db.getSchedules();
+      const today = todayInVietnamIso();
+      const eligibleIds = new Set<number>();
+
+      for (const booking of completedBookings) {
+        if (!booking.schedule_id || await db.hasReview(booking.experience_id, actor.email)) continue;
+        const schedule = schedules.find(item => item.id === booking.schedule_id);
+        if (schedule && schedule.end_date < today) {
+          eligibleIds.add(booking.experience_id);
+        }
+      }
+
+      res.json(experiences.filter(experience => eligibleIds.has(experience.id)));
+    } catch (e: any) { handleError(res, e); }
+  });
+
   app.post('/api/reviews', authenticateToken, async (req, res) => {
     try {
       const experienceId = Number(req.body.experience_id);
