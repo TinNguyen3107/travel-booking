@@ -14,6 +14,7 @@ import {
   HostReviewTable,
   PostCommentTable,
   PostReactionTable,
+  PostReportTable,
   PostTable,
   ReviewTable,
   SupportTicketTable,
@@ -33,6 +34,7 @@ type ScheduleRow = TourScheduleTable & RowDataPacket;
 type PostRow = PostTable & RowDataPacket;
 type PostCommentRow = PostCommentTable & RowDataPacket;
 type PostReactionRow = PostReactionTable & RowDataPacket;
+type PostReportRow = PostReportTable & RowDataPacket;
 type SupportTicketRow = SupportTicketTable & RowDataPacket;
 type ColumnCountRow = RowDataPacket & { count: number };
 
@@ -182,6 +184,13 @@ const normalizePostReaction = (row: PostReactionRow): PostReactionTable => ({
   ...row,
   id: toNumber(row.id),
   post_id: toNumber(row.post_id)
+});
+
+const normalizePostReport = (row: PostReportRow): PostReportTable => ({
+  ...row,
+  id: toNumber(row.id),
+  post_id: toNumber(row.post_id),
+  created_at: toDateTimeString(row.created_at)
 });
 
 const normalizeSupportTicket = (row: SupportTicketRow): SupportTicketTable => ({
@@ -518,6 +527,20 @@ class RelationalDatabase {
     `);
 
     try { await pool.query("ALTER TABLE posts MODIFY COLUMN media_url LONGTEXT"); } catch (e: any) { }
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS post_reports (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        post_id INT NOT NULL,
+        reporter_email VARCHAR(255) NOT NULL,
+        reason TEXT NOT NULL,
+        status ENUM('open', 'reviewed', 'dismissed') NOT NULL DEFAULT 'open',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_post_reporter (post_id, reporter_email),
+        INDEX idx_report_status (status),
+        CONSTRAINT fk_report_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS post_comments (
@@ -1835,6 +1858,51 @@ class RelationalDatabase {
   }
 
   // ─── Notifications ──────────────────────────────────────────────
+
+  public async addPostReport(report: Pick<PostReportTable, 'post_id' | 'reporter_email' | 'reason'>): Promise<PostReportTable> {
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      'INSERT INTO post_reports (post_id, reporter_email, reason) VALUES (?, ?, ?)',
+      [report.post_id, report.reporter_email, report.reason]
+    );
+    const [rows] = await pool.query<PostReportRow[]>(
+      `SELECT pr.*, p.content AS post_content, p.fullname AS post_author
+       FROM post_reports pr
+       INNER JOIN posts p ON p.id = pr.post_id
+       WHERE pr.id = ?`,
+      [result.insertId]
+    );
+    if (!rows[0]) throw new Error('Khong the tao bao cao bai viet');
+    return normalizePostReport(rows[0]);
+  }
+
+  public async getPostReports(): Promise<PostReportTable[]> {
+    const [rows] = await pool.query<PostReportRow[]>(
+      `SELECT pr.*, p.content AS post_content, p.fullname AS post_author
+       FROM post_reports pr
+       INNER JOIN posts p ON p.id = pr.post_id
+       ORDER BY
+        CASE pr.status WHEN 'open' THEN 1 WHEN 'reviewed' THEN 2 ELSE 3 END,
+        pr.created_at DESC`
+    );
+    return rows.map(normalizePostReport);
+  }
+
+  public async updatePostReportStatus(id: number, status: PostReportTable['status']): Promise<PostReportTable> {
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      'UPDATE post_reports SET status = ? WHERE id = ?',
+      [status, id]
+    );
+    if (result.affectedRows === 0) throw new Error('Khong tim thay bao cao bai viet');
+    const [rows] = await pool.query<PostReportRow[]>(
+      `SELECT pr.*, p.content AS post_content, p.fullname AS post_author
+       FROM post_reports pr
+       INNER JOIN posts p ON p.id = pr.post_id
+       WHERE pr.id = ?`,
+      [id]
+    );
+    if (!rows[0]) throw new Error('Khong tim thay bao cao bai viet');
+    return normalizePostReport(rows[0]);
+  }
 
   public async getSupportTickets(filters: { role: 'admin' | 'host' | 'user'; email: string }): Promise<SupportTicketTable[]> {
     const where =

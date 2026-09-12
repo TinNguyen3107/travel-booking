@@ -196,6 +196,17 @@ export interface PostReactionTable {
   reaction_type: 'like' | 'love' | 'wow' | 'haha' | 'sad' | 'angry';
 }
 
+export interface PostReportTable {
+  id: number;
+  post_id: number;
+  reporter_email: string;
+  reason: string;
+  status: 'open' | 'reviewed' | 'dismissed';
+  created_at: string;
+  post_content?: string;
+  post_author?: string;
+}
+
 export interface CommentReactionTable {
   id: number;
   comment_id: number;

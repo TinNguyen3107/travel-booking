@@ -29,6 +29,7 @@ import {
   formatVnd,
   HostApplicationTable,
   isExperienceOpen,
+  PostReportTable,
   SupportTicketTable,
   todayIso,
   UserTable
@@ -105,6 +106,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
   const [experiences, setExperiences] = useState<ExperienceTable[]>([]);
   const [bookings, setBookings] = useState<BookingTable[]>([]);
   const [supportTickets, setSupportTickets] = useState<SupportTicketTable[]>([]);
+  const [postReports, setPostReports] = useState<PostReportTable[]>([]);
   const [users, setUsers] = useState<UserTable[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserTable | null>(null);
   const [selectedUserLoading, setSelectedUserLoading] = useState(false);
@@ -232,14 +234,15 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
     setError(null);
 
     try {
-      const [experienceData, bookingData, userData, hostData, categoryData, promoData, supportData] = await Promise.all([
+      const [experienceData, bookingData, userData, hostData, categoryData, promoData, supportData, postReportData] = await Promise.all([
         fetchJson<ExperienceTable[]>('/api/experiences'),
         fetchJson<BookingTable[]>(isHost ? `/api/bookings?role=host&email=${encodeURIComponent(currentUser?.email)}` : '/api/bookings?role=admin'),
         fetchJson<UserTable[]>('/api/users'),
         fetchJson<HostApplicationTable[]>('/api/hosts'),
         fetchJson<{ id: number; name: string }[]>('/api/categories'),
         fetchJson<any[]>('/api/promotions'),
-        fetchJson<SupportTicketTable[]>('/api/support-tickets')
+        fetchJson<SupportTicketTable[]>('/api/support-tickets'),
+        isHost ? Promise.resolve([]) : fetchJson<PostReportTable[]>('/api/post-reports')
       ]);
 
       setExperiences(isHost ? (experienceData || []).filter(e => e.host_email === currentUser?.email) : (experienceData || []));
@@ -249,6 +252,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
       setDbCategories(categoryData || []);
       setPromotions(promoData || []);
       setSupportTickets(supportData || []);
+      setPostReports(postReportData || []);
 
     } catch (err: any) {
       setError(err.message || 'Không thể tải dữ liệu quản trị');
@@ -495,6 +499,32 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, admin_note: adminNote })
+      });
+      await fetchAllData();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const updatePostReportStatus = async (id: number, status: PostReportTable['status']) => {
+    try {
+      await fetchJson<PostReportTable>(`/api/post-reports/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      await fetchAllData();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const hideReportedPost = async (postId: number) => {
+    try {
+      await fetchJson(`/api/posts/${postId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'hidden' })
       });
       await fetchAllData();
     } catch (err: any) {
@@ -1162,6 +1192,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         )}
 
         {!loading && activeTab === 'support' && (
+          <>
           <AdminTable title="Xu ly ho tro">
             <table className="min-w-full text-sm">
               <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
@@ -1222,6 +1253,63 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
               </tbody>
             </table>
           </AdminTable>
+
+          {!isHost && (
+            <div className="mt-6">
+              <AdminTable title="Bao cao bai viet cong dong">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-zinc-50 dark:bg-slate-900/50 text-xs uppercase text-zinc-500 dark:text-slate-400">
+                    <tr>
+                      <th className="px-4 py-3 text-left">Bao cao</th>
+                      <th className="px-4 py-3 text-left">Bai viet</th>
+                      <th className="px-4 py-3 text-left">Ly do</th>
+                      <th className="px-4 py-3 text-left">Xu ly</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-200">
+                    {postReports.map((report) => (
+                      <tr key={report.id}>
+                        <td className="px-4 py-3">
+                          <div className="font-black text-zinc-900 dark:text-slate-100">#{report.id}</div>
+                          <div className="mt-1 text-xs text-zinc-500 dark:text-slate-400">Post #{report.post_id}</div>
+                          <div className="mt-1 text-xs text-zinc-500 dark:text-slate-400">{report.reporter_email}</div>
+                        </td>
+                        <td className="max-w-sm px-4 py-3 text-zinc-600 dark:text-slate-300">
+                          <div className="font-bold text-zinc-900 dark:text-slate-100">{report.post_author || 'Nguoi dung'}</div>
+                          <div className="mt-1 line-clamp-3 text-xs">{report.post_content}</div>
+                        </td>
+                        <td className="max-w-xs px-4 py-3 text-zinc-600 dark:text-slate-300">{report.reason}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-col gap-2">
+                            <select
+                              value={report.status}
+                              onChange={(event) => updatePostReportStatus(report.id, event.target.value as PostReportTable['status'])}
+                              className="rounded-lg border border-zinc-200 dark:border-slate-700 px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500"
+                            >
+                              <option value="open">open</option>
+                              <option value="reviewed">reviewed</option>
+                              <option value="dismissed">dismissed</option>
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => hideReportedPost(report.post_id)}
+                              className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50"
+                            >
+                              An bai viet
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {postReports.length === 0 && (
+                      <tr><td colSpan={4}><EmptyRow text="Chua co bao cao bai viet." /></td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </AdminTable>
+            </div>
+          )}
+          </>
         )}
 
         {!loading && activeTab === 'promotions' && !isHost && (

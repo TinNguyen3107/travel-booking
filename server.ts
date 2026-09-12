@@ -1715,6 +1715,66 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
+  app.post('/api/posts/:id/reports', authenticateToken, async (req, res) => {
+    try {
+      const postId = Number(req.params.id);
+      const reason = cleanText(req.body.reason);
+      const reporterEmail = (req as any).user.email;
+
+      if (!postId || reason.length < 5 || reason.length > 500) {
+        res.status(400).json({ error: 'Ly do bao cao can tu 5 den 500 ky tu' });
+        return;
+      }
+
+      const post = await db.getPostById(postId);
+      if (!post || post.status !== 'active') {
+        res.status(404).json({ error: 'Khong tim thay bai viet can bao cao' });
+        return;
+      }
+
+      if (post.user_email.toLowerCase() === reporterEmail.toLowerCase()) {
+        res.status(400).json({ error: 'Ban khong can bao cao bai viet cua chinh minh' });
+        return;
+      }
+
+      const report = await db.addPostReport({
+        post_id: postId,
+        reporter_email: reporterEmail,
+        reason
+      });
+
+      const adminUsers = await db.getUsers();
+      await Promise.all(adminUsers
+        .filter(user => user.role === 'admin')
+        .map(user => db.createNotification(
+          user.email,
+          'Co bao cao bai viet moi',
+          `Bai #${postId}: ${reason.slice(0, 120)}`,
+          'warning'
+        )));
+
+      res.status(201).json(report);
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.get('/api/post-reports', authenticateToken, requireAdmin, async (_req, res) => {
+    try {
+      res.json(await db.getPostReports());
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  app.put('/api/post-reports/:id', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const status = cleanText(req.body.status);
+      if (!['open', 'reviewed', 'dismissed'].includes(status)) {
+        res.status(400).json({ error: 'Trang thai bao cao khong hop le' });
+        return;
+      }
+      res.json(await db.updatePostReportStatus(id, status as 'open' | 'reviewed' | 'dismissed'));
+    } catch (e: any) { handleError(res, e); }
+  });
+
   app.get('/api/posts/:id/comments', async (req, res) => {
     try {
       const postId = Number(req.params.id);

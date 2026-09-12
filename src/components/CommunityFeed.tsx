@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Send, ThumbsUp, Image as ImageIcon, Trash2, X, ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
+import { Heart, Send, ThumbsUp, Image as ImageIcon, Trash2, X, ChevronLeft, ChevronRight, MapPin, Flag } from 'lucide-react';
 import { PostTable, PostCommentTable, PostReactionTable } from '../types';
 import CustomSelect from './CustomSelect';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -291,6 +291,30 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
     } catch (e) { console.error(e); }
   };
 
+  const reportPost = async (postId: number) => {
+    if (!currentUser) return onLogin();
+    const reason = window.prompt('Ly do bao cao bai viet nay:');
+    if (!reason?.trim()) return;
+    try {
+      const res = await fetch(`/api/posts/${postId}/reports`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ reason: reason.trim() })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert('Da gui bao cao cho admin');
+      } else {
+        alert(data.error || 'Khong the gui bao cao');
+      }
+    } catch {
+      alert('Loi ket noi khi gui bao cao');
+    }
+  };
+
   // Compute reaction summary: unique types and total count
   const getReactionSummary = (reactions: PostReactionTable[]) => {
     const counts: Record<string, number> = {};
@@ -437,6 +461,16 @@ export default function CommunityFeed({ currentUser, onLogin, limit, onViewAll, 
                           {post.comments_count === 1 ? t('comm_comment') : t('comm_comments')} {post.comments_count > 0 && `(${post.comments_count})`}
                         </button>
                         <span>•</span>
+
+                        {currentUser?.email !== post.user_email && (
+                          <>
+                            <button onClick={() => reportPost(post.id)} className="inline-flex items-center gap-1 hover:text-red-600">
+                              <Flag className="h-3.5 w-3.5" />
+                              Bao cao
+                            </button>
+                            <span>â€¢</span>
+                          </>
+                        )}
 
                         {/* Reaction trigger */}
                         <div className="group relative flex items-center">
