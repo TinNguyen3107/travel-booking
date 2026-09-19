@@ -226,9 +226,9 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                   {isForgotPassword ? t('auth_password_new') : t('auth_password')}
                 </span>
                 {!isRegisterMode && !isForgotPassword && (
-                  <span className="text-xs font-bold text-zinc-500">
-                    Quên? Vui lòng liên hệ Admin
-                  </span>
+                  <a href="mailto:admin@viettour.com" className="text-xs font-bold text-emerald-600 hover:underline">
+                    Quên? Liên hệ Admin
+                  </a>
                 )}
               </div>
               <span className="relative block">
