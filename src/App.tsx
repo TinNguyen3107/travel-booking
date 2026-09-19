@@ -196,7 +196,7 @@ export default function App() {
   };
 
   const visibleExperiences = useMemo(
-    () => experiences.filter(isExperienceOpen),
+    () => experiences.filter(e => e.status === 'active' || e.status === 'closed'),
     [experiences]
   );
 

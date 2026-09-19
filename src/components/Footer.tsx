@@ -61,7 +61,7 @@ export default function Footer({ onNavigate }: FooterProps) {
           <div className="mt-4 space-y-3 text-sm text-zinc-400 dark:text-slate-500">
             <p className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-emerald-500" />
-              viettour@gmail.com
+              thanhtin310704@gmail.com
             </p>
             <p className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-emerald-500" />
