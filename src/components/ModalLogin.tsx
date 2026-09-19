@@ -226,9 +226,9 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                   {isForgotPassword ? t('auth_password_new') : t('auth_password')}
                 </span>
                 {!isRegisterMode && !isForgotPassword && (
-                  <button type="button" onClick={() => setIsForgotPassword(true)} className="text-xs font-bold text-emerald-600 hover:underline">
-                    {t('auth_password_forgot')}
-                  </button>
+                  <span className="text-xs font-bold text-zinc-500">
+                    Quên? Vui lòng liên hệ Admin
+                  </span>
                 )}
               </div>
               <span className="relative block">

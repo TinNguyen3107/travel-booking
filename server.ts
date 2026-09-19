@@ -332,13 +332,14 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
-  app.post('/api/auth/reset-password', async (req, res) => {
+  app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
     try {
-      const email = cleanText(req.body.email).toLowerCase();
+      const email = (req as any).user.email;
+      const oldPassword = cleanText(req.body.oldPassword);
       const newPassword = cleanText(req.body.newPassword);
 
-      if (!email || !newPassword) {
-        res.status(400).json({ error: 'Vui lòng nhập đầy đủ email và mật khẩu mới' });
+      if (!oldPassword || !newPassword) {
+        res.status(400).json({ error: 'Vui lòng nhập đầy đủ mật khẩu cũ và mới' });
         return;
       }
       if (newPassword.length < 6) {
@@ -346,8 +347,13 @@ app.use(async (req, res, next) => {
         return;
       }
       const user = await db.findUser(email);
-      if (!user) {
-        res.status(404).json({ error: 'Email không tồn tại trên hệ thống' });
+      if (!user || !user.password) {
+        res.status(404).json({ error: 'Tài khoản không tồn tại hoặc sử dụng đăng nhập Google' });
+        return;
+      }
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+        res.status(401).json({ error: 'Mật khẩu cũ không đúng' });
         return;
       }
 
@@ -581,9 +587,35 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
 
-  app.get('/api/experiences', async (_req, res) => {
+  app.get('/api/experiences', async (req, res) => {
     try {
-      res.json(await db.getExperiences());
+      if (req.query.page) {
+        const page = parseInt(req.query.page as string, 10) || 1;
+        const limit = parseInt(req.query.limit as string, 10) || 10;
+        const search = req.query.search as string;
+        const category = req.query.category as string;
+        const minPrice = req.query.minPrice ? parseFloat(req.query.minPrice as string) : undefined;
+        const maxPrice = req.query.maxPrice ? parseFloat(req.query.maxPrice as string) : undefined;
+        let status = req.query.status as string[];
+        if (typeof req.query.status === 'string') {
+          status = [req.query.status];
+        }
+
+        const result = await db.getExperiencesPaginated({
+          page, limit, search, category, minPrice, maxPrice, status
+        });
+        res.json({
+          data: result.data,
+          pagination: {
+            total: result.total,
+            page,
+            limit,
+            totalPages: Math.ceil(result.total / limit)
+          }
+        });
+      } else {
+        res.json(await db.getExperiences());
+      }
     } catch (e: any) { handleError(res, e); }
   });
 

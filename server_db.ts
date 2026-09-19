@@ -815,6 +815,60 @@ class RelationalDatabase {
     return rows.map(normalizeExperience);
   }
 
+  public async getExperiencesPaginated(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    category?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    status?: string[];
+  }): Promise<{ data: ExperienceTable[], total: number }> {
+    let query = 'FROM experiences WHERE is_deleted = FALSE';
+    const values: any[] = [];
+
+    if (params.status && params.status.length > 0) {
+      query += ` AND status IN (${params.status.map(() => '?').join(',')})`;
+      values.push(...params.status);
+    }
+
+    if (params.search) {
+      const searchTerm = `%${params.search}%`;
+      query += ' AND (LOWER(title) LIKE LOWER(?) OR LOWER(location) LIKE LOWER(?) OR LOWER(category) LIKE LOWER(?))';
+      values.push(searchTerm, searchTerm, searchTerm);
+    }
+
+    if (params.category && params.category !== 'all') {
+      query += ' AND category = ?';
+      values.push(params.category);
+    }
+
+    if (params.minPrice !== undefined) {
+      query += ' AND price >= ?';
+      values.push(params.minPrice);
+    }
+
+    if (params.maxPrice !== undefined) {
+      query += ' AND price <= ?';
+      values.push(params.maxPrice);
+    }
+
+    const [countRows] = await pool.query<any[]>(`SELECT COUNT(*) as total ${query}`, values);
+    const total = countRows[0].total;
+
+    query += ' ORDER BY id DESC';
+
+    const page = params.page || 1;
+    const limit = params.limit || 10;
+    const offset = (page - 1) * limit;
+
+    query += ' LIMIT ? OFFSET ?';
+    values.push(limit, offset);
+
+    const [rows] = await pool.query<ExperienceRow[]>(`SELECT * ${query}`, values);
+    return { data: rows.map(normalizeExperience), total };
+  }
+
   public async addExperience(exp: Omit<ExperienceTable, 'id'>): Promise<ExperienceTable> {
     const dailyCapMax = exp.daily_capacity_max ?? exp.daily_capacity ?? exp.max_guests ?? 50;
     const [result] = await pool.query<mysql.ResultSetHeader>(
