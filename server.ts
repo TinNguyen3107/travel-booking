@@ -362,7 +362,7 @@ app.use(async (req, res, next) => {
     } catch (e: any) { handleError(res, e); }
   });
   // Auth Middleware
-  const authenticateToken = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  function authenticateToken(req: express.Request, res: express.Response, next: express.NextFunction) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     
@@ -379,7 +379,7 @@ app.use(async (req, res, next) => {
       (req as any).user = user;
       next();
     });
-  };
+  }
 
   const requireAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const user = (req as any).user;
