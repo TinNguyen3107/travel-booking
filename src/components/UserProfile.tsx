@@ -157,14 +157,14 @@ export default function UserProfile({ user, onClose, onProfileUpdated }: { user:
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Khong the gui yeu cau ho tro');
+        alert(data.error || 'Không thể gửi yêu cầu hỗ trợ');
         return;
       }
       setSupportTickets([data, ...supportTickets]);
       setSupportForm({ booking_id: '', subject: '', message: '', priority: 'normal' });
-      alert('Da gui yeu cau ho tro');
+      alert('Đã gửi yêu cầu hỗ trợ');
     } catch {
-      alert('Loi ket noi khi gui yeu cau ho tro');
+      alert('Lỗi kết nối khi gửi yêu cầu hỗ trợ');
     }
   };
 
@@ -222,7 +222,7 @@ export default function UserProfile({ user, onClose, onProfileUpdated }: { user:
             className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 ${activeTab === 'support' ? 'border-b-2 border-emerald-600 text-emerald-700 bg-emerald-50/50' : 'text-zinc-500 dark:text-slate-400 hover:bg-zinc-50 dark:hover:bg-slate-900/50'}`}
           >
             <LifeBuoy className="h-4 w-4" />
-            Ho tro ({supportTickets.length})
+            Hỗ trợ ({supportTickets.length})
           </button>
           <button
             type="button"
@@ -401,39 +401,39 @@ export default function UserProfile({ user, onClose, onProfileUpdated }: { user:
           {activeTab === 'support' && (
             <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
               <form onSubmit={handleCreateSupportTicket} className="space-y-4 rounded-xl border border-zinc-200 dark:border-slate-700 p-4">
-                <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100">Gui yeu cau ho tro</h3>
+                <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100">Gửi yêu cầu hỗ trợ</h3>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Don tour</span>
+                  <span className="mb-1 block text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Đơn tour</span>
                   <select
                     value={supportForm.booking_id}
                     onChange={e => setSupportForm({ ...supportForm, booking_id: e.target.value })}
                     className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2.5 outline-none focus:border-emerald-500"
                     required
                   >
-                    <option value="">Chon don can ho tro</option>
+                    <option value="">Chọn đơn cần hỗ trợ</option>
                     {bookings.map(booking => (
                       <option key={booking.id} value={booking.id}>#{booking.id} - {booking.experience_title || 'Tour'} - {booking.booking_date}</option>
                     ))}
                   </select>
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Tieu de</span>
+                  <span className="mb-1 block text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Tiêu đề</span>
                   <input
                     value={supportForm.subject}
                     onChange={e => setSupportForm({ ...supportForm, subject: e.target.value })}
                     className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2.5 outline-none focus:border-emerald-500"
-                    placeholder="VD: Can doi gio tap trung"
+                    placeholder="VD: Cần đổi giờ tập trung"
                     required
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Noi dung</span>
+                  <span className="mb-1 block text-xs font-bold uppercase text-zinc-500 dark:text-slate-400">Nội dung</span>
                   <textarea
                     value={supportForm.message}
                     onChange={e => setSupportForm({ ...supportForm, message: e.target.value })}
                     rows={5}
                     className="w-full rounded-xl border border-zinc-200 dark:border-slate-700 px-4 py-2.5 outline-none focus:border-emerald-500"
-                    placeholder="Mo ta van de de host/admin nam duoc boi canh..."
+                    placeholder="Mô tả vấn đề để host/admin nắm được bối cảnh..."
                     required
                   />
                 </label>
@@ -444,33 +444,33 @@ export default function UserProfile({ user, onClose, onProfileUpdated }: { user:
                     onChange={e => setSupportForm({ ...supportForm, priority: e.target.checked ? 'urgent' : 'normal' })}
                     className="h-4 w-4 accent-emerald-600"
                   />
-                  Can xu ly gap
+                  Cần xử lý gấp
                 </label>
                 <button className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white hover:bg-emerald-700">
-                  Gui ho tro
+                  Gửi hỗ trợ
                 </button>
               </form>
 
               <div className="space-y-3">
-                <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100">Yeu cau da gui</h3>
+                <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100">Yêu cầu đã gửi</h3>
                 {supportTickets.map(ticket => (
                   <div key={ticket.id} className="rounded-xl border border-zinc-200 dark:border-slate-700 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="font-black text-zinc-900 dark:text-slate-100">#{ticket.id} - {ticket.subject}</div>
-                        <div className="mt-1 text-xs text-zinc-500 dark:text-slate-400">Don #{ticket.booking_id} - {ticket.experience_title || 'Tour'}</div>
+                        <div className="mt-1 text-xs text-zinc-500 dark:text-slate-400">Đơn #{ticket.booking_id} - {ticket.experience_title || 'Tour'}</div>
                       </div>
                       <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${ticket.priority === 'urgent' ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
-                        {ticket.priority === 'urgent' ? 'Gap' : 'Thuong'}
+                        {ticket.priority === 'urgent' ? 'Gấp' : 'Thường'}
                       </span>
                     </div>
                     <p className="mt-3 text-sm text-zinc-600 dark:text-slate-300">{ticket.message}</p>
-                    <div className="mt-3 text-xs font-bold text-zinc-500 dark:text-slate-400">Trang thai: {ticket.status}</div>
+                    <div className="mt-3 text-xs font-bold text-zinc-500 dark:text-slate-400">Trạng thái: {ticket.status === 'open' ? 'Đang mở' : ticket.status === 'in_progress' ? 'Đang xử lý' : ticket.status === 'resolved' ? 'Đã giải quyết' : 'Đã đóng'}</div>
                     {ticket.admin_note && <div className="mt-2 rounded-lg bg-zinc-50 dark:bg-slate-900 p-3 text-sm text-zinc-600 dark:text-slate-300">Admin: {ticket.admin_note}</div>}
                   </div>
                 ))}
                 {supportTickets.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-zinc-300 dark:border-slate-700 p-8 text-center text-sm text-zinc-500 dark:text-slate-400">Chua co yeu cau ho tro nao.</div>
+                  <div className="rounded-xl border border-dashed border-zinc-300 dark:border-slate-700 p-8 text-center text-sm text-zinc-500 dark:text-slate-400">Chưa có yêu cầu hỗ trợ nào.</div>
                 )}
               </div>
             </div>

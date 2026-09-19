@@ -298,30 +298,8 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
             </button>
           </form>
 
-          {!isForgotPassword && (
-            <>
-              <div className="relative mt-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-zinc-200 dark:border-slate-700"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-2 text-zinc-500 dark:bg-slate-900 dark:text-slate-400">
-                    {t('auth_or_continue_with')}
-                  </span>
-                </div>
-              </div>
 
-              <div className="mt-6 flex justify-center w-full">
-                {!GOOGLE_CLIENT_ID ? (
-                  <div className="text-xs text-red-500 p-2 border border-red-200 rounded text-center">
-                    ⚠️ Thiếu VITE_GOOGLE_CLIENT_ID trong biến môi trường
-                  </div>
-                ) : (
-                  <div id="googleSignInDiv" className="w-full flex justify-center"></div>
-                )}
-              </div>
-            </>
-          )}
+
 
           <div className="mt-5 text-center text-sm text-zinc-500 dark:text-slate-400">
             {isForgotPassword ? (
