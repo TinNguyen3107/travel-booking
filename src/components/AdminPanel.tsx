@@ -569,6 +569,8 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
     setConfirmConfig({
       title: 'Reset Mật Khẩu',
       message: 'Bạn có chắc chắn muốn reset mật khẩu của người dùng này về mặc định (123456)?',
+      confirmText: 'Xác nhận Reset',
+      isDanger: false,
       onConfirm: async () => {
         try {
           await fetchJson(`/api/admin/reset-password/${id}`, { method: 'POST' });

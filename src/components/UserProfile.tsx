@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { User, Calendar, History, Shield, Save, XCircle, Heart, MapPin, Clock, Star, X, LifeBuoy } from 'lucide-react';
+import { User, Calendar, History, Shield, Save, XCircle, Heart, MapPin, Clock, Star, X, LifeBuoy, Lock } from 'lucide-react';
 import { BookingTable, formatVnd, ExperienceTable, SupportTicketTable } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -19,6 +19,9 @@ export default function UserProfile({ user, onClose, onProfileUpdated }: { user:
   });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
   useEffect(() => {
     fetch('/api/users/profile', {
@@ -237,6 +240,7 @@ export default function UserProfile({ user, onClose, onProfileUpdated }: { user:
 
         <div className="p-6">
           {activeTab === 'info' && (
+            <>
             <form onSubmit={handleUpdate} className="max-w-xl mx-auto space-y-4">
               <div className="flex justify-center mb-6">
                 <img
@@ -311,6 +315,43 @@ export default function UserProfile({ user, onClose, onProfileUpdated }: { user:
                 {t('profile_save')}
               </button>
             </form>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              if (newPassword.length < 6) { alert('Mật khẩu mới cần tối thiểu 6 ký tự'); return; }
+              if (newPassword !== confirmNewPassword) { alert('Mật khẩu xác nhận không khớp'); return; }
+              try {
+                setSaving(true);
+                const res = await fetch('/api/auth/change-password', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                  body: JSON.stringify({ oldPassword, newPassword })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.error || 'Đổi mật khẩu thất bại'); return; }
+                alert('Đổi mật khẩu thành công!');
+                setOldPassword(''); setNewPassword(''); setConfirmNewPassword('');
+              } catch { alert('Lỗi kết nối'); } finally { setSaving(false); }
+            }} className="max-w-xl mx-auto space-y-4 mt-8 pt-6 border-t border-zinc-200 dark:border-slate-700">
+              <h3 className="text-lg font-black text-zinc-900 dark:text-slate-100">🔐 Đổi mật khẩu</h3>
+              <div>
+                <label className="block text-xs font-bold text-zinc-700 dark:text-slate-200 uppercase mb-1">Mật khẩu hiện tại</label>
+                <input type="password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-slate-700 focus:border-emerald-500 outline-none" required />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-zinc-700 dark:text-slate-200 uppercase mb-1">Mật khẩu mới</label>
+                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-slate-700 focus:border-emerald-500 outline-none" required />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-zinc-700 dark:text-slate-200 uppercase mb-1">Xác nhận mật khẩu mới</label>
+                <input type="password" value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-slate-700 focus:border-emerald-500 outline-none" required />
+              </div>
+              <button type="submit" disabled={saving} className="w-full flex justify-center items-center gap-2 bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 disabled:opacity-50">
+                <Lock className="h-5 w-5" />
+                Đổi mật khẩu
+              </button>
+            </form>
+          </>
           )}
 
           {(activeTab === 'history' || activeTab === 'cancelled') && (
