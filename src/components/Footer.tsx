@@ -65,7 +65,7 @@ export default function Footer({ onNavigate }: FooterProps) {
             </p>
             <p className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-emerald-500" />
-              0383 300 704
+              0775 xxx xxx
             </p>
             <p className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-emerald-500" />
