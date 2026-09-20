@@ -667,6 +667,18 @@ class RelationalDatabase {
     return rows[0];
   }
 
+  public async findUserById(id: number): Promise<UserTable | undefined> {
+    const [rows] = await pool.query<UserRow[]>(
+      'SELECT * FROM users WHERE id = ? LIMIT 1',
+      [id]
+    );
+    return rows[0];
+  }
+
+  public async updateUserPassword(userId: number, hashedPassword: string): Promise<void> {
+    await pool.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
+  }
+
   public async getUsers(): Promise<UserTable[]> {
     const [rows] = await pool.query<UserRow[]>(
       'SELECT id, email, role, fullname FROM users ORDER BY id DESC'

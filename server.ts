@@ -424,7 +424,7 @@ app.use(async (req, res, next) => {
     });
   }
 
-  const requireAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
     const user = (req as any).user;
     if (!user || user.role !== 'admin') {
       res.status(403).json({ error: 'Chỉ Admin mới có quyền truy cập' });
@@ -433,7 +433,7 @@ app.use(async (req, res, next) => {
     next();
   };
 
-  const requireHostOrAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  function requireHostOrAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
     const user = (req as any).user;
     if (!user || (user.role !== 'admin' && user.role !== 'host')) {
       res.status(403).json({ error: 'Chỉ Host hoặc Admin mới có quyền truy cập' });
