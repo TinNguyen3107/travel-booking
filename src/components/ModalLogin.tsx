@@ -226,7 +226,28 @@ export default function ModalLogin({ onClose, onLoginSuccess }: ModalLoginProps)
                   {isForgotPassword ? t('auth_password_new') : t('auth_password')}
                 </span>
                 {!isRegisterMode && !isForgotPassword && (
-                  <button type="button" onClick={() => alert('Vui lòng liên hệ Admin để được cấp lại mật khẩu.\n\nAdmin sẽ kiểm tra và kích hoạt lại tài khoản cho bạn.')} className="text-xs font-bold text-emerald-600 hover:underline">
+                  <button type="button" onClick={async () => {
+                    if (!email || !emailPattern.test(email)) {
+                      setError('Vui lòng nhập đúng email của bạn ở ô trên trước khi yêu cầu cấp lại mật khẩu.');
+                      return;
+                    }
+                    try {
+                      const res = await fetch('/api/auth/forgot-password-request', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                      });
+                      const data = await res.json();
+                      if (!res.ok) {
+                        setError(data.error || 'Không thể gửi yêu cầu');
+                        return;
+                      }
+                      setError(null);
+                      alert('Yêu cầu cấp lại mật khẩu đã được gửi đến Admin.\n\nAdmin sẽ kiểm tra và reset mật khẩu về mặc định cho bạn. Vui lòng liên hệ Admin để nhận mật khẩu mới.');
+                    } catch {
+                      setError('Lỗi kết nối mạng, vui lòng thử lại.');
+                    }
+                  }} className="text-xs font-bold text-emerald-600 hover:underline">
                     Quên mật khẩu?
                   </button>
                 )}

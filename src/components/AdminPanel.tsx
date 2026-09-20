@@ -20,7 +20,8 @@ import {
   Trash2,
   Users,
   Calendar,
-  XCircle
+  XCircle,
+  Key
 } from 'lucide-react';
 import {
   BookingTable,
@@ -108,6 +109,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
   const [supportTickets, setSupportTickets] = useState<SupportTicketTable[]>([]);
   const [postReports, setPostReports] = useState<PostReportTable[]>([]);
   const [users, setUsers] = useState<UserTable[]>([]);
+  const [passwordResetRequests, setPasswordResetRequests] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserTable | null>(null);
   const [selectedUserLoading, setSelectedUserLoading] = useState(false);
   const [hosts, setHosts] = useState<HostApplicationTable[]>([]);
@@ -234,7 +236,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
     setError(null);
 
     try {
-      const [experienceData, bookingData, userData, hostData, categoryData, promoData, supportData, postReportData] = await Promise.all([
+      const [experienceData, bookingData, userData, hostData, categoryData, promoData, supportData, postReportData, resetRequestsData] = await Promise.all([
         fetchJson<ExperienceTable[]>('/api/experiences'),
         fetchJson<BookingTable[]>(isHost ? `/api/bookings?role=host&email=${encodeURIComponent(currentUser?.email)}` : '/api/bookings?role=admin'),
         fetchJson<UserTable[]>('/api/users'),
@@ -242,7 +244,8 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
         fetchJson<{ id: number; name: string }[]>('/api/categories'),
         fetchJson<any[]>('/api/promotions'),
         fetchJson<SupportTicketTable[]>('/api/support-tickets'),
-        isHost ? Promise.resolve([]) : fetchJson<PostReportTable[]>('/api/post-reports')
+        isHost ? Promise.resolve([]) : fetchJson<PostReportTable[]>('/api/post-reports'),
+        isHost ? Promise.resolve([]) : fetchJson<any[]>('/api/admin/password-reset-requests')
       ]);
 
       setExperiences(isHost ? (experienceData || []).filter(e => e.host_email === currentUser?.email) : (experienceData || []));
@@ -253,6 +256,7 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
       setPromotions(promoData || []);
       setSupportTickets(supportData || []);
       setPostReports(postReportData || []);
+      setPasswordResetRequests(resetRequestsData || []);
 
     } catch (err: any) {
       setError(err.message || 'Không thể tải dữ liệu quản trị');
@@ -559,6 +563,22 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
     } catch (err: any) {
       setError(err.message);
     }
+  };
+
+  const resetUserPassword = async (id: number) => {
+    setConfirmConfig({
+      title: 'Reset Mật Khẩu',
+      message: 'Bạn có chắc chắn muốn reset mật khẩu của người dùng này về mặc định (123456)?',
+      onConfirm: async () => {
+        try {
+          await fetchJson(`/api/admin/reset-password/${id}`, { method: 'POST' });
+          alert('Đã reset mật khẩu thành công về 123456');
+          await fetchAllData();
+        } catch (err: any) {
+          setError(err.message);
+        }
+      }
+    });
   };
 
   const deleteUser = async (id: number) => {
@@ -1490,6 +1510,20 @@ export default function AdminPanel({ onExperiencesChange, activeSection, current
                             <option value="admin">Admin</option>
                             <option value="host">Host</option>
                           </select>
+                          <button
+                            type="button"
+                            onClick={() => resetUserPassword(item.id)}
+                            className="rounded-lg border border-orange-100 p-2 text-orange-600 hover:bg-orange-50 mr-2 relative group"
+                            aria-label="Reset mật khẩu"
+                          >
+                            <Key className="h-4 w-4" />
+                            {passwordResetRequests.some(r => r.user_id === item.id) && (
+                              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
+                              </span>
+                            )}
+                          </button>
                           <button
                             type="button"
                             onClick={() => deleteUser(item.id)}

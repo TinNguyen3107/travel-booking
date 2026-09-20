@@ -361,6 +361,49 @@ app.use(async (req, res, next) => {
       res.json({ success: true, message: 'Đổi mật khẩu thành công' });
     } catch (e: any) { handleError(res, e); }
   });
+
+  // Forgot password: tạo yêu cầu reset mật khẩu (không cần đăng nhập)
+  app.post('/api/auth/forgot-password-request', async (req, res) => {
+    try {
+      const email = cleanText(req.body.email).toLowerCase();
+      if (!email || !emailPattern.test(email)) {
+        res.status(400).json({ error: 'Email không hợp lệ' });
+        return;
+      }
+      const user = await db.findUser(email);
+      if (!user) {
+        res.status(404).json({ error: 'Email này chưa được đăng ký trên hệ thống' });
+        return;
+      }
+      // Tạo một password reset request trong DB
+      await db.createPasswordResetRequest(email);
+      res.json({ success: true, message: 'Yêu cầu đã được gửi đến Admin' });
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  // Admin reset password cho user về mặc định 123456
+  app.post('/api/admin/reset-password/:userId', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const userId = Number(req.params.userId);
+      if (!userId) {
+        res.status(400).json({ error: 'ID người dùng không hợp lệ' });
+        return;
+      }
+      const defaultPassword = '123456';
+      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+      await db.updateUserPassword(userId, hashedPassword);
+      // Đánh dấu request đã xử lý
+      await db.resolvePasswordResetRequests(userId);
+      res.json({ success: true, message: `Đã reset mật khẩu về mặc định (${defaultPassword})` });
+    } catch (e: any) { handleError(res, e); }
+  });
+
+  // Admin lấy danh sách yêu cầu reset mật khẩu
+  app.get('/api/admin/password-reset-requests', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      res.json(await db.getPasswordResetRequests());
+    } catch (e: any) { handleError(res, e); }
+  });
   // Auth Middleware
   function authenticateToken(req: express.Request, res: express.Response, next: express.NextFunction) {
     const authHeader = req.headers['authorization'];

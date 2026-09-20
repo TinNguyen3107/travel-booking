@@ -477,6 +477,16 @@ class RelationalDatabase {
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS password_reset_requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_email VARCHAR(255) NOT NULL,
+        status ENUM('pending', 'resolved') NOT NULL DEFAULT 'pending',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_prr_email (user_email)
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+
 
     // Phase 2: tour_schedules table
     await pool.query(`
@@ -2062,6 +2072,34 @@ class RelationalDatabase {
       'DELETE FROM notifications WHERE id = ? AND user_email = ?',
       [id, userEmail]
     );
+  }
+  public async createPasswordResetRequest(email: string): Promise<boolean> {
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      'INSERT INTO password_reset_requests (user_email) VALUES (?)',
+      [email]
+    );
+    return result.affectedRows > 0;
+  }
+
+  public async resolvePasswordResetRequests(userId: number): Promise<boolean> {
+    const user = await this.findUserById(userId);
+    if (!user) return false;
+    const [result] = await pool.query<mysql.ResultSetHeader>(
+      'UPDATE password_reset_requests SET status = ? WHERE user_email = ?',
+      ['resolved', user.email]
+    );
+    return result.affectedRows > 0;
+  }
+
+  public async getPasswordResetRequests(): Promise<any[]> {
+    const [rows] = await pool.query<any[]>(
+      `SELECT prr.*, u.fullname, u.id as user_id 
+       FROM password_reset_requests prr
+       JOIN users u ON prr.user_email = u.email
+       WHERE prr.status = 'pending'
+       ORDER BY prr.created_at DESC`
+    );
+    return rows;
   }
 }
 
