@@ -61,11 +61,11 @@ export default function Footer({ onNavigate }: FooterProps) {
           <div className="mt-4 space-y-3 text-sm text-zinc-400 dark:text-slate-500">
             <p className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-emerald-500" />
-              thuthanhlich@gmail.com
+              tin3107@gmail.com
             </p>
             <p className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-emerald-500" />
-              0775 xxx xxx
+              0775 460 916
             </p>
             <p className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-emerald-500" />
